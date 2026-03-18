@@ -786,6 +786,7 @@ const PatternEditor = ({
               }
               zoomDragRef.current = null;
             }}
+            onDoubleClick={(e) => { e.stopPropagation(); setZoom(1); }}
           >{Math.round(zoom * 100)}%</span>
         )}
         {zoom !== 1 && <button onClick={(e) => { e.stopPropagation(); setZoom(1); }} style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.65rem', cursor: 'pointer' }}>reset</button>}
