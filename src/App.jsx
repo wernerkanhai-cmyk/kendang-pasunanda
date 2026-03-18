@@ -199,6 +199,37 @@ function App() {
     if (currentSongId === id) setCurrentSongId(null);
   };
 
+  const handleExportLibrary = () => {
+    const blob = new Blob([JSON.stringify(savedSongs, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kendang-bibliotheek-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportLibrary = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!Array.isArray(imported)) throw new Error();
+        setSavedSongs(prev => {
+          const existingIds = new Set(prev.map(s => s.id));
+          const nieuwen = imported.filter(s => s.id && s.name && !existingIds.has(s.id));
+          return [...prev, ...nieuwen];
+        });
+      } catch {
+        alert('Ongeldig bestand — verwacht een .json bibliotheek.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const handleLoadPreset = (presetId) => {
     const preset = FACTORY_PRESETS.find(p => p.id === presetId);
     if (!preset) return;
@@ -956,7 +987,22 @@ function App() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>📚 Song Bibliotheek</span>
-                  <button onClick={() => setShowSongLibrary(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button
+                      onClick={handleExportLibrary}
+                      disabled={savedSongs.length === 0}
+                      style={{ background: savedSongs.length > 0 ? '#1e293b' : 'transparent', color: savedSongs.length > 0 ? '#38bdf8' : '#475569', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: savedSongs.length > 0 ? 'pointer' : 'default' }}
+                      title="Download bibliotheek als .json bestand"
+                    >⬇ Exporteer</button>
+                    <label
+                      style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
+                      title="Importeer .json bibliotheek van een ander apparaat"
+                    >
+                      ⬆ Importeer
+                      <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportLibrary} />
+                    </label>
+                    <button onClick={() => setShowSongLibrary(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                  </div>
                 </div>
                 <input
                   type="text"
