@@ -84,16 +84,49 @@ function App() {
     setDragPatId(null); setDragOverPatId(null);
   };
 
-  // Floating drum panel
-  const [drumPos, setDrumPos] = useState({ x: 16, y: 80 });
-  const drumDragRef = useRef(null);
-  const handleDrumDragStart = (e) => {
-    e.preventDefault();
-    drumDragRef.current = { startX: e.clientX - drumPos.x, startY: e.clientY - drumPos.y };
-    const onMove = (ev) => setDrumPos({ x: ev.clientX - drumDragRef.current.startX, y: ev.clientY - drumDragRef.current.startY });
-    const onUp = () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  // Floating drum panel — position + size, persisted in localStorage
+  const [drumPos, setDrumPos] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('drumPos')) || { x: 16, y: 80 }; } catch { return { x: 16, y: 80 }; }
+  });
+  const [drumSize, setDrumSize] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('drumSize')) || { w: 300, h: 520 }; } catch { return { w: 300, h: 520 }; }
+  });
+  useEffect(() => { localStorage.setItem('drumPos', JSON.stringify(drumPos)); }, [drumPos]);
+  useEffect(() => { localStorage.setItem('drumSize', JSON.stringify(drumSize)); }, [drumSize]);
+
+  const drumInteractRef = useRef(null);
+  const startDrumInteract = (type, clientX, clientY) => {
+    drumInteractRef.current = {
+      type, startX: clientX, startY: clientY,
+      origX: drumPos.x, origY: drumPos.y,
+      startW: drumSize.w, startH: drumSize.h,
+    };
+    const onMove = (ev) => {
+      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      const d = drumInteractRef.current;
+      if (!d) return;
+      const dx = cx - d.startX, dy = cy - d.startY;
+      if (d.type === 'drag') {
+        setDrumPos({
+          x: Math.max(0, Math.min(window.innerWidth - d.startW - 4, d.origX + dx)),
+          y: Math.max(0, Math.min(window.innerHeight - 44, d.origY + dy)),
+        });
+      } else {
+        setDrumSize({ w: Math.max(180, d.startW + dx), h: Math.max(160, d.startH + dy) });
+      }
+    };
+    const onEnd = () => {
+      drumInteractRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
     window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
   };
 
   useEffect(() => {
@@ -995,19 +1028,20 @@ function App() {
             position: 'fixed',
             left: drumPos.x,
             top: drumPos.y,
-            width: '300px',
-            minWidth: '200px',
-            minHeight: '200px',
-            resize: 'both',
-            overflow: 'auto',
+            width: drumSize.w,
+            height: drumSize.h,
+            minWidth: '180px',
+            minHeight: '160px',
             zIndex: 100,
             display: 'flex',
             flexDirection: 'column',
+            overflow: 'hidden',
           }}
         >
           {/* Drag handle */}
           <div
-            onMouseDown={handleDrumDragStart}
+            onMouseDown={(e) => { e.preventDefault(); startDrumInteract('drag', e.clientX, e.clientY); }}
+            onTouchStart={(e) => { e.preventDefault(); startDrumInteract('drag', e.touches[0].clientX, e.touches[0].clientY); }}
             style={{
               cursor: 'grab',
               background: 'rgba(255,255,255,0.04)',
@@ -1019,16 +1053,41 @@ function App() {
               flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
+              gap: '6px',
+              touchAction: 'none',
             }}
-          >⠿ Instrument</div>
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          >
+            <span style={{ letterSpacing: '1px' }}>⠿</span>
+            <span>Instrument</span>
+          </div>
+
+          {/* Content */}
+          <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
             <DrumPad
               onTrigger={handleDrumTrigger}
               inputMode={inputMode}
               setInputMode={setInputMode}
               onGongTrigger={handleGongSample}
             />
+          </div>
+
+          {/* Resize handle — bottom-right corner */}
+          <div
+            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startDrumInteract('resize', e.clientX, e.clientY); }}
+            onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); startDrumInteract('resize', e.touches[0].clientX, e.touches[0].clientY); }}
+            style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: '18px', height: '18px',
+              cursor: 'nwse-resize',
+              touchAction: 'none',
+              display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end',
+              padding: '2px',
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <line x1="9" y1="1" x2="1" y2="9" stroke="#475569" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="9" y1="5" x2="5" y2="9" stroke="#475569" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
           </div>
         </div>
 
