@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* --- Custom Font Declaration --- */
+@font-face {
+  font-family: 'Kendang';
+  src: url('/fonts/NeoDamina Werner edit.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --bg-dark: #0a0b10;
+  --bg-panel: #14161f;
+  --bg-row: #1d1f2a;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-focus: rgba(255, 255, 255, 0.2);
+  
+  --text-main: #e2e8f0;
+  --text-muted: #64748b;
+  
+  /* Anak (Top) = White background, black text */
+  --anak-bg: #ffffff;
+  --anak-color: #000000;
+  --anak-text: #000000;
+
+  /* Indung (Bottom) = White background, red text */
+  --indung-bg: #ffffff;
+  --indung-color: #cc0000;
+  --indung-text: #cc0000;
+
+  /* Rests are colored but 'silent' */
+  
+  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.7);
+  --glass-blur: blur(16px);
+  --transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  color: inherit;
+  transition: var(--transition);
+}
+
+.text-muted { color: var(--text-muted); }
+
+.glass-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+}
+
+.kendang-font {
+  font-family: 'Kendang', monospace;
+  font-weight: normal;
+  font-style: normal;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-focus);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

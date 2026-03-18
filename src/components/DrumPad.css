@@ -1,0 +1,81 @@
+.drum-module {
+  padding: 0.5rem;
+  margin-bottom: 0;
+}
+
+/* Pie wedge hover highlight */
+.pie-wedge {
+  transition: fill 0.12s ease;
+}
+.pie-wedge:hover {
+  fill: rgba(59, 130, 246, 0.65) !important;
+}
+
+.drum-module-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.drum-module-header .hint {
+  font-size: 0.8rem;
+  color: #ffaa00;
+  margin-top: 0.25rem;
+}
+
+/* Image overlay CSS map styling */
+.img-hit-zone {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  aspect-ratio: 1; /* keep perfectly round based on width */
+  border-radius: 50%;
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  font-family: 'Kendang', monospace !important; /* Force The NeoDamina font */
+  font-size: 2.5rem;
+  font-weight: normal !important;
+  color: white;
+  
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px dashed rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  z-index: 10;
+}
+
+.img-hit-zone:hover {
+  background: rgba(59, 130, 246, 0.5); /* Blue highlight */
+  border-style: solid;
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.img-hit-zone:active {
+  background: rgba(255, 255, 255, 0.6);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.rest-zone {
+  position: relative;
+  transform: none;
+  aspect-ratio: auto;
+  border-radius: 6px;
+  padding: 0.5rem 2rem;
+  font-size: 1rem;
+  border-style: solid;
+}
+
+.kendang-symbol {
+  font-family: 'Kendang', monospace !important;
+  font-size: 1.5rem;
+  font-weight: normal !important;
+}
+
+.rest-zone:hover {
+  transform: scale(1.05);
+}
+
+.rest-zone:active {
+  transform: scale(0.95);
+}

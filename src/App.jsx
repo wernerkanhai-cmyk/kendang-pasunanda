@@ -1,0 +1,1065 @@
+import React, { useState, useRef, useEffect } from 'react';
+import './App.css';
+import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots } from './engine/patternLogic';
+import PatternEditor from './components/PatternEditor';
+import DrumPad from './components/DrumPad';
+import OCRScanner from './components/OCRScanner';
+import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
+import { FACTORY_PRESETS, FACTORY_CATEGORIES } from './factory/presets';
+import { AudioScheduler } from './engine/AudioScheduler';
+import { SamplePlayer } from './engine/SamplePlayer';
+
+function App() {
+  const [song, setSong] = useState([ createEmptyPattern('Regel 1') ]);
+  const [activePatternId, setActivePatternId] = useState(song[0].id);
+  // Initialize with a default slot (Anak, slot 0) so the user can immediately start tapping without clicking the grid first.
+  const [activeSlot, setActiveSlot] = useState({ patternId: song[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 }); 
+  const [clipboard, setClipboard] = useState(null);
+  
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
+  
+  // Audio Transport State
+  const [bpm, setBpm] = useState(60);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [precount, setPrecount] = useState(0);
+  const [loopingPatternId, setLoopingPatternId] = useState(null);
+  const loopingPatternIdRef = useRef(null);
+  const [soloTrack, setSoloTrack] = useState(null); // null | 'anak' | 'indung'
+  const soloTrackRef = useRef(null);
+  const [precountPlay, setPrecountPlay] = useState(false);
+  const schedulerRef = useRef(null);
+  const samplerRef = useRef(null);
+  
+  // Grid & Quantize State
+  const [gridResolution, setGridResolution] = useState(6); // 1/8 by default
+  const [magneticInput, setMagneticInput] = useState(false);
+  const [autoQuantize, setAutoQuantize] = useState(false); // Q: snap to grid during live recording
+  const [inputEnabled, setInputEnabled] = useState(true); // Invoer op tijdlijn aan/uit
+
+  // My Patterns Snippet Library
+  const [savedSnippets, setSavedSnippets] = useState(() => {
+    const saved = localStorage.getItem('kendangSnippets');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kendangSnippets', JSON.stringify(savedSnippets));
+  }, [savedSnippets]);
+
+  // Saved Songs Library
+  const [savedSongs, setSavedSongs] = useState(() => {
+    const saved = localStorage.getItem('kendangSavedSongs');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [currentSongId, setCurrentSongId] = useState(null);
+  const [songName, setSongName] = useState('Song 1');
+  const [songFolder, setSongFolder] = useState('Algemeen');
+  const [showSongLibrary, setShowSongLibrary] = useState(false);
+  const [pdfSettings, setPdfSettings] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('pdfSettings'));
+      // Always merge with defaults so new keys (like dotOffset) are always present
+      return saved ? { ...DEFAULT_PDF_SETTINGS, ...saved } : { ...DEFAULT_PDF_SETTINGS };
+    } catch { return { ...DEFAULT_PDF_SETTINGS }; }
+  });
+  const [showPdfSettings, setShowPdfSettings] = useState(false);
+  const [songSearchQuery, setSongSearchQuery] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('kendangSavedSongs', JSON.stringify(savedSongs));
+  }, [savedSongs]);
+
+  // The global switch dictating which track we are writing to from the DrumPad
+  const [inputMode, setInputMode] = useState('anak'); // 'anak' or 'indung'
+
+  // Ref to track tapping speed without stale closures for smart resolution
+  const drumTapRef = useRef({ time: 0, slotIndex: 0, trackId: '' });
+  const lastRewindTimeRef = useRef(0);
+  const currentAudioSlotRef = useRef(0); // Werkelijke afspeelslot (gesynchroniseerd met onTick)
+  const playStartWallTimeRef = useRef(0); // Date.now() op moment dat slot 0 klinkt
+  const cursorOffsetMsRef = useRef(-1750);   // Handmatige cursor-kalibratie in ms
+  const [cursorOffsetMs, setCursorOffsetMs] = useState(-1750);
+
+  const handleSaveSong = () => {
+    const name = songName.trim() || 'Naamloos';
+    const folder = songFolder.trim() || 'Algemeen';
+
+    // "Save As": if name or folder differs from the currently loaded song, always create a new entry
+    const original = currentSongId ? savedSongs.find(s => s.id === currentSongId) : null;
+    const isSaveAs = !original || original.name !== name || original.folder !== folder;
+
+    const entry = {
+      id: isSaveAs ? Date.now().toString() : currentSongId,
+      name,
+      folder,
+      date: new Date().toLocaleDateString('nl-NL'),
+      patterns: JSON.parse(JSON.stringify(song))
+    };
+
+    if (!isSaveAs) {
+      setSavedSongs(prev => prev.map(s => s.id === currentSongId ? entry : s));
+    } else {
+      setSavedSongs(prev => [...prev, entry]);
+      setCurrentSongId(entry.id);
+    }
+  };
+
+  const handleNewSong = () => {
+    const newSongName = `Song ${savedSongs.length + 2}`;
+    const fresh = createEmptyPattern('Regel 1');
+    setSong([fresh]);
+    setActivePatternId(fresh.id);
+    setActiveSlot({ patternId: fresh.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+    setUndoStack([]);
+    setRedoStack([]);
+    setCurrentSongId(null);
+    setSongName(newSongName);
+  };
+
+  const handleLoadSong = (savedId) => {
+    const toLoad = savedSongs.find(s => s.id === savedId);
+    if (!toLoad) return;
+    setSong(toLoad.patterns);
+    setActivePatternId(toLoad.patterns[0].id);
+    setActiveSlot({ patternId: toLoad.patterns[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+    setUndoStack([]);
+    setRedoStack([]);
+    setCurrentSongId(toLoad.id);
+    setSongName(toLoad.name);
+    setSongFolder(toLoad.folder || 'Algemeen');
+    setShowSongLibrary(false);
+  };
+
+  const handleDeleteSong = (id) => {
+    setSavedSongs(prev => prev.filter(s => s.id !== id));
+    if (currentSongId === id) setCurrentSongId(null);
+  };
+
+  const handleLoadPreset = (presetId) => {
+    const preset = FACTORY_PRESETS.find(p => p.id === presetId);
+    if (!preset) return;
+    const block = { ...preset, id: crypto.randomUUID() };
+    setSong([block]);
+    setActivePatternId(block.id);
+    setActiveSlot({ patternId: block.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+    setUndoStack([]);
+    setRedoStack([]);
+  };
+
+  // Ref to last added song block for auto-scroll
+  const lastAddedBlockRef = useRef(null);
+
+  const addSongBlock = () => {
+    setUndoStack(prev => [...prev.slice(-49), song]);
+    setRedoStack([]);
+    const newBlock = createEmptyPattern(`Regel ${song.length + 1}`);
+    setSong(prev => [...prev, newBlock]);
+    setActivePatternId(newBlock.id);
+    lastAddedBlockRef.current = newBlock.id;
+  };
+
+  const insertSongBlockAfter = (afterId) => {
+    setUndoStack(prev => [...prev.slice(-49), song]);
+    setRedoStack([]);
+    const newBlock = createEmptyPattern(`Regel ${song.length + 1}`);
+    setSong(prev => {
+      const idx = prev.findIndex(p => p.id === afterId);
+      const next = [...prev];
+      next.splice(idx + 1, 0, newBlock);
+      return next;
+    });
+    setActivePatternId(newBlock.id);
+    lastAddedBlockRef.current = newBlock.id;
+  };
+
+  // Auto-scroll to newly added block
+  useEffect(() => {
+    if (lastAddedBlockRef.current) {
+      const el = document.getElementById(`block-${lastAddedBlockRef.current}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      lastAddedBlockRef.current = null;
+    }
+  }, [song]);
+
+  const updatePattern = (id, updatedPattern) => {
+    // Basic history management for pattern updates (Clear, Paste, Typing)
+    setUndoStack(prev => [...prev.slice(-49), song]);
+    setRedoStack([]);
+    
+    setSong(song.map(p => p.id === id ? updatedPattern : p));
+  };
+
+  const insertMeasure = (patternId, atSlotIndex) => {
+    setUndoStack(prev => [...prev.slice(-49), song]);
+    setRedoStack([]);
+
+    setSong(prevSong => {
+      const pIdx = prevSong.findIndex(p => p.id === patternId);
+      if (pIdx === -1) return prevSong;
+
+      const measureStart = Math.floor(atSlotIndex / 48) * 48;
+      const newPattern = JSON.parse(JSON.stringify(prevSong[pIdx]));
+      
+      const emptyAnak = generateEmptySlots(48);
+      const emptyIndung = generateEmptySlots(48);
+      
+      // Insert new blank measure right at the cursor's measure start
+      newPattern.anak.splice(measureStart, 0, ...emptyAnak);
+      newPattern.indung.splice(measureStart, 0, ...emptyIndung);
+      
+      const nextSong = [...prevSong];
+      nextSong[pIdx] = newPattern;
+      return nextSong;
+    });
+  };
+
+  const deleteMeasure = (patternId, atSlotIndex) => {
+    setUndoStack(prev => [...prev.slice(-49), song]);
+    setRedoStack([]);
+    
+    let newLength = 0;
+
+    setSong(prevSong => {
+      const pIdx = prevSong.findIndex(p => p.id === patternId);
+      if (pIdx === -1) return prevSong;
+      
+      const measureStart = Math.floor(atSlotIndex / 48) * 48;
+      const newPattern = JSON.parse(JSON.stringify(prevSong[pIdx]));
+      
+      if (newPattern.anak.length <= 48) return prevSong; // don't delete last measure
+      
+      newPattern.anak.splice(measureStart, 48);
+      newPattern.indung.splice(measureStart, 48);
+      
+      newLength = newPattern.anak.length;
+      
+      const nextSong = [...prevSong];
+      nextSong[pIdx] = newPattern;
+      return nextSong;
+    });
+    
+    // Auto-adjust the playhead / cursor if we deleted the measure it was standing on
+    setTimeout(() => {
+        if (newLength > 0) {
+           setActiveSlot(prev => {
+              if (!prev || prev.patternId !== patternId) return prev;
+              let newStart = prev.startIndex;
+              const measureStart = Math.floor(atSlotIndex / 48) * 48;
+              if (newStart >= measureStart + 48) newStart -= 48;
+              else if (newStart >= measureStart) newStart = measureStart;
+              
+              if (newStart >= newLength) newStart = newLength - 12; // fallback to start of last beat
+              if (newStart < 0) newStart = 0;
+              
+              return { ...prev, startIndex: newStart, endIndex: newStart };
+           });
+        }
+    }, 0);
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length === 0) return;
+    const previousState = undoStack[undoStack.length - 1];
+    setRedoStack(prev => [...prev, song]); // Save current state to redo
+    setSong(previousState);
+    setUndoStack(prev => prev.slice(0, -1)); // Remove the popped state
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
+    const nextState = redoStack[redoStack.length - 1];
+    setUndoStack(prev => [...prev.slice(-49), song]); // Save current state to undo
+    setSong(nextState);
+    setRedoStack(prev => prev.slice(0, -1)); // Remove the popped state
+  };
+
+  // Initialize Web Audio Scheduler + SamplePlayer
+  useEffect(() => {
+    const sampler = new SamplePlayer();
+    samplerRef.current = sampler;
+    // Maak de gedeelde AudioContext direct aan (voor sampler én scheduler)
+    const sharedCtx = sampler.getContext();
+    sampler.loadAll();
+
+    // Helper: map global slot → { pattern, localSlot }
+    const resolveSlot = (globalSlot) => {
+      const currentSong = songRef.current;
+      if (!currentSong) return null;
+      let remaining = globalSlot;
+      for (const p of currentSong) {
+        if (remaining < p.anak.length) return { tickPattern: p, localSlot: remaining };
+        remaining -= p.anak.length;
+      }
+      return null;
+    };
+
+    schedulerRef.current = new AudioScheduler(
+      // onTick — slot tracking voor opname
+      (globalSlot) => { currentAudioSlotRef.current = globalSlot; },
+      // onPrecount
+      (count) => {
+        setPrecount(count);
+        if (count === 0) {
+          if (schedulerRef.current?.isRecording) setIsRecording(true);
+          setIsPlaying(true);
+          // nextNoteTime wordt pas NA onPrecount(0) gezet in _precount,
+          // dus lees het via een microtask zodat we de juiste waarde hebben
+          Promise.resolve().then(() => {
+            const sched = schedulerRef.current;
+            if (sched?.audioCtx) {
+              const outputLatencyMs = ((sched.audioCtx.outputLatency || 0) + (sched.audioCtx.baseLatency || 0)) * 1000;
+              const msUntilFirstNote = Math.max(0, (sched.nextNoteTime - sched.audioCtx.currentTime) * 1000);
+              playStartWallTimeRef.current = Date.now() + msUntilFirstNote + outputLatencyMs;
+            }
+          });
+        }
+      },
+      // onScheduleAudio — samples schedulen op exact audio-tijdstip (100ms vooruit)
+      (globalSlot, audioTime) => {
+        const resolved = resolveSlot(globalSlot);
+        if (!resolved) return;
+        const { tickPattern, localSlot } = resolved;
+        ['anak', 'indung'].forEach(track => {
+          if (soloTrackRef.current && soloTrackRef.current !== track) return;
+          const slot = tickPattern[track][localSlot];
+          if (slot) {
+            if (slot.top && slot.top !== '.') sampler.play(slot.top, track, audioTime);
+            if (slot.bottom && slot.bottom !== '.') sampler.play(slot.bottom, track, audioTime);
+          }
+        });
+        if ((tickPattern.gong || []).includes(localSlot)) sampler.playGong(audioTime);
+      }
+    );
+    // Koppel direct — geen race condition met .then()
+    schedulerRef.current.setAudioContext(sharedCtx);
+    schedulerRef.current.setBpm(bpm);
+
+    return () => {
+      schedulerRef.current.stop();
+    };
+  }, []); // Run once on mount
+
+  // Cursor: wall-clock interval — onafhankelijk van AudioContext timing
+  useEffect(() => {
+    if (!isPlaying) return;
+    const id = setInterval(() => {
+      const sched = schedulerRef.current;
+      if (!sched?.isPlaying) return;
+      const spsMs = sched.getSecondsPerSlot() * 1000;
+      if (spsMs <= 0) return;
+      const elapsed = Date.now() - playStartWallTimeRef.current + cursorOffsetMsRef.current;
+      if (elapsed < 0) return;
+      const loopLen = sched.totalSlots - sched.loopStart;
+      if (loopLen <= 0) return;
+      const globalSlot = sched.loopStart + (Math.floor(elapsed / spsMs) % loopLen);
+      const currentSong = songRef.current;
+      if (!currentSong) return;
+      let remaining = globalSlot;
+      for (const p of currentSong) {
+        if (remaining < p.anak.length) {
+          setActiveSlot(prev => (
+            prev && prev.patternId === p.id && prev.startIndex === remaining ? prev : {
+              patternId: p.id,
+              trackId: prev ? prev.trackId : 'anak',
+              startIndex: remaining,
+              endIndex: remaining,
+            }
+          ));
+          break;
+        }
+        remaining -= p.anak.length;
+      }
+    }, 16);
+    return () => clearInterval(id);
+  }, [isPlaying]);
+
+  // Keep a ref to song so the scheduler closure can always read the latest version
+  const songRef = useRef(song);
+  useEffect(() => {
+    songRef.current = song;
+    if (schedulerRef.current && !loopingPatternIdRef.current) {
+      const total = song.reduce((sum, p) => sum + p.anak.length, 0);
+      schedulerRef.current.setTotalSlots(total);
+    }
+  }, [song]);
+
+  // Helper: map a global slot index to { patternId, localSlot }
+  const globalToLocal = (globalSlot, songArr) => {
+    let remaining = globalSlot;
+    for (const p of songArr) {
+      if (remaining < p.anak.length) return { patternId: p.id, localSlot: remaining };
+      remaining -= p.anak.length;
+    }
+    const last = songArr[songArr.length - 1];
+    return { patternId: last.id, localSlot: last.anak.length - 1 };
+  };
+
+  // Helper: map { patternId, localSlot } to a global slot index
+  const localToGlobal = (patternId, localSlot, songArr) => {
+    let offset = 0;
+    for (const p of songArr) {
+      if (p.id === patternId) return offset + localSlot;
+      offset += p.anak.length;
+    }
+    return localSlot;
+  };
+
+  const toggleSolo = (track) => {
+    const next = soloTrackRef.current === track ? null : track;
+    soloTrackRef.current = next;
+    setSoloTrack(next);
+  };
+
+  const handleBpmChange = (delta) => {
+    const newBpm = Math.max(40, Math.min(240, bpm + delta));
+    setBpm(newBpm);
+    if (schedulerRef.current) schedulerRef.current.setBpm(newBpm);
+  };
+
+  const adjustCursorOffset = (deltaMs) => {
+    cursorOffsetMsRef.current += deltaMs;
+    setCursorOffsetMs(cursorOffsetMsRef.current);
+  };
+
+  const togglePlay = async () => {
+    if (isPlaying && !isRecording) {
+      schedulerRef.current.pause();
+      setIsPlaying(false);
+      if (loopingPatternIdRef.current) {
+        loopingPatternIdRef.current = null;
+        setLoopingPatternId(null);
+        const total = song.reduce((sum, p) => sum + p.anak.length, 0);
+        schedulerRef.current.setTotalSlots(total);
+      }
+    } else if (isPlaying && isRecording) {
+      schedulerRef.current.pause();
+      setIsPlaying(false);
+      setIsRecording(false);
+    } else {
+      // Convert cursor position to a global slot
+      const globalStart = activeSlot
+        ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
+        : 0;
+      if (precountPlay) {
+        setIsPlaying(true);
+        schedulerRef.current.startPlayPrecount(globalStart);
+      } else {
+        await schedulerRef.current.play(false, globalStart);
+        // Wall-clock starttijd voor cursor — NADAT audioCtx.resume() klaar is
+        // Inclusief output latency zodat cursor en geluid gelijk lopen
+        const ctx = schedulerRef.current.audioCtx;
+        const outputLatencyMs = ctx ? ((ctx.outputLatency || 0) + (ctx.baseLatency || 0)) * 1000 : 0;
+        playStartWallTimeRef.current = Date.now() + 50 + outputLatencyMs;
+        setIsPlaying(true);
+      }
+      const { patternId, localSlot } = globalToLocal(globalStart, song);
+      setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+    }
+  };
+
+  const handleLoopPattern = async (patternId) => {
+    if (loopingPatternIdRef.current === patternId) {
+      // Stop loop — herstel normale song totalSlots
+      loopingPatternIdRef.current = null;
+      setLoopingPatternId(null);
+      schedulerRef.current.pause();
+      setIsPlaying(false);
+      const total = song.reduce((sum, p) => sum + p.anak.length, 0);
+      schedulerRef.current.setTotalSlots(total);
+      return;
+    }
+    // Stop eventuele andere playback
+    if (isPlaying) {
+      schedulerRef.current.pause();
+      setIsPlaying(false);
+    }
+    const globalStart = localToGlobal(patternId, 0, song);
+    const pattern = song.find(p => p.id === patternId);
+    if (!pattern) return;
+    loopingPatternIdRef.current = patternId;
+    setLoopingPatternId(patternId);
+    schedulerRef.current.setTotalSlots(globalStart + pattern.anak.length);
+    await schedulerRef.current.play(false, globalStart);
+    const ctx2 = schedulerRef.current.audioCtx;
+    const latMs2 = ctx2 ? ((ctx2.outputLatency || 0) + (ctx2.baseLatency || 0)) * 1000 : 0;
+    playStartWallTimeRef.current = Date.now() + 50 + latMs2;
+    setIsPlaying(true);
+    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: 0, endIndex: 0 } : prev);
+  };
+
+  const rewind = () => {
+    if (schedulerRef.current) {
+      const now = Date.now();
+      const isDoubleClick = now - lastRewindTimeRef.current < 500;
+      lastRewindTimeRef.current = now;
+
+      const globalCurrent = schedulerRef.current.currentSlot;
+      let targetGlobal;
+      if (isDoubleClick) {
+        // Ga naar begin van het huidige patroon (regel)
+        const { patternId } = globalToLocal(globalCurrent, song);
+        targetGlobal = localToGlobal(patternId, 0, song);
+      } else {
+        // Ga naar begin van de huidige maat
+        targetGlobal = globalCurrent - (globalCurrent % 48);
+      }
+      schedulerRef.current.setCurrentSlot(targetGlobal);
+      const { patternId, localSlot } = globalToLocal(targetGlobal, song);
+      setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+    }
+  };
+
+  const stepBack = () => {
+    if (schedulerRef.current) {
+      const globalCurrent = schedulerRef.current.currentSlot;
+      const currentMeasureStart = globalCurrent - (globalCurrent % 48);
+      const prevMeasureStart = Math.max(0, currentMeasureStart - 48);
+      schedulerRef.current.setCurrentSlot(prevMeasureStart);
+      const { patternId, localSlot } = globalToLocal(prevMeasureStart, song);
+      setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+    }
+  };
+
+  const toggleRecord = async () => {
+    if (isPlaying || isRecording) {
+      schedulerRef.current.pause();
+      setIsPlaying(false);
+      setIsRecording(false);
+      setPrecount(0);
+    } else {
+      // Start opname vanaf begin van de maat waar de cursor staat
+      const globalStart = activeSlot
+        ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
+        : 0;
+      setIsRecording('precount'); // Temporary state to disable UI during countdown
+      await schedulerRef.current.startRecordPrecount(globalStart);
+      // OnPrecount(0) callback will set the final true state
+    }
+  };
+
+  const handleGongSample = () => {
+    samplerRef.current?.playGong();
+  };
+
+  const handleDrumTrigger = (symbol, naturalTrack) => {
+    // Speel altijd het geluid af, ook zonder actieve slot
+    if (symbol !== '.') {
+      const trackForSound = activeSlot ? activeSlot.trackId : (naturalTrack || 'anak');
+      samplerRef.current?.play(symbol, trackForSound);
+    }
+    if (!inputEnabled) return;
+    if (!activeSlot && !isRecording) return;
+
+    const now = Date.now();
+    const timeDiff = now - drumTapRef.current.time;
+
+    // THE RULE: You play strictly on ONE set (Anak OR Indung) at a time.
+    // The active row is purely dictated by where the cursor is placed (activeSlot.trackId).
+    // The drumset symbols themselves naturally float to the top or bottom of that selected line.
+    const targetTrack = activeSlot ? activeSlot.trackId : 'anak';
+
+    let targetSlotIndex = activeSlot ? activeSlot.startIndex : 0;
+    let targetPatternId = activeSlot ? activeSlot.patternId : song[0]?.id;
+    let advanceCursor = false;
+    let nextCursorIndex = activeSlot ? activeSlot.startIndex : 0;
+
+    if (isRecording) {
+       // Live recording: scheduler loopt ~1 slot voor door lookahead — corrigeer
+       const rawSlot = schedulerRef.current.currentSlot;
+       const slotsAhead = Math.round((schedulerRef.current.scheduleAheadTime * schedulerRef.current.bpm * 12) / 60);
+       const correctedGlobalSlot = Math.max(schedulerRef.current.loopStart, rawSlot - slotsAhead);
+       let { patternId: recPatternId, localSlot: recLocal } = globalToLocal(correctedGlobalSlot, song);
+       if (autoQuantize) recLocal = Math.round(recLocal / gridResolution) * gridResolution;
+       targetSlotIndex = recLocal;
+       targetPatternId = recPatternId;
+       advanceCursor = false; // AudioScheduler handles visual playhead movement
+       
+    } else {
+       // 'write' mode logic: 
+       // User can write to the top line AND bottom line of the ACTIVE ROW simultaneously.
+       
+       if (timeDiff < 80 && drumTapRef.current.symbolHand !== getHandForSymbol(symbol)) { 
+          // Simultaneous hit on DIFFERENT HANDS (top & bottom keys) - place them on the exact same slot
+          targetSlotIndex = drumTapRef.current.slotIndex; 
+       } else if (drumTapRef.current.trackId === targetTrack && timeDiff < 800) {
+          // Rapid tap on the SAME hand/track in sequence (to write 8ths/16ths consecutively)
+          if (timeDiff < 300) {
+             targetSlotIndex = drumTapRef.current.slotIndex + 3; // 16th note spacing
+          } else {
+             targetSlotIndex = drumTapRef.current.slotIndex + 6; // 8th note spacing
+          }
+          if (magneticInput) {
+             targetSlotIndex = Math.round(targetSlotIndex / gridResolution) * gridResolution;
+          }
+          if (targetSlotIndex >= 192) targetSlotIndex = targetSlotIndex % 192;
+       } else {
+          // EITHER enough time passed to start a new grouping. Write exactly at the cursor!
+          targetSlotIndex = activeSlot ? activeSlot.startIndex : 0; 
+          if (magneticInput) {
+             targetSlotIndex = Math.round(targetSlotIndex / gridResolution) * gridResolution;
+          }
+          if (targetSlotIndex >= 192) targetSlotIndex = 0;
+       }
+       
+       advanceCursor = true;
+       // Advance cursor by the active grid resolution (Q setting).
+       nextCursorIndex = activeSlot.startIndex + gridResolution;
+       
+       // Calculate current dynamic bounds mapping
+       const activePatt = song.find(p => p.id === activeSlot?.patternId) || song[0];
+       const currentMaxSlots = activePatt.anak.length;
+       
+       if (targetSlotIndex >= currentMaxSlots) targetSlotIndex = currentMaxSlots - 12;
+       if (nextCursorIndex >= currentMaxSlots) nextCursorIndex = 0;
+    }
+
+    // Register this tap immediately for the next calculation
+    drumTapRef.current = { 
+       time: now, 
+       slotIndex: targetSlotIndex, 
+       trackId: targetTrack,
+       symbolHand: getHandForSymbol(symbol)
+    };
+
+    setUndoStack(prev => [...prev.slice(-49), song]);
+    setRedoStack([]);
+
+    setSong(prevSong => {
+      const currentPatternIdx = prevSong.findIndex(p => p.id === targetPatternId);
+      if (currentPatternIdx === -1) return prevSong;
+
+      let modifiedPattern;
+      
+      // If the user hit '.' (Rust) and has a range selected natively, clear the entire range instead of just writing 1 dot.
+      if (symbol === '.' && activeSlot && activeSlot.startIndex !== activeSlot.endIndex) {
+         const start = Math.min(activeSlot.startIndex, activeSlot.endIndex);
+         const end = Math.max(activeSlot.startIndex, activeSlot.endIndex);
+         
+         modifiedPattern = JSON.parse(JSON.stringify(prevSong[currentPatternIdx]));
+         for (let i = start; i <= end; i++) {
+            modifiedPattern[targetTrack][i] = { top: (i % 12 === 0) ? '.' : '', bottom: (i % 12 === 0) ? '.' : '' };
+         }
+      } else {
+         modifiedPattern = writeSymbolToPattern(prevSong[currentPatternIdx], targetTrack, targetSlotIndex, symbol);
+      }
+
+      const nextSong = [...prevSong];
+      nextSong[currentPatternIdx] = modifiedPattern;
+      return nextSong;
+    });
+
+    if (advanceCursor) {
+      setActiveSlot(prevSlot => {
+        if (!prevSlot) return prevSlot;
+        // The cursor itself always visually highlights what inputMode says is active
+        return { patternId: prevSlot.patternId, trackId: inputMode, startIndex: nextCursorIndex, endIndex: nextCursorIndex };
+      });
+    }
+  };
+
+  // ---- MY PATTERNS / SNIPPET LIBRARY FLOWS ----
+  const handleSaveSnippet = (name, folder, data, replaceId = null) => {
+     const newSnippet = {
+        id: replaceId || Date.now().toString(),
+        name,
+        folder: folder || 'Algemeen',
+        data: JSON.parse(JSON.stringify(data)) // deep copy: { anak, indung }
+     };
+     if (replaceId) {
+        setSavedSnippets(prev => prev.map(s => s.id === replaceId ? newSnippet : s));
+     } else {
+        setSavedSnippets(prev => [...prev, newSnippet]);
+     }
+  };
+
+  const handleDeleteSnippet = (snippetId) => {
+     setSavedSnippets(prev => prev.filter(s => s.id !== snippetId));
+  };
+  
+  const handleInsertSnippet = (snippet) => {
+     let targetPatternIdx = 0;
+     let targetSlotIdx = 0;
+
+     if (activeSlot) {
+         targetPatternIdx = song.findIndex(p => p.id === activeSlot.patternId);
+         targetSlotIdx = activeSlot.startIndex;
+     }
+     if (targetPatternIdx === -1) targetPatternIdx = 0;
+
+     // Nieuw formaat: { anak, indung, gong }. Oud formaat: array (backward compat)
+     const anakData   = snippet.data.anak   ?? snippet.data;
+     const indungData = snippet.data.indung ?? null;
+     const gongData   = snippet.data.gong   ?? null;
+     const snippetLength = anakData.length;
+
+     const newSong = [...song];
+     const newPattern = JSON.parse(JSON.stringify(newSong[targetPatternIdx]));
+
+     // AUTO-EXTEND SEQUENCE IF SNIPPET EXCEEDS CURRENT LENGTH
+     const requiredLength = targetSlotIdx + snippetLength;
+     if (requiredLength > newPattern.anak.length) {
+        const slotsNeeded = requiredLength - newPattern.anak.length;
+        const measuresNeeded = Math.ceil(slotsNeeded / 48);
+        newPattern.anak.push(...generateEmptySlots(measuresNeeded * 48));
+        newPattern.indung.push(...generateEmptySlots(measuresNeeded * 48));
+     }
+
+     for (let i = 0; i < snippetLength; i++) {
+        const destIdx = targetSlotIdx + i;
+        if (destIdx >= newPattern.anak.length) break;
+        newPattern.anak[destIdx]   = JSON.parse(JSON.stringify(anakData[i]));
+        if (indungData && i < indungData.length)
+          newPattern.indung[destIdx] = JSON.parse(JSON.stringify(indungData[i]));
+     }
+     
+     if (gongData && gongData.length > 0) {
+       const existingGong = new Set(newPattern.gong || []);
+       gongData.forEach(g => existingGong.add(targetSlotIdx + g));
+       newPattern.gong = Array.from(existingGong).sort((a, b) => a - b);
+     }
+
+     newSong[targetPatternIdx] = newPattern;
+     setUndoStack(prev => [...prev.slice(-49), song]);
+     setRedoStack([]);
+     setSong(newSong);
+
+     // Advance the cursor past the inserted snippet Length if we are using an active tracking slot
+     if (activeSlot) {
+        let nextCursor = targetSlotIdx + snippetLength;
+        if (magneticInput) nextCursor = Math.round(nextCursor / gridResolution) * gridResolution;
+        if (nextCursor >= newPattern.anak.length) nextCursor = 0;
+        setActiveSlot(prev => ({...prev, startIndex: nextCursor, endIndex: nextCursor}));
+     }
+  };
+
+  const handleGongToggle = (patternId, blockStart) => {
+     setSong(prev => prev.map(p => {
+        if (p.id !== patternId) return p;
+        const gong = p.gong || [];
+        const isActive = gong.includes(blockStart);
+        return { ...p, gong: isActive ? gong.filter(s => s !== blockStart) : [...gong, blockStart] };
+     }));
+  };
+
+  return (
+    <div className="app-container">
+      <header className="app-header">
+        <div className="branding">
+          <h1>Kendang Pasunanda</h1>
+          <p>Sequencer & OCR Studio (v7.1)</p>
+        </div>
+        <div className="global-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <OCRScanner onScanResult={(patterns) => {
+            if (patterns.length === 0) return;
+            setUndoStack(prev => [...prev.slice(-49), song]);
+            setRedoStack([]);
+            setSong(prev => {
+              // Verwijder de standaard lege startregel als die er nog als enige staat
+              const isDefault = prev.length === 1 &&
+                prev[0].name === 'Regel 1' &&
+                prev[0].anak.every(s => s.top === '.' || s.top === '') &&
+                prev[0].indung.every(s => s.top === '.' || s.top === '');
+              return isDefault ? patterns : [...prev, ...patterns];
+            });
+            setActivePatternId(patterns[0].id);
+            setActiveSlot({ patternId: patterns[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+          }} />
+          <div style={{ position: 'relative', display: 'inline-flex', gap: '2px' }}>
+            <button
+              className="btn-secondary"
+              style={{ background: 'transparent', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px 0 0 6px', border: '1px solid var(--border-focus)' }}
+              onClick={() => exportSequencerToPDF(song, songName, pdfSettings)}
+            >📄 PDF Export</button>
+            <button
+              style={{ background: 'transparent', color: '#e2e8f0', padding: '0.6rem 0.5rem', borderRadius: '0 6px 6px 0', border: '1px solid var(--border-focus)', borderLeft: 'none', cursor: 'pointer' }}
+              onClick={() => setShowPdfSettings(v => !v)}
+              title="PDF layout instellingen"
+            >⚙️</button>
+
+            {showPdfSettings && (
+              <div style={{
+                position: 'absolute', top: '110%', right: 0, zIndex: 200,
+                background: '#1e293b', border: '1px solid #334155', borderRadius: '8px',
+                padding: '1rem', minWidth: '260px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                color: '#e2e8f0', fontSize: '0.8rem',
+              }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '0.7rem', color: '#94a3b8' }}>PDF layout instellingen</div>
+                {[
+                  { key: 'beamTop1',    label: 'Beam boven (8e)' },
+                  { key: 'beamTop2',    label: 'Beam boven (16e)' },
+                  { key: 'beamBottom1', label: 'Beam onder (8e)' },
+                  { key: 'beamBottom2', label: 'Beam onder (16e)' },
+                  { key: 'symAbove',    label: 'Symbool afstand boven' },
+                  { key: 'symBelow',    label: 'Symbool afstand onder' },
+                  { key: 'dotTopOffset',    label: 'Stip boven (offset)' },
+                  { key: 'dotBottomOffset', label: 'Stip onder (offset)' },
+                ].map(({ key, label }) => (
+                  <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', gap: '0.5rem' }}>
+                    <span style={{ flex: 1 }}>{label}</span>
+                    <input
+                      type="number"
+                      value={pdfSettings[key]}
+                      onChange={e => {
+                        const val = parseInt(e.target.value, 10);
+                        if (isNaN(val)) return;
+                        const next = { ...pdfSettings, [key]: val };
+                        setPdfSettings(next);
+                        localStorage.setItem('pdfSettings', JSON.stringify(next));
+                      }}
+                      style={{ width: '60px', padding: '2px 4px', borderRadius: '4px', border: '1px solid #475569', background: '#0f172a', color: '#e2e8f0', textAlign: 'right' }}
+                    />
+                  </div>
+                ))}
+                <button
+                  onClick={() => {
+                    setPdfSettings({ ...DEFAULT_PDF_SETTINGS });
+                    localStorage.setItem('pdfSettings', JSON.stringify(DEFAULT_PDF_SETTINGS));
+                  }}
+                  style={{ marginTop: '0.5rem', width: '100%', padding: '0.3rem', background: '#334155', border: 'none', borderRadius: '4px', color: '#e2e8f0', cursor: 'pointer', fontSize: '0.75rem' }}
+                >↺ Standaard herstellen</button>
+              </div>
+            )}
+          </div>
+          
+          <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
+
+          {FACTORY_PRESETS.length > 0 && (
+            <select
+              defaultValue=""
+              onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; } }}
+              style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '6px', padding: '0.55rem 0.6rem', fontSize: '0.85rem', cursor: 'pointer' }}
+            >
+              <option value="">🎓 Presets...</option>
+              {FACTORY_CATEGORIES.map(cat => {
+                const items = FACTORY_PRESETS.filter(p => p.category === cat.label);
+                if (items.length === 0) return null;
+                return (
+                  <optgroup key={cat.label} label={cat.label}>
+                    {items.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </optgroup>
+                );
+              })}
+            </select>
+          )}
+
+          <input
+            type="text"
+            value={songName}
+            onChange={(e) => setSongName(e.target.value)}
+            style={{ background: '#1e293b', color: '#e2e8f0', border: '1px solid var(--border-focus)', borderRadius: '6px', padding: '0.55rem 0.6rem', fontSize: '0.85rem', width: '140px' }}
+            placeholder="Song naam..."
+          />
+          <input
+            type="text"
+            value={songFolder}
+            onChange={(e) => setSongFolder(e.target.value)}
+            style={{ background: '#1e293b', color: '#e2e8f0', border: '1px solid var(--border-focus)', borderRadius: '6px', padding: '0.55rem 0.6rem', fontSize: '0.85rem', width: '110px' }}
+            placeholder="Map..."
+          />
+          <button
+            style={{ background: '#3b82f6', color: '#fff', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            onClick={handleSaveSong}
+            title={currentSongId ? 'Overschrijf opgeslagen song' : 'Sla huidige song op'}
+          >
+            💾 {currentSongId ? 'Bewaar' : 'Sla op'}
+          </button>
+          <button
+            style={{ background: '#475569', color: '#fff', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            onClick={() => setShowSongLibrary(true)}
+            title="Open song bibliotheek"
+          >
+            📚 Bibliotheek
+          </button>
+          <button
+            className="btn-primary"
+            style={{ background: '#10b981', color: '#fff', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: 'none' }}
+            onClick={handleNewSong}
+          >
+            + New Song
+          </button>
+
+          {/* Song Library Modal */}
+          {showSongLibrary && (
+            <div
+              onClick={() => setShowSongLibrary(false)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '520px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>📚 Song Bibliotheek</span>
+                  <button onClick={() => setShowSongLibrary(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                </div>
+                <input
+                  type="text"
+                  value={songSearchQuery}
+                  onChange={(e) => setSongSearchQuery(e.target.value)}
+                  placeholder="Zoek op naam of map..."
+                  style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                  autoFocus
+                />
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {savedSongs.length === 0 ? (
+                    <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>Geen songs opgeslagen.</p>
+                  ) : (() => {
+                    const q = songSearchQuery.toLowerCase();
+                    const filtered = savedSongs.filter(s =>
+                      s.name.toLowerCase().includes(q) || (s.folder || 'Algemeen').toLowerCase().includes(q)
+                    );
+                    const byFolder = filtered.reduce((acc, s) => {
+                      const f = s.folder || 'Algemeen';
+                      if (!acc[f]) acc[f] = [];
+                      acc[f].push(s);
+                      return acc;
+                    }, {});
+                    const folders = Object.keys(byFolder).sort();
+                    if (folders.length === 0) return (
+                      <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>Geen resultaten.</p>
+                    );
+                    return folders.map(folder => (
+                      <div key={folder}>
+                        <div style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0.25rem 0', borderBottom: '1px solid #334155', marginBottom: '0.25rem' }}>
+                          📁 {folder}
+                        </div>
+                        {byFolder[folder].map(s => (
+                          <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : 'transparent' }}>
+                            <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.875rem' }}>
+                              {s.id === currentSongId ? '▶ ' : ''}{s.name}
+                              <span style={{ color: '#64748b', fontSize: '0.75rem', marginLeft: '0.5rem' }}>{s.date}</span>
+                            </span>
+                            <button
+                              onClick={() => handleLoadSong(s.id)}
+                              style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                            >
+                              Laad
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSong(s.id)}
+                              style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                            >
+                              🗑
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+      
+      <div className="main-layout">
+        <div className="drum-section">
+          <DrumPad
+            onTrigger={handleDrumTrigger}
+            inputMode={inputMode}
+            setInputMode={setInputMode}
+            onGongTrigger={handleGongSample}
+          />
+        </div>
+
+        <main className="sequencer-section">
+        <div className="song-timeline">
+          <div style={{ padding: '0.5rem 1rem 0.25rem', fontSize: '1.15rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center', width: '100%' }}>
+            {songName}
+          </div>
+          {(() => {
+            let offset = 0;
+            return song.map((pattern, idx) => {
+              const measureOffset = offset;
+              offset += Math.ceil(pattern.anak.length / 48);
+              return (
+                <React.Fragment key={pattern.id}>
+                  {idx > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0', padding: '0 1rem' }}>
+                      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.04)' }} />
+                      <button
+                        onClick={() => insertSongBlockAfter(song[idx - 1].id)}
+                        style={{ background: 'transparent', color: '#334155', border: '1px solid #1e293b', borderRadius: '4px', padding: '0.05rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', lineHeight: 1.4 }}
+                        title="Voeg regel in"
+                      >+ Regel</button>
+                      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.04)' }} />
+                    </div>
+                  )}
+                  <div id={`block-${pattern.id}`}>
+                    <PatternEditor
+                      pattern={pattern}
+                      isActive={pattern.id === activePatternId}
+                      onFocus={() => setActivePatternId(pattern.id)}
+                      updatePattern={(newPat) => updatePattern(pattern.id, newPat)}
+                      activeSlot={activeSlot}
+                      setActiveSlot={setActiveSlot}
+                      setInputMode={setInputMode}
+                      clipboard={clipboard}
+                      setClipboard={setClipboard}
+                      handleUndo={handleUndo}
+                      handleRedo={handleRedo}
+                      undoStack={undoStack}
+                      redoStack={redoStack}
+                      bpm={bpm}
+                      handleBpmChange={handleBpmChange}
+                      isRecording={isRecording}
+                      toggleRecord={toggleRecord}
+                      isPlaying={isPlaying}
+                      togglePlay={togglePlay}
+                      rewind={rewind}
+                      stepBack={stepBack}
+                      precount={precount}
+                      gridResolution={gridResolution}
+                      magneticInput={magneticInput}
+                      setGridResolution={setGridResolution}
+                      setMagneticInput={setMagneticInput}
+                      autoQuantize={autoQuantize}
+                      setAutoQuantize={setAutoQuantize}
+                      inputEnabled={inputEnabled}
+                      setInputEnabled={setInputEnabled}
+                      savedSnippets={savedSnippets}
+                      handleSaveSnippet={handleSaveSnippet}
+                      handleInsertSnippet={handleInsertSnippet}
+                      handleDeleteSnippet={handleDeleteSnippet}
+                      insertMeasure={() => insertMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
+                      deleteMeasure={() => deleteMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
+                      onGongToggle={handleGongToggle}
+                      measureOffset={measureOffset}
+                      loopingPatternId={loopingPatternId}
+                      onLoopPattern={handleLoopPattern}
+                      soloTrack={soloTrack}
+                      onToggleSolo={toggleSolo}
+                      precountPlay={precountPlay}
+                      setPrecountPlay={setPrecountPlay}
+                      cursorOffsetMs={cursorOffsetMs}
+                      adjustCursorOffset={adjustCursorOffset}
+                    />
+                  </div>
+                </React.Fragment>
+              );
+            });
+          })()}
+
+          {/* Append new block at the bottom */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0 1.5rem', padding: '0 1rem' }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
+            <button
+              onClick={addSongBlock}
+              style={{ background: 'transparent', color: '#10b981', border: '1px solid #10b981', borderRadius: '4px', padding: '0.25rem 0.8rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
+              title="Voeg nieuwe regel toe aan het einde"
+            >+ Voeg Regel Toe</button>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
+          </div>
+        </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default App;

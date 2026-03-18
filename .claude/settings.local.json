@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(ln -s ../vite/bin/vite.js /Users/wernerkanhai/Documents/KendangPasunanda/node_modules/.bin/vite)",
+      "Bash(pkill -f \"vite --host\")",
+      "Bash(grep -r \"OCR\\\\|ocr\\\\|tablatuur\\\\|notation\" /Users/wernerkanhai/Documents/KendangPasunanda/src --include=*.jsx --include=*.js --include=*.md)",
+      "Bash(vercel --prod)",
+      "Bash(vercel login:*)"
+    ]
+  }
+}

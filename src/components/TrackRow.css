@@ -1,0 +1,210 @@
+.track-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: max-content;
+  min-width: 100%;
+}
+
+.theme-anak {
+  background: var(--anak-bg);
+  border-left: 4px solid var(--anak-color);
+}
+
+.theme-indung {
+  background: var(--indung-bg);
+  border-left: 4px solid var(--indung-color);
+}
+
+.track-label {
+  position: absolute;
+  left: -2.5rem;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.slots-container {
+  display: flex;
+  height: 80px; /* Increased to allow more room for above/below */
+  position: relative;
+}
+
+/* The horizontal Staff Line */
+.slots-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Individual Slot Cell */
+.slot-cell {
+  width: var(--sw, 12px);
+  height: 100%;
+  border-right: 1px dotted rgba(0, 0, 0, 0.06); /* very subtle slot divider */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.slot-cell:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.active-slot {
+  background-color: rgba(59, 130, 246, 0.3) !important; /* Blue selection highlight */
+}
+
+.slot-cell.drop-target {
+  background-color: rgba(34, 197, 94, 0.25) !important;
+  outline: 1px solid rgba(34, 197, 94, 0.8);
+  outline-offset: -1px;
+}
+
+.draggable-note {
+  cursor: grab;
+}
+.draggable-note:active {
+  cursor: grabbing;
+}
+
+/* Rhythmic Boundaries */
+.substep-start {
+  /* Removed to reduce visual noise */
+}
+
+.beat-start {
+  border-left: 2px solid rgba(0, 0, 0, 0.2); /* Every 12 slots (Quarter note) */
+}
+
+.grid-line {
+  border-left: 1px dashed rgba(59, 130, 246, 0.18); /* Dynamic grid indicator */
+}
+
+.bar-start {
+  border-left: 2px solid rgba(0, 0, 0, 0.85); /* Every 48 slots (Bar) */
+}
+
+.slot-cell:first-child {
+  border-left: none; /* First bar line overlaps */
+}
+
+/* Font Symbol Positioning & Coloring */
+.slot-symbol, .slot-rest {
+  font-size: 0.85rem;
+  position: absolute;
+  z-index: 10;
+  left: 1px;
+}
+
+/* Colors */
+.color-anak {
+  color: #000000;
+}
+
+.color-indung {
+  color: #cc0000;
+}
+
+/* Positions anchored to the center line */
+.pos-above {
+  bottom: 50%;
+  margin-bottom: 12px; /* Anak text sits on the line */
+}
+
+.pos-below {
+  top: 50%;
+  margin-top: 10px; /* Push Indung text down to fit beams between line and text */
+}
+
+.pos-line {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.slot-rest {
+  font-size: 1.2rem;
+  opacity: 0.5; /* Rests are slightly dimmed */
+}
+
+.slot-empty-dot {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 5;
+  line-height: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.slot-rest.pos-above {
+  bottom: 75%; /* Halverwege bovenkant en nullijn */
+  margin-bottom: 0;
+}
+
+.slot-rest.pos-below {
+  bottom: 25%; /* Mirror of pos-above: halverwege nullijn en onderkant */
+  margin-top: 0;
+}
+
+/* Rhythmic Beams (8ths / 16ths) */
+.rhythmic-beam {
+  position: absolute;
+  height: 1px;
+  background-color: #000000;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Top Notes: Beams go ABOVE the text */
+.rhythmic-beam.pos-top.beam-level-1 {
+  bottom: calc(50% + 34px);
+}
+.rhythmic-beam.pos-top.beam-level-2 {
+  bottom: calc(50% + 28px);
+}
+
+/* Bottom Notes: Beams go ABOVE the text, but BELOW the center line */
+.rhythmic-beam.pos-bottom.beam-level-1 {
+  top: calc(50% + 4px);
+}
+.rhythmic-beam.pos-bottom.beam-level-2 {
+  top: calc(50% + 10px);
+}
+
+/* Triplet SVG Slurs */
+.triplet-slur {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  left: 6px;
+}
+
+.triplet-slur.pos-above {
+  bottom: 50%;
+  margin-bottom: 40px; /* Above the rhythmic beams */
+}
+
+.triplet-slur.pos-below {
+  top: 50%;
+  margin-top: 35px; /* Below the Indung text entirely */
+}
+
+.triplet-slur svg {
+  display: block;
+  overflow: visible;
+}
