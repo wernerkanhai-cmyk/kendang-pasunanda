@@ -11,7 +11,7 @@ const getVerticalPositionClass = (symbol, hand) => {
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6 }) => {
+const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [] }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
 
   const handleDragStart = (e, slotIndex, hand, symbol) => {
@@ -173,6 +173,18 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
 
           const isActive = activeRange && index >= activeRange.start && index <= activeRange.end;
           const isTripletStart = triplets.includes(index);
+
+          // Gong block border via box-shadow (doesn't affect layout)
+          const gongBlockStart = Math.floor(index / 6) * 6;
+          const isInGong = gong.includes(gongBlockStart);
+          const gongColor = trackId === 'anak' ? 'rgba(0,0,0,0.9)' : 'rgba(204,0,0,0.9)';
+          let gongShadow = '';
+          if (isInGong) {
+            const s = [`inset 0 2px 0 0 ${gongColor}`, `inset 0 -2px 0 0 ${gongColor}`];
+            if (index === gongBlockStart) s.push(`inset 2px 0 0 0 ${gongColor}`);
+            if (index === gongBlockStart + 5) s.push(`inset -2px 0 0 0 ${gongColor}`);
+            gongShadow = s.join(', ');
+          }
           
           const isRestTop = slot.top === SYMBOL_REST;
           const posClassTop = getVerticalPositionClass(slot.top, 'top');
@@ -184,6 +196,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
             <div
               key={index}
               className={`slot-cell ${borderClasses} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
+              style={gongShadow ? { boxShadow: gongShadow } : undefined}
               onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}

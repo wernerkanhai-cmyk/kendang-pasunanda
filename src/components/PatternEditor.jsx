@@ -840,6 +840,7 @@ const PatternEditor = ({
                 gridResolution={gridResolution}
                 slotWidth={slotWidth}
                 onNoteMove={handleNoteMove}
+                gong={pattern.gong || []}
               />
             </div>
           </div>
@@ -870,43 +871,11 @@ const PatternEditor = ({
                 gridResolution={gridResolution}
                 slotWidth={slotWidth}
                 onNoteMove={handleNoteMove}
+                gong={pattern.gong || []}
               />
             </div>
           </div>
 
-          {/* Gong markering — anak (zwart) + indung (rood) */}
-          {(pattern.gong || []).flatMap(blockStart => [
-            <div
-              key={`${blockStart}-anak`}
-              style={{
-                position: 'absolute',
-                left: blockStart * slotWidth + 3,
-                top: -2,
-                height: 82,
-                width: 6 * slotWidth,
-                border: '3px solid rgba(0,0,0,0.8)',
-                borderRadius: '1px',
-                pointerEvents: 'none',
-                zIndex: 15,
-                backgroundImage: 'linear-gradient(to bottom, transparent calc(50% - 1.5px), rgba(0,0,0,0.75) calc(50% - 1.5px), rgba(0,0,0,0.75) calc(50% + 1.5px), transparent calc(50% + 1.5px))',
-              }}
-            />,
-            <div
-              key={`${blockStart}-indung`}
-              style={{
-                position: 'absolute',
-                left: blockStart * slotWidth + 3,
-                bottom: -2,
-                height: 82,
-                width: 6 * slotWidth,
-                border: '3px solid rgba(204,0,0,0.8)',
-                borderRadius: '1px',
-                pointerEvents: 'none',
-                zIndex: 15,
-                backgroundImage: 'linear-gradient(to bottom, transparent calc(50% - 1.5px), rgba(204,0,0,0.75) calc(50% - 1.5px), rgba(204,0,0,0.75) calc(50% + 1.5px), transparent calc(50% + 1.5px))',
-              }}
-            />,
-          ])}
         </div>
       </div>
     </div>
