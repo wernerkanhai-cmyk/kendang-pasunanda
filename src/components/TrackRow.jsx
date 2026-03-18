@@ -21,7 +21,7 @@ const getVerticalPositionClass = (symbol, hand) => {
 const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
-  const longPressRef = useRef(null);
+  const lastTapRef = useRef({ slotIndex: -1, time: 0 });
 
   useEffect(() => {
     if (!popup) return;
@@ -224,9 +224,16 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
               style={gongShadow ? { boxShadow: gongShadow } : undefined}
               onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
               onContextMenu={(e) => openPopup(e, index)}
-              onTouchStart={(e) => { longPressRef.current = setTimeout(() => openPopup(e, index), 500); }}
-              onTouchEnd={() => clearTimeout(longPressRef.current)}
-              onTouchMove={() => clearTimeout(longPressRef.current)}
+              onTouchEnd={(e) => {
+                const now = Date.now();
+                const last = lastTapRef.current;
+                if (last.slotIndex === index && now - last.time < 350) {
+                  openPopup(e, index);
+                  lastTapRef.current = { slotIndex: -1, time: 0 };
+                } else {
+                  lastTapRef.current = { slotIndex: index, time: now };
+                }
+              }}
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
             >
