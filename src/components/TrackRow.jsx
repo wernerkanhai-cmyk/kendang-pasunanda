@@ -11,7 +11,7 @@ const getVerticalPositionClass = (symbol, hand) => {
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove }) => {
+const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6 }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
 
   const handleDragStart = (e, slotIndex, hand, symbol) => {
@@ -161,9 +161,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
         {slots.map((slot, index) => {
           const isBarStart = index % 48 === 0;
           const isBeatStart = index % 12 === 0;
-          const isSubStepStart = index % 3 === 0; 
-          const isGridLine = index % 6 === 0; // Fixed visual grid to 1/8 notes always
-          
+          const isSubStepStart = index % 3 === 0;
+          const gridStep = Math.max(1, gridResolution);
+          const isGridLine = !isBarStart && !isBeatStart && index % gridStep === 0;
+
           let borderClasses = '';
           if (isBarStart) borderClasses += ' bar-start';
           else if (isBeatStart) borderClasses += ' beat-start';

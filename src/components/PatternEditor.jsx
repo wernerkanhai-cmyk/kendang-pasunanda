@@ -55,6 +55,7 @@ const PatternEditor = ({
   const [snippetFolder, setSnippetFolder] = useState('Algemeen');
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
   const [gongMode, setGongMode] = useState(false);
+  const [showBeheer, setShowBeheer] = useState(false);
   const timelineRef = useRef(null);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
@@ -298,8 +299,25 @@ const PatternEditor = ({
           className="pattern-name-input"
         />
         
-        {/* Snippet Library Controls */}
-        <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
+        {/* Song-beheer toggle */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowBeheer(v => !v); }}
+          style={{
+            marginLeft: '1rem', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
+            background: showBeheer ? '#334155' : 'transparent',
+            color: showBeheer ? '#e2e8f0' : '#64748b',
+            border: `1px solid ${showBeheer ? '#475569' : 'var(--border-subtle)'}`,
+            borderRadius: '4px', cursor: 'pointer',
+          }}
+          title="Song-beheer: maten en snippets"
+        >☰ Beheer</button>
+
+        {/* Snippet Library Controls — kept for isNamingSnippet inline form */}
+        <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: showBeheer ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
+           {/* Maat beheer */}
+           <button onClick={(e) => { e.stopPropagation(); insertMeasure(); }} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#1e293b', border: '1px solid #334155', color: '#10b981', borderRadius: '4px', cursor: 'pointer' }} title="Voeg maat in na cursor">+ Maat</button>
+           <button onClick={(e) => { e.stopPropagation(); deleteMeasure(); }} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#1e293b', border: '1px solid #334155', color: '#ef4444', borderRadius: '4px', cursor: 'pointer' }} title="Verwijder maat bij cursor">− Maat</button>
+           <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
            {isNamingSnippet ? (
               <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', padding: '2px', borderRadius: '4px', gap: '4px' }}>
                 <input 
@@ -731,12 +749,26 @@ const PatternEditor = ({
 
       <div className="timeline-wrapper" ref={timelineRef}>
         {/* Measure Ruler */}
-        <div className="measure-ruler" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '16px', color: '#64748b' }}>
-           {Array.from({ length: totalMeasures }).map((_, i) => (
-              <div key={i} style={{ width: 48 * slotWidth + 'px', flexShrink: 0, textAlign: 'left', paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
-                 {i + 1 + measureOffset}
-              </div>
-           ))}
+        <div className="measure-ruler" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', color: '#64748b' }}>
+           {Array.from({ length: totalMeasures }).map((_, i) => {
+              // Count filled beats (4 per measure, each 12 slots)
+              const measureStart = i * 48;
+              const beatColors = Array.from({ length: 4 }, (__, b) => {
+                const beatSlot = measureStart + b * 12;
+                const a = pattern.anak[beatSlot];
+                const n = pattern.indung[beatSlot];
+                const filled = (a && (a.top !== '' || a.bottom !== '')) || (n && (n.top !== '' || n.bottom !== ''));
+                return filled ? '#22c55e' : '#334155';
+              });
+              return (
+                <div key={i} style={{ width: 48 * slotWidth + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span>{i + 1 + measureOffset}</span>
+                  <div style={{ display: 'flex', gap: '2px', paddingLeft: '1px' }}>
+                    {beatColors.map((c, b) => <span key={b} style={{ width: '5px', height: '5px', borderRadius: '50%', background: c, display: 'inline-block' }} />)}
+                  </div>
+                </div>
+              );
+           })}
         </div>
 
         {/* Track rows with gong overlay */}

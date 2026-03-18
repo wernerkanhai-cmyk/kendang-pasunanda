@@ -67,6 +67,23 @@ function App() {
   const [showPdfSettings, setShowPdfSettings] = useState(false);
   const [songSearchQuery, setSongSearchQuery] = useState('');
 
+  // Song pattern drag-to-reorder
+  const [dragPatId, setDragPatId] = useState(null);
+  const [dragOverPatId, setDragOverPatId] = useState(null);
+  const handlePatternDrop = (targetId) => {
+    if (!dragPatId || dragPatId === targetId) { setDragPatId(null); setDragOverPatId(null); return; }
+    setSong(prev => {
+      const from = prev.findIndex(p => p.id === dragPatId);
+      const to = prev.findIndex(p => p.id === targetId);
+      if (from === -1 || to === -1) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setDragPatId(null); setDragOverPatId(null);
+  };
+
   // Floating drum panel
   const [drumPos, setDrumPos] = useState({ x: 16, y: 80 });
   const drumDragRef = useRef(null);
@@ -1038,7 +1055,15 @@ function App() {
                       <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.04)' }} />
                     </div>
                   )}
-                  <div id={`block-${pattern.id}`}>
+                  <div
+                    id={`block-${pattern.id}`}
+                    draggable
+                    onDragStart={() => setDragPatId(pattern.id)}
+                    onDragOver={(e) => { e.preventDefault(); setDragOverPatId(pattern.id); }}
+                    onDragLeave={() => setDragOverPatId(null)}
+                    onDrop={() => handlePatternDrop(pattern.id)}
+                    style={{ outline: dragOverPatId === pattern.id && dragPatId !== pattern.id ? '2px dashed #3b82f6' : 'none', borderRadius: '8px' }}
+                  >
                     <PatternEditor
                       pattern={pattern}
                       isActive={pattern.id === activePatternId}
