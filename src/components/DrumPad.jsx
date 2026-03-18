@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ensembleImg from '../assets/drums_ensemble.png';
 import gongImg from '../assets/Gong.png';
 import './DrumPad.css';
@@ -143,6 +143,8 @@ const DrumZone = ({ drum, onTrigger }) => {
 // ── Main DrumPad ──────────────────────────────────────────────────────────────
 
 const DrumPad = ({ onTrigger, inputMode, onGongTrigger }) => {
+  const [showLegend, setShowLegend] = useState(false);
+
   const LEGEND = [
     { key: 'N', name: 'Tung' }, { key: 'C', name: 'Dong' }, { key: '?', name: 'Ting' },
     { key: 'V', name: 'Det' },  { key: 'A', name: 'Pling' },{ key: 'J', name: 'Pang' },
@@ -153,21 +155,37 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger }) => {
   return (
     <section className="drum-module glass-panel">
       <div className="drum-module-header">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px 6px', marginBottom: '0.4rem' }}>
-          {LEGEND.map(({ key, name }) => (
-            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem' }}>
-              <kbd style={{ fontSize: '0.6rem', background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '3px', padding: '0 3px', lineHeight: '1.4', fontFamily: 'monospace' }}>{key}</kbd>
-              <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{key}</span>
-              <span style={{ color: '#94a3b8' }}>{name}</span>
-            </div>
-          ))}
-        </div>
+        {showLegend && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px 6px', marginBottom: '0.4rem' }}>
+            {LEGEND.map(({ key, name }) => (
+              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem' }}>
+                <kbd style={{ fontSize: '0.6rem', background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '3px', padding: '0 3px', lineHeight: '1.4', fontFamily: 'monospace' }}>{key}</kbd>
+                <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{key}</span>
+                <span style={{ color: '#94a3b8' }}>{name}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
 
         {/* ── Ensemble foto + gong overlay + pie-chart zones ── */}
         <div style={{ position: 'relative', overflow: 'visible', marginTop: '8%' }}>
+
+          {/* Legenda toggle knop */}
+          <button
+            onClick={() => setShowLegend(v => !v)}
+            title={showLegend ? 'Verberg legenda' : 'Toon legenda'}
+            style={{
+              position: 'absolute', top: '-28px', right: '0',
+              background: showLegend ? 'rgba(212,175,55,0.25)' : 'rgba(30,41,59,0.7)',
+              color: showLegend ? '#d4af37' : '#94a3b8',
+              border: `1px solid ${showLegend ? '#d4af37' : '#475569'}`,
+              borderRadius: '4px', padding: '2px 7px', fontSize: '0.7rem',
+              cursor: 'pointer', zIndex: 20, backdropFilter: 'blur(4px)',
+            }}
+          >ℹ Legenda</button>
           <img
             src={ensembleImg}
             alt="Kendang Ensemble"

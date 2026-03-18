@@ -170,6 +170,10 @@
   pointer-events: none;
 }
 
+.rhythmic-beam.color-indung {
+  background-color: #cc0000;
+}
+
 /* Top Notes: Beams go ABOVE the text */
 .rhythmic-beam.pos-top.beam-level-1 {
   bottom: calc(50% + 34px);

@@ -67,6 +67,18 @@ function App() {
   const [showPdfSettings, setShowPdfSettings] = useState(false);
   const [songSearchQuery, setSongSearchQuery] = useState('');
 
+  // Floating drum panel
+  const [drumPos, setDrumPos] = useState({ x: 16, y: 80 });
+  const drumDragRef = useRef(null);
+  const handleDrumDragStart = (e) => {
+    e.preventDefault();
+    drumDragRef.current = { startX: e.clientX - drumPos.x, startY: e.clientY - drumPos.y };
+    const onMove = (ev) => setDrumPos({ x: ev.clientX - drumDragRef.current.startX, y: ev.clientY - drumDragRef.current.startY });
+    const onUp = () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   useEffect(() => {
     localStorage.setItem('kendangSavedSongs', JSON.stringify(savedSongs));
   }, [savedSongs]);
@@ -958,13 +970,49 @@ function App() {
       </header>
       
       <div className="main-layout">
-        <div className="drum-section">
-          <DrumPad
-            onTrigger={handleDrumTrigger}
-            inputMode={inputMode}
-            setInputMode={setInputMode}
-            onGongTrigger={handleGongSample}
-          />
+
+        {/* Floating drum panel */}
+        <div
+          className="drum-section-float glass-panel"
+          style={{
+            position: 'fixed',
+            left: drumPos.x,
+            top: drumPos.y,
+            width: '300px',
+            minWidth: '200px',
+            minHeight: '200px',
+            resize: 'both',
+            overflow: 'auto',
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Drag handle */}
+          <div
+            onMouseDown={handleDrumDragStart}
+            style={{
+              cursor: 'grab',
+              background: 'rgba(255,255,255,0.04)',
+              borderBottom: '1px solid var(--border-subtle)',
+              padding: '4px 8px',
+              fontSize: '0.65rem',
+              color: '#475569',
+              userSelect: 'none',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >⠿ Instrument</div>
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            <DrumPad
+              onTrigger={handleDrumTrigger}
+              inputMode={inputMode}
+              setInputMode={setInputMode}
+              onGongTrigger={handleGongSample}
+            />
+          </div>
         </div>
 
         <main className="sequencer-section">

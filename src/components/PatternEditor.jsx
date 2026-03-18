@@ -66,15 +66,22 @@ const PatternEditor = ({
   const totalSlots = pattern.anak.length;
 
   const [slotWidth, setSlotWidth] = useState(12);
+  const [zoom, setZoom] = useState(1);
+  const baseSlotWidthRef = useRef(12);
   useEffect(() => {
     if (!timelineRef.current) return;
     const ro = new ResizeObserver(entries => {
       const w = entries[0].contentRect.width;
-      setSlotWidth(Math.max(4, w / totalSlots));
+      baseSlotWidthRef.current = w / totalSlots;
+      setSlotWidth(Math.max(4, baseSlotWidthRef.current * zoom));
     });
     ro.observe(timelineRef.current);
     return () => ro.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalSlots]);
+  useEffect(() => {
+    setSlotWidth(Math.max(4, baseSlotWidthRef.current * zoom));
+  }, [zoom]);
 
   // Keep selectedRange ref tracking the LAST MULTI-SLOT selection.
   // Only update it when a genuine range is selected (start !== end).
@@ -712,6 +719,15 @@ const PatternEditor = ({
           </button>
         </div>
       )}
+
+      {/* Zoom controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 1rem', background: 'rgba(0,0,0,0.1)', borderBottom: '1px solid var(--border-subtle)' }}>
+        <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Zoom</span>
+        <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.25, +(z - 0.25).toFixed(2))); }} style={{ background: 'transparent', border: '1px solid var(--border-focus)', color: '#94a3b8', borderRadius: '3px', padding: '0 6px', fontSize: '0.8rem', cursor: 'pointer', lineHeight: '1.4' }}>−</button>
+        <span style={{ fontSize: '0.7rem', color: '#94a3b8', minWidth: '36px', textAlign: 'center' }}>{Math.round(zoom * 100)}%</span>
+        <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(8, +(z + 0.25).toFixed(2))); }} style={{ background: 'transparent', border: '1px solid var(--border-focus)', color: '#94a3b8', borderRadius: '3px', padding: '0 6px', fontSize: '0.8rem', cursor: 'pointer', lineHeight: '1.4' }}>+</button>
+        {zoom !== 1 && <button onClick={(e) => { e.stopPropagation(); setZoom(1); }} style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.65rem', cursor: 'pointer' }}>reset</button>}
+      </div>
 
       <div className="timeline-wrapper" ref={timelineRef}>
         {/* Measure Ruler */}
