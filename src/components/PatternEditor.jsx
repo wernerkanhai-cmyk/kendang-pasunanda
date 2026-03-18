@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import TrackRow from './TrackRow';
-import { generateEmptySlots } from '../engine/patternLogic';
+import { generateEmptySlots, writeSymbolToPattern } from '../engine/patternLogic';
 
 const PatternEditor = ({ 
   pattern, 
@@ -150,6 +150,10 @@ const PatternEditor = ({
     getTrack(fromTrackId)[fromSlot] = { ...getTrack(fromTrackId)[fromSlot], [fromHand]: '' };
     getTrack(toTrackId)[toSlot] = { ...getTrack(toTrackId)[toSlot], [toHand]: symbol };
     updatePattern({ ...pattern, anak: newAnak, indung: newIndung });
+  };
+
+  const handleInsertSymbol = (trackId, slotIndex, symbol) => {
+    updatePattern(writeSymbolToPattern(pattern, trackId, slotIndex, symbol));
   };
 
   useEffect(() => {
@@ -842,6 +846,7 @@ const PatternEditor = ({
                 slotWidth={slotWidth}
                 onNoteMove={handleNoteMove}
                 gong={pattern.gong || []}
+                onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('anak', slotIndex, symbol)}
               />
             </div>
           </div>
@@ -873,6 +878,7 @@ const PatternEditor = ({
                 slotWidth={slotWidth}
                 onNoteMove={handleNoteMove}
                 gong={pattern.gong || []}
+                onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('indung', slotIndex, symbol)}
               />
             </div>
           </div>

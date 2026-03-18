@@ -1,6 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import './TrackRow.css';
 import { SYMBOL_REST } from '../engine/patternLogic';
+
+const DRUM_MENU = [
+  { label: 'Ketipung', sounds: [{ symbol: 'N', name: 'Tung' }] },
+  { label: 'Gedug',    sounds: [{ symbol: 'C', name: 'Dong' }, { symbol: '?', name: 'Ting' }, { symbol: 'V', name: 'Det' }] },
+  { label: 'Kumpyang', sounds: [{ symbol: 'A', name: 'Pling' }, { symbol: 'J', name: 'Pang' }, { symbol: ';', name: 'Ping' }, { symbol: ':', name: 'Pong' }, { symbol: 'L', name: 'Plak' }] },
+  { label: 'Kutiplak', sounds: [{ symbol: 'G', name: 'Pak' }, { symbol: 'F', name: 'Peung' }] },
+];
 
 const getVerticalPositionClass = (symbol, hand) => {
   if (symbol === SYMBOL_REST) {
@@ -11,8 +18,26 @@ const getVerticalPositionClass = (symbol, hand) => {
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [] }) => {
+const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
+  const [popup, setPopup] = useState(null); // { slotIndex, x, y }
+  const longPressRef = useRef(null);
+
+  useEffect(() => {
+    if (!popup) return;
+    const close = () => setPopup(null);
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [popup]);
+
+  const openPopup = (e, slotIndex) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.min(rect.left, window.innerWidth - 224);
+    const y = rect.bottom + 6;
+    setPopup({ slotIndex, x, y });
+  };
 
   const handleDragStart = (e, slotIndex, hand, symbol) => {
     e.stopPropagation();
@@ -198,6 +223,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
               className={`slot-cell ${borderClasses} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
               style={gongShadow ? { boxShadow: gongShadow } : undefined}
               onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
+              onContextMenu={(e) => openPopup(e, index)}
+              onTouchStart={(e) => { longPressRef.current = setTimeout(() => openPopup(e, index), 500); }}
+              onTouchEnd={() => clearTimeout(longPressRef.current)}
+              onTouchMove={() => clearTimeout(longPressRef.current)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
             >
@@ -238,6 +267,44 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           );
         })}
       </div>
+
+      {/* Sound insert popup */}
+      {popup && onInsertSymbol && (
+        <div
+          onPointerDown={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed', left: popup.x, top: Math.min(popup.y, window.innerHeight - 320),
+            zIndex: 500, background: '#1e293b', border: '1px solid #334155',
+            borderRadius: '8px', padding: '0.5rem 0.6rem',
+            boxShadow: '0 8px 28px rgba(0,0,0,0.6)', minWidth: '200px',
+          }}
+        >
+          {DRUM_MENU.map(drum => (
+            <div key={drum.label} style={{ marginBottom: '0.45rem' }}>
+              <div style={{ fontSize: '0.6rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 'bold', marginBottom: '3px' }}>{drum.label}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                {drum.sounds.map(({ symbol, name }) => (
+                  <button
+                    key={symbol}
+                    onClick={(e) => { e.stopPropagation(); onInsertSymbol(popup.slotIndex, symbol); setPopup(null); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#0f172a', border: '1px solid #334155', borderRadius: '4px', padding: '3px 7px', cursor: 'pointer' }}
+                    title={name}
+                  >
+                    <span className="kendang-font" style={{ fontSize: '1.1rem', color: trackId === 'anak' ? '#111' : '#cc0000', lineHeight: 1 }}>{symbol}</span>
+                    <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div style={{ borderTop: '1px solid #1e293b', paddingTop: '4px', marginTop: '2px' }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); onInsertSymbol(popup.slotIndex, '.'); setPopup(null); }}
+              style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '4px', padding: '3px 10px', cursor: 'pointer', color: '#64748b', fontSize: '0.75rem' }}
+            >· Rust</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
