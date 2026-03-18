@@ -7,7 +7,13 @@
       "Bash(pkill -f \"vite --host\")",
       "Bash(grep -r \"OCR\\\\|ocr\\\\|tablatuur\\\\|notation\" /Users/wernerkanhai/Documents/KendangPasunanda/src --include=*.jsx --include=*.js --include=*.md)",
       "Bash(vercel --prod)",
-      "Bash(vercel login:*)"
+      "Bash(vercel login:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)"
     ]
   }
 }
