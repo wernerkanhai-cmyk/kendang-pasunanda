@@ -62,6 +62,9 @@ const PatternEditor = ({
   const [bpmEditing, setBpmEditing] = useState(false);
   const [bpmInput, setBpmInput] = useState('');
   const bpmDragRef = useRef(null); // { startY, moved }
+  const [zoomEditing, setZoomEditing] = useState(false);
+  const [zoomInput, setZoomInput] = useState('');
+  const zoomDragRef = useRef(null); // { startY, moved }
 
   const totalMeasures = Math.ceil(pattern.anak.length / 48);
   const totalSlots = pattern.anak.length;
@@ -741,9 +744,50 @@ const PatternEditor = ({
       {/* Zoom controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 1rem', background: 'rgba(0,0,0,0.1)', borderBottom: '1px solid var(--border-subtle)' }}>
         <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Zoom</span>
-        <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.25, +(z - 0.25).toFixed(2))); }} style={{ background: 'transparent', border: '1px solid var(--border-focus)', color: '#94a3b8', borderRadius: '3px', padding: '0 6px', fontSize: '0.8rem', cursor: 'pointer', lineHeight: '1.4' }}>−</button>
-        <span style={{ fontSize: '0.7rem', color: '#94a3b8', minWidth: '36px', textAlign: 'center' }}>{Math.round(zoom * 100)}%</span>
-        <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(8, +(z + 0.25).toFixed(2))); }} style={{ background: 'transparent', border: '1px solid var(--border-focus)', color: '#94a3b8', borderRadius: '3px', padding: '0 6px', fontSize: '0.8rem', cursor: 'pointer', lineHeight: '1.4' }}>+</button>
+        {zoomEditing ? (
+          <input
+            type="number"
+            value={zoomInput}
+            autoFocus
+            onChange={(e) => setZoomInput(e.target.value)}
+            onBlur={() => {
+              const val = parseFloat(zoomInput);
+              if (!isNaN(val)) setZoom(Math.max(0.25, Math.min(8, val / 100)));
+              setZoomEditing(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+              if (e.key === 'Escape') setZoomEditing(false);
+              e.stopPropagation();
+            }}
+            style={{ width: '5ch', fontWeight: 'bold', fontSize: '0.85rem', color: '#fff', background: '#334155', border: '1px solid #60a5fa', borderRadius: '3px', textAlign: 'center', padding: '0.1rem' }}
+          />
+        ) : (
+          <span
+            style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#94a3b8', textAlign: 'center', touchAction: 'none', userSelect: 'none', cursor: 'ns-resize', padding: '0.2rem 0.5rem', display: 'inline-block', minWidth: '42px', background: '#1e293b', border: '1px solid #334155', borderRadius: '3px' }}
+            title="Veeg omhoog/omlaag om te zoomen, klik om te typen"
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              zoomDragRef.current = { startY: e.clientY, moved: false };
+            }}
+            onPointerMove={(e) => {
+              if (!zoomDragRef.current) return;
+              const delta = zoomDragRef.current.startY - e.clientY;
+              if (Math.abs(delta) >= 4) {
+                zoomDragRef.current.moved = true;
+                setZoom(z => +(Math.max(0.25, Math.min(8, z + (delta > 0 ? 0.1 : -0.1))).toFixed(2)));
+                zoomDragRef.current.startY = e.clientY;
+              }
+            }}
+            onPointerUp={() => {
+              if (zoomDragRef.current && !zoomDragRef.current.moved) {
+                setZoomInput(String(Math.round(zoom * 100)));
+                setZoomEditing(true);
+              }
+              zoomDragRef.current = null;
+            }}
+          >{Math.round(zoom * 100)}%</span>
+        )}
         {zoom !== 1 && <button onClick={(e) => { e.stopPropagation(); setZoom(1); }} style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.65rem', cursor: 'pointer' }}>reset</button>}
       </div>
 
