@@ -10,8 +10,19 @@ import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer } from './engine/SamplePlayer';
 
 function App() {
-  const [song, setSong] = useState([ createEmptyPattern('Regel 1') ]);
-  const [activePatternId, setActivePatternId] = useState(song[0].id);
+  const [song, setSong] = useState(() => {
+    try {
+      const saved = localStorage.getItem('kendangCurrentSong');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [createEmptyPattern('Regel 1')];
+  });
+  const [activePatternId, setActivePatternId] = useState(() => {
+    try {
+      return localStorage.getItem('kendangCurrentPatternId') || song[0]?.id;
+    } catch {}
+    return song[0]?.id;
+  });
   // Initialize with a default slot (Anak, slot 0) so the user can immediately start tapping without clicking the grid first.
   const [activeSlot, setActiveSlot] = useState({ patternId: song[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 }); 
   const [clipboard, setClipboard] = useState(null);
@@ -47,6 +58,14 @@ function App() {
   useEffect(() => {
     localStorage.setItem('kendangSnippets', JSON.stringify(savedSnippets));
   }, [savedSnippets]);
+
+  // Persist current working song so it survives page reloads and deploys
+  useEffect(() => {
+    localStorage.setItem('kendangCurrentSong', JSON.stringify(song));
+  }, [song]);
+  useEffect(() => {
+    if (activePatternId) localStorage.setItem('kendangCurrentPatternId', activePatternId);
+  }, [activePatternId]);
 
   // Saved Songs Library
   const [savedSongs, setSavedSongs] = useState(() => {
