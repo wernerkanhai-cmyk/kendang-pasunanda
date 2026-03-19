@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots } from './engine/patternLogic';
 import PatternEditor from './components/PatternEditor';
+import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
 import OCRScanner from './components/OCRScanner';
 import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
@@ -1325,6 +1326,17 @@ function App() {
           <div style={{ padding: '0.5rem 1rem 0.25rem', fontSize: '1.15rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center', width: '100%' }}>
             {songName}
           </div>
+          <SongMap
+            song={song}
+            activePatternId={activePatternId}
+            onActivate={(id) => {
+              setActivePatternId(id);
+              setActiveSlot(prev => prev ? { ...prev, patternId: id, startIndex: 0, endIndex: 0 } : { patternId: id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+              document.getElementById(`block-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            onMoveUp={movePatternUp}
+            onMoveDown={movePatternDown}
+          />
           {(() => {
             let offset = 0;
             return song.map((pattern, idx) => {
