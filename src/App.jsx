@@ -91,6 +91,7 @@ function App() {
   const [drumSize, setDrumSize] = useState(() => {
     try { return JSON.parse(localStorage.getItem('drumSize')) || { w: 300, h: 520 }; } catch { return { w: 300, h: 520 }; }
   });
+  const [drumCollapsed, setDrumCollapsed] = useState(false);
   useEffect(() => { localStorage.setItem('drumPos', JSON.stringify(drumPos)); }, [drumPos]);
   useEffect(() => { localStorage.setItem('drumSize', JSON.stringify(drumSize)); }, [drumSize]);
 
@@ -1167,22 +1168,23 @@ function App() {
             left: drumPos.x,
             top: drumPos.y,
             width: drumSize.w,
-            height: drumSize.h,
+            height: drumCollapsed ? 'auto' : drumSize.h,
             minWidth: '180px',
-            minHeight: '160px',
+            minHeight: drumCollapsed ? 0 : '160px',
             zIndex: 100,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
           }}
         >
-          {/* Drag handle */}
+          {/* Drag handle / title bar */}
           <div
             onMouseDown={(e) => { e.preventDefault(); startDrumInteract('drag', e.clientX, e.clientY); }}
             onTouchStart={(e) => { e.preventDefault(); startDrumInteract('drag', e.touches[0].clientX, e.touches[0].clientY); }}
+            onDoubleClick={(e) => { e.preventDefault(); setDrumCollapsed(c => !c); }}
             style={{
               cursor: 'grab',
-              background: 'rgba(255,255,255,0.04)',
+              background: drumCollapsed ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)',
               borderBottom: '1px solid var(--border-subtle)',
               padding: '4px 8px',
               fontSize: '0.65rem',
@@ -1197,10 +1199,11 @@ function App() {
           >
             <span style={{ letterSpacing: '1px' }}>⠿</span>
             <span>Instrument</span>
+            <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#334155' }}>{drumCollapsed ? '▸' : '▾'}</span>
           </div>
 
-          {/* Content */}
-          <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+          {/* Content — verborgen wanneer ingeklapt */}
+          <div style={{ flex: 1, overflow: 'auto', minHeight: 0, display: drumCollapsed ? 'none' : 'block' }}>
             <DrumPad
               onTrigger={handleDrumTrigger}
               inputMode={inputMode}
@@ -1209,8 +1212,8 @@ function App() {
             />
           </div>
 
-          {/* Resize handle — bottom-right corner */}
-          <div
+          {/* Resize handle — bottom-right corner, verborgen wanneer ingeklapt */}
+          {!drumCollapsed && <div
             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startDrumInteract('resize', e.clientX, e.clientY); }}
             onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); startDrumInteract('resize', e.touches[0].clientX, e.touches[0].clientY); }}
             style={{
@@ -1226,7 +1229,7 @@ function App() {
               <line x1="9" y1="1" x2="1" y2="9" stroke="#475569" strokeWidth="1.5" strokeLinecap="round"/>
               <line x1="9" y1="5" x2="5" y2="9" stroke="#475569" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-          </div>
+          </div>}
         </div>
 
         <main className="sequencer-section">
