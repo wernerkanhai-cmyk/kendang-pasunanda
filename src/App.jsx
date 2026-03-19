@@ -657,11 +657,8 @@ function App() {
         schedulerRef.current.clickWhilePlaying = true;
         setIsPlaying(true);
         schedulerRef.current.startPlayPrecount(globalStart, 8);
-      } else if (metronomeMode === 'on') {
-        schedulerRef.current.clickWhilePlaying = true;
-        await schedulerRef.current.play(false, globalStart);
       } else {
-        schedulerRef.current.clickWhilePlaying = false;
+        schedulerRef.current.clickWhilePlaying = metronomeMode === 'on';
         await schedulerRef.current.play(false, globalStart);
         // Wall-clock starttijd voor cursor — NADAT audioCtx.resume() klaar is
         // Inclusief output latency zodat cursor en geluid gelijk lopen
