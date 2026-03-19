@@ -49,6 +49,11 @@ const PatternEditor = ({
   metronomeMode,
   setMetronomeMode,
   onUpdateTempoTrack,
+  onDuplicate,
+  onMoveUp,
+  onMoveDown,
+  isFirst = false,
+  isLast = false,
 }) => {
   const [isNamingSnippet, setIsNamingSnippet] = useState(false);
   const [snippetName, setSnippetName] = useState('');
@@ -382,13 +387,33 @@ if (setInputMode) setInputMode(trackId);
               ))}
            </select>
 
-           <button 
+           <button
              onClick={(e) => { e.stopPropagation(); setIsManagingSnippets(!isManagingSnippets); }}
              style={{ background: isManagingSnippets ? '#334155' : 'transparent', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '1rem', cursor: 'pointer' }}
              title="Beheer Snippets"
            >
              ⚙️
            </button>
+
+           <button
+             onClick={(e) => { e.stopPropagation(); onDuplicate?.(); }}
+             style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+             title="Dupliceer deze regel"
+           >⧉</button>
+
+           <button
+             onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }}
+             disabled={isFirst}
+             style={{ background: 'transparent', color: isFirst ? '#334155' : '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.75rem', cursor: isFirst ? 'default' : 'pointer', opacity: isFirst ? 0.35 : 1 }}
+             title="Verplaats omhoog"
+           >▲</button>
+
+           <button
+             onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
+             disabled={isLast}
+             style={{ background: 'transparent', color: isLast ? '#334155' : '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.75rem', cursor: isLast ? 'default' : 'pointer', opacity: isLast ? 0.35 : 1 }}
+             title="Verplaats omlaag"
+           >▼</button>
 
            {/* Snippet Manager Overlay */}
            {isManagingSnippets && (

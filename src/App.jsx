@@ -269,6 +269,7 @@ function App() {
     const newBlock = createEmptyPattern(`Regel ${song.length + 1}`);
     setSong(prev => [...prev, newBlock]);
     setActivePatternId(newBlock.id);
+    setActiveSlot({ patternId: newBlock.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
     lastAddedBlockRef.current = newBlock.id;
   };
 
@@ -283,7 +284,46 @@ function App() {
       return next;
     });
     setActivePatternId(newBlock.id);
+    setActiveSlot({ patternId: newBlock.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
     lastAddedBlockRef.current = newBlock.id;
+  };
+
+  const duplicateSongBlock = (patternId) => {
+    setUndoStack(prev => [...prev.slice(-49), song]);
+    setRedoStack([]);
+    const src = song.find(p => p.id === patternId);
+    if (!src) return;
+    const newId = Date.now().toString();
+    const newBlock = { ...src, id: newId, name: src.name + ' (kopie)' };
+    setSong(prev => {
+      const idx = prev.findIndex(p => p.id === patternId);
+      const next = [...prev];
+      next.splice(idx + 1, 0, newBlock);
+      return next;
+    });
+    setActivePatternId(newId);
+    setActiveSlot({ patternId: newId, trackId: 'anak', startIndex: 0, endIndex: 0 });
+    lastAddedBlockRef.current = newId;
+  };
+
+  const movePatternUp = (patternId) => {
+    setSong(prev => {
+      const idx = prev.findIndex(p => p.id === patternId);
+      if (idx <= 0) return prev;
+      const next = [...prev];
+      [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+      return next;
+    });
+  };
+
+  const movePatternDown = (patternId) => {
+    setSong(prev => {
+      const idx = prev.findIndex(p => p.id === patternId);
+      if (idx >= prev.length - 1) return prev;
+      const next = [...prev];
+      [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+      return next;
+    });
   };
 
   // Auto-scroll to newly added block
@@ -1358,6 +1398,11 @@ function App() {
                       metronomeMode={metronomeMode}
                       setMetronomeMode={setMetronomeMode}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
+                      onDuplicate={() => duplicateSongBlock(pattern.id)}
+                      onMoveUp={() => movePatternUp(pattern.id)}
+                      onMoveDown={() => movePatternDown(pattern.id)}
+                      isFirst={idx === 0}
+                      isLast={idx === song.length - 1}
                     />
                   </div>
                 </React.Fragment>
