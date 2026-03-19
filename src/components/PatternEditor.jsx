@@ -305,7 +305,7 @@ if (setInputMode) setInputMode(trackId);
         <button
           onClick={(e) => { e.stopPropagation(); setShowBeheer(v => !v); }}
           style={{
-            marginLeft: '1rem', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
+            marginLeft: '0.3rem', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
             background: showBeheer ? '#334155' : 'transparent',
             color: showBeheer ? '#e2e8f0' : '#64748b',
             border: `1px solid ${showBeheer ? '#475569' : 'var(--border-subtle)'}`,
@@ -422,7 +422,8 @@ if (setInputMode) setInputMode(trackId);
              </div>
            )}
         </div>
-        <div className="pattern-actions" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ flex: '0 0 4.5rem' }} />
+        <div className="pattern-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
            {isActive && (
               <div className="transport-controls" style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px', padding: '3px', marginRight: '0.5rem' }}>
