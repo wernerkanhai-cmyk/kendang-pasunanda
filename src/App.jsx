@@ -86,6 +86,7 @@ function App() {
   });
   const [showPdfSettings, setShowPdfSettings] = useState(false);
   const [songSearchQuery, setSongSearchQuery] = useState('');
+  const [showSongMap, setShowSongMap] = useState(false);
 
   // Song pattern drag-to-reorder
   const [dragPatId, setDragPatId] = useState(null);
@@ -1334,16 +1335,25 @@ function App() {
 
         <main className="sequencer-section">
         <div className="song-timeline">
-          <div style={{ padding: '0.5rem 1rem 0.25rem', fontSize: '1.15rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center', width: '100%' }}>
-            {songName}
+          <div style={{ display: 'flex', alignItems: 'center', padding: '0.4rem 1rem 0.2rem', gap: '0.5rem' }}>
+            <button
+              onClick={() => setShowSongMap(true)}
+              style={{ background: 'transparent', border: '1px solid #334155', borderRadius: '4px', color: '#64748b', cursor: 'pointer', padding: '0.2rem 0.5rem', fontSize: '0.85rem', lineHeight: 1, flexShrink: 0 }}
+              title="Compositie-overzicht"
+            >☰</button>
+            <div style={{ flex: 1, fontSize: '1.1rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center' }}>
+              {songName}
+            </div>
           </div>
           <SongMap
             song={song}
             activePatternId={activePatternId}
+            open={showSongMap}
+            onClose={() => setShowSongMap(false)}
             onActivate={(id) => {
               setActivePatternId(id);
               setActiveSlot(prev => prev ? { ...prev, patternId: id, startIndex: 0, endIndex: 0 } : { patternId: id, trackId: 'anak', startIndex: 0, endIndex: 0 });
-              document.getElementById(`block-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setTimeout(() => document.getElementById(`block-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
             }}
             onMoveUp={movePatternUp}
             onMoveDown={movePatternDown}
