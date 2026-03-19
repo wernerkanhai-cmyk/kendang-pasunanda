@@ -48,8 +48,6 @@ const PatternEditor = ({
   onToggleSolo,
   precountPlay,
   setPrecountPlay,
-  cursorOffsetMs = 0,
-  adjustCursorOffset,
   onUpdateTempoTrack,
 }) => {
   const [isNamingSnippet, setIsNamingSnippet] = useState(false);
@@ -526,56 +524,7 @@ const PatternEditor = ({
                    {isPlaying ? '⏸' : '▶'}
                  </button>
 
-                 <button
-                   onClick={(e) => { e.stopPropagation(); adjustCursorOffset && adjustCursorOffset(-50); }}
-                   style={{
-                     background: 'transparent',
-                     color: '#a78bfa',
-                     border: '1px solid #a78bfa',
-                     padding: '0.4rem 0.5rem',
-                     borderRadius: '4px 0 0 4px',
-                     cursor: 'pointer',
-                     fontSize: '0.75rem',
-                     height: '2.2rem',
-                     boxSizing: 'border-box',
-                     marginLeft: '0.5rem',
-                     borderRight: 'none',
-                   }}
-                   title="Cursor eerder (−50ms)"
-                 >◀</button>
-                 <span style={{
-                   background: 'transparent',
-                   color: '#a78bfa',
-                   border: '1px solid #a78bfa',
-                   padding: '0 0.4rem',
-                   fontSize: '0.7rem',
-                   height: '2.2rem',
-                   display: 'inline-flex',
-                   alignItems: 'center',
-                   boxSizing: 'border-box',
-                   borderLeft: 'none',
-                   borderRight: 'none',
-                   minWidth: '3.5rem',
-                   justifyContent: 'center',
-                 }}>{cursorOffsetMs > 0 ? `+${cursorOffsetMs}` : cursorOffsetMs}ms</span>
-                 <button
-                   onClick={(e) => { e.stopPropagation(); adjustCursorOffset && adjustCursorOffset(50); }}
-                   style={{
-                     background: 'transparent',
-                     color: '#a78bfa',
-                     border: '1px solid #a78bfa',
-                     padding: '0.4rem 0.5rem',
-                     borderRadius: '0 4px 4px 0',
-                     cursor: 'pointer',
-                     fontSize: '0.75rem',
-                     height: '2.2rem',
-                     boxSizing: 'border-box',
-                     borderLeft: 'none',
-                     marginRight: '0.25rem',
-                   }}
-                   title="Cursor later (+50ms)"
-                 >▶</button>
-
+ 
                  <button
                    onClick={(e) => { e.stopPropagation(); onLoopPattern(pattern.id); }}
                    style={{

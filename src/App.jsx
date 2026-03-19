@@ -141,8 +141,7 @@ function App() {
   const lastRewindTimeRef = useRef(0);
   const currentAudioSlotRef = useRef(0); // Werkelijke afspeelslot (gesynchroniseerd met onTick)
   const playStartWallTimeRef = useRef(0); // Date.now() op moment dat slot 0 klinkt
-  const cursorOffsetMsRef = useRef(0);   // Handmatige cursor-kalibratie in ms
-  const [cursorOffsetMs, setCursorOffsetMs] = useState(0);
+  const cursorOffsetMsRef = useRef(0);
 
   const handleSaveSong = () => {
     const name = songName.trim() || 'Naamloos';
@@ -594,10 +593,6 @@ function App() {
     if (schedulerRef.current) schedulerRef.current.setBpm(newBpm);
   };
 
-  const adjustCursorOffset = (deltaMs) => {
-    cursorOffsetMsRef.current += deltaMs;
-    setCursorOffsetMs(cursorOffsetMsRef.current);
-  };
 
   const togglePlay = async () => {
     // Ensure AudioContext is running — desktop Chrome requires resume() in user-gesture handler
@@ -1311,8 +1306,6 @@ function App() {
                       onToggleSolo={toggleSolo}
                       precountPlay={precountPlay}
                       setPrecountPlay={setPrecountPlay}
-                      cursorOffsetMs={cursorOffsetMs}
-                      adjustCursorOffset={adjustCursorOffset}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
                     />
                   </div>
