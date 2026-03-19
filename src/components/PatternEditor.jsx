@@ -422,184 +422,107 @@ if (setInputMode) setInputMode(trackId);
            )}
         </div>
         <div className="pattern-actions" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-           
+
            {isActive && (
-              <div className="transport-controls" style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '6px', padding: '2px', marginRight: '1rem' }}>
-                 <div style={{ display: 'flex', flexDirection: 'column', padding: '0.2rem 0.5rem', background: '#1e293b', borderRadius: '4px' }}>
-                    <span style={{ fontSize: '0.6rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>Tempo</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <button onClick={(e) => { e.stopPropagation(); handleBpmChange(1); }} style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0', fontSize: '0.7rem' }}>▲</button>
-                          <button onClick={(e) => { e.stopPropagation(); handleBpmChange(-1); }} style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0', fontSize: '0.7rem' }}>▼</button>
-                       </div>
-                       {bpmEditing ? (
-                         <input
-                           type="number"
-                           value={bpmInput}
-                           autoFocus
-                           onChange={(e) => setBpmInput(e.target.value)}
-                           onBlur={() => {
-                             const val = parseInt(bpmInput, 10);
-                             if (!isNaN(val)) handleBpmChange(Math.max(40, Math.min(240, val)) - bpm);
-                             setBpmEditing(false);
-                           }}
-                           onKeyDown={(e) => {
-                             if (e.key === 'Enter') e.currentTarget.blur();
-                             if (e.key === 'Escape') setBpmEditing(false);
-                             e.stopPropagation();
-                           }}
-                           style={{ width: '4ch', fontWeight: 'bold', fontSize: '1.2rem', color: '#fff', background: '#334155', border: '1px solid #60a5fa', borderRadius: '3px', textAlign: 'center', padding: '0.1rem' }}
-                         />
-                       ) : (
-                         <span
-                           style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#fff', textAlign: 'center', touchAction: 'none', userSelect: 'none', cursor: 'ns-resize', padding: '0.4rem 0.6rem', display: 'inline-block' }}
-                           onPointerDown={(e) => {
-                             e.currentTarget.setPointerCapture(e.pointerId);
-                             bpmDragRef.current = { startY: e.clientY, moved: false };
-                           }}
-                           onPointerMove={(e) => {
-                             if (!bpmDragRef.current) return;
-                             const delta = bpmDragRef.current.startY - e.clientY;
-                             if (Math.abs(delta) >= 5) {
-                               bpmDragRef.current.moved = true;
-                               handleBpmChange(delta > 0 ? 1 : -1);
-                               bpmDragRef.current.startY = e.clientY;
-                             }
-                           }}
-                           onPointerUp={() => {
-                             if (bpmDragRef.current && !bpmDragRef.current.moved) {
-                               setBpmInput(String(bpm));
-                               setBpmEditing(true);
-                             }
-                             bpmDragRef.current = null;
-                           }}
-                         >{bpm}</span>
-                       )}
+              <div className="transport-controls" style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px', padding: '3px', marginRight: '0.5rem' }}>
+                 {/* Tempo */}
+                 <div style={{ border: '1px solid #475569', borderRadius: '4px', height: '2.2rem', display: 'flex', alignItems: 'center', padding: '0 0.4rem', gap: '3px', boxSizing: 'border-box', background: 'transparent' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                       <button onClick={(e) => { e.stopPropagation(); handleBpmChange(1); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0', fontSize: '0.55rem', lineHeight: 1 }}>▲</button>
+                       <button onClick={(e) => { e.stopPropagation(); handleBpmChange(-1); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0', fontSize: '0.55rem', lineHeight: 1 }}>▼</button>
                     </div>
+                    {bpmEditing ? (
+                      <input
+                        type="number"
+                        value={bpmInput}
+                        autoFocus
+                        onChange={(e) => setBpmInput(e.target.value)}
+                        onBlur={() => {
+                          const val = parseInt(bpmInput, 10);
+                          if (!isNaN(val)) handleBpmChange(Math.max(40, Math.min(240, val)) - bpm);
+                          setBpmEditing(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') e.currentTarget.blur();
+                          if (e.key === 'Escape') setBpmEditing(false);
+                          e.stopPropagation();
+                        }}
+                        style={{ width: '4ch', fontWeight: 'bold', fontSize: '1.1rem', color: '#fff', background: '#334155', border: '1px solid #60a5fa', borderRadius: '3px', textAlign: 'center', padding: '0.1rem' }}
+                      />
+                    ) : (
+                      <span
+                        style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#94a3b8', touchAction: 'none', userSelect: 'none', cursor: 'ns-resize', padding: '0 0.2rem' }}
+                        onPointerDown={(e) => {
+                          e.currentTarget.setPointerCapture(e.pointerId);
+                          bpmDragRef.current = { startY: e.clientY, moved: false };
+                        }}
+                        onPointerMove={(e) => {
+                          if (!bpmDragRef.current) return;
+                          const delta = bpmDragRef.current.startY - e.clientY;
+                          if (Math.abs(delta) >= 5) {
+                            bpmDragRef.current.moved = true;
+                            handleBpmChange(delta > 0 ? 1 : -1);
+                            bpmDragRef.current.startY = e.clientY;
+                          }
+                        }}
+                        onPointerUp={() => {
+                          if (bpmDragRef.current && !bpmDragRef.current.moved) {
+                            setBpmInput(String(bpm));
+                            setBpmEditing(true);
+                          }
+                          bpmDragRef.current = null;
+                        }}
+                      >{bpm}</span>
+                    )}
                  </div>
-                 
+
                  <button
                    onClick={(e) => { e.stopPropagation(); stepBack(); }}
-                   style={{
-                     background: 'transparent',
-                     color: '#94a3b8',
-                     border: '1px solid #475569',
-                     padding: '0.4rem 0.6rem',
-                     borderRadius: '4px',
-                     cursor: 'pointer',
-                     fontSize: '1rem',
-                     marginLeft: '0.5rem'
-                   }}
+                   style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
                    title="1 maat terug"
-                 >
-                   ◀
-                 </button>
+                 >◀</button>
 
                  <button
                    onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                    onDoubleClick={(e) => { e.stopPropagation(); rewind(); }}
-                   style={{
-                     background: isPlaying ? '#22c55e' : 'transparent',
-                     color: isPlaying ? '#fff' : '#22c55e',
-                     border: isPlaying ? 'none' : '1px solid #22c55e',
-                     padding: '0.4rem 0.8rem',
-                     borderRadius: '4px',
-                     cursor: 'pointer',
-                     fontSize: '1rem',
-                     fontWeight: 'bold',
-                     display: 'flex',
-                     alignItems: 'center',
-                     height: '2.2rem',
-                     boxSizing: 'border-box',
-                     marginLeft: '0.5rem'
-                   }}
+                   style={{ background: isPlaying ? '#22c55e' : 'transparent', color: isPlaying ? '#fff' : '#94a3b8', border: `1px solid ${isPlaying ? '#22c55e' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
                    title="Play / Pause (Dubbelklik voor begin van de maat)"
-                 >
-                   {isPlaying ? '⏸' : '▶'}
-                 </button>
+                 >{isPlaying ? '⏸' : '▶'}</button>
 
- 
                  <button
                    onClick={(e) => { e.stopPropagation(); onLoopPattern(pattern.id); }}
-                   style={{
-                     background: loopingPatternId === pattern.id ? '#f97316' : 'transparent',
-                     color: loopingPatternId === pattern.id ? '#fff' : '#f97316',
-                     border: loopingPatternId === pattern.id ? 'none' : '1px solid #f97316',
-                     padding: '0.4rem 0.8rem',
-                     borderRadius: '4px',
-                     cursor: 'pointer',
-                     fontSize: '1rem',
-                     fontWeight: 'bold',
-                     display: 'flex',
-                     alignItems: 'center',
-                     height: '2.2rem',
-                     boxSizing: 'border-box',
-                     marginLeft: '0.25rem',
-                   }}
+                   style={{ background: loopingPatternId === pattern.id ? '#f97316' : 'transparent', color: loopingPatternId === pattern.id ? '#fff' : '#94a3b8', border: `1px solid ${loopingPatternId === pattern.id ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
                    title="Loop deze regel"
-                 >
-                   ↺
-                 </button>
+                 >↺</button>
 
                  <button
                    onClick={(e) => { e.stopPropagation(); toggleRecord(); }}
                    className={isRecording ? 'recording-pulse' : ''}
-                   style={{ 
-                     background: 'transparent', 
-                     color: '#ef4444', 
-                     border: isRecording ? '2px solid #ef4444' : '1px solid #64748b', 
-                     padding: '0.6rem', 
-                     borderRadius: '50%', 
-                     cursor: 'pointer', 
-                     display: 'flex',
-                     alignItems: 'center',
-                     justifyContent: 'center',
-                     marginLeft: '0.5rem',
-                     width: '32px',
-                     height: '32px'
-                   }}
+                   style={{ background: isRecording ? '#ef4444' : 'transparent', color: isRecording ? '#fff' : '#94a3b8', border: `1px solid ${isRecording ? '#ef4444' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                    title={isRecording === 'precount' ? `Precount: ${precount}` : "Opnemen"}
                  >
-                   <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444' }}></div>
+                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isRecording ? '#fff' : '#ef4444' }} />
                  </button>
               </div>
            )}
+
            {isActive && activeRangeObj && (
-             <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '0.5rem', marginRight: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.3rem 0.5rem', borderRadius: '4px', alignItems: 'center' }}>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setMagneticInput(!magneticInput); }}
-                  style={{ background: magneticInput ? '#3b82f6' : 'transparent', color: magneticInput ? '#fff' : '#64748b', border: magneticInput ? 'none' : '1px solid var(--border-focus)', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
-                  title="Magneet (Snap to Grid)"
-                >
-                  🧲
-                </button>
+             <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '3px', marginRight: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.3rem 0.4rem', borderRadius: '4px', alignItems: 'center' }}>
                 <button
                   onClick={(e) => { e.stopPropagation(); setPrecountPlay(!precountPlay); }}
-                  style={{ background: precountPlay ? '#f97316' : 'transparent', color: precountPlay ? '#fff' : '#64748b', border: precountPlay ? 'none' : '1px solid var(--border-focus)', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                  style={{ background: precountPlay ? '#f97316' : 'transparent', color: precountPlay ? '#fff' : '#64748b', border: `1px solid ${precountPlay ? '#f97316' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
                   title="Precount voor play (4 tellen aanloop)"
-                >
-                  4
-                </button>
-                <button
-                  className="btn-secondary"
-                  onClick={(e) => { e.stopPropagation(); setAutoQuantize(!autoQuantize); }}
-                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', background: autoQuantize ? '#16a34a' : 'transparent', border: autoQuantize ? 'none' : '1px solid var(--border-focus)', color: autoQuantize ? '#fff' : '#64748b', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                  title="Auto-quantize (snap live opname naar grid)"
-                >
-                  Q
-                </button>
+                >4</button>
                 <button
                   onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
-                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', background: inputEnabled ? '#16a34a' : '#64748b', border: 'none', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  style={{ background: inputEnabled ? 'rgba(22,163,74,0.2)' : 'transparent', color: inputEnabled ? '#4ade80' : '#64748b', border: `1px solid ${inputEnabled ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
                   title={inputEnabled ? 'Invoer aan — klik om uit te zetten' : 'Invoer uit — klik om aan te zetten'}
-                >
-                  ✏️
-                </button>
-                <select 
-                  value={gridResolution} 
+                >✏️</button>
+                <select
+                  value={gridResolution}
                   onChange={(e) => { e.stopPropagation(); setGridResolution(Number(e.target.value)); }}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.2rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                  style={{ background: '#1e293b', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.3rem', fontSize: '0.8rem', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box' }}
                   title="Grid Resolutie"
                 >
                   <option value="12">1/4</option>
@@ -609,75 +532,84 @@ if (setInputMode) setInputMode(trackId);
                   <option value="3">1/16</option>
                   <option value="2">1/16T</option>
                 </select>
-                
+                <button
+                  onClick={(e) => { e.stopPropagation(); setMagneticInput(!magneticInput); }}
+                  style={{ background: magneticInput ? 'rgba(59,130,246,0.2)' : 'transparent', color: magneticInput ? '#60a5fa' : '#64748b', border: `1px solid ${magneticInput ? '#3b82f6' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+                  title="Magneet (Snap to Grid)"
+                >🧲</button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setAutoQuantize(!autoQuantize); }}
+                  style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
+                  title="Auto-quantize (snap live opname naar grid)"
+                >Q</button>
              </div>
            )}
         </div>
       </div>
 
       {isActive && (
-        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)' }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)' }}>
           <button
             onClick={(e) => { e.stopPropagation(); handleUndo(); }}
             disabled={undoStack.length === 0}
-            style={{ background: 'transparent', color: undoStack.length > 0 ? '#e2e8f0' : '#475569', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-focus)', cursor: undoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.85rem' }}
+            style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: undoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: undoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px' }}
             title="Ongedaan maken"
-          >↩️ Undo</button>
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5A4.5 4.5 0 1 1 6.5 2"/><polyline points="2,2 2,6.5 6.5,6.5"/></svg>
+            Undo
+          </button>
           <button
             onClick={(e) => { e.stopPropagation(); handleRedo(); }}
             disabled={redoStack.length === 0}
-            style={{ background: 'transparent', color: redoStack.length > 0 ? '#e2e8f0' : '#475569', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-focus)', cursor: redoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.85rem' }}
+            style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: redoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: redoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px' }}
             title="Opnieuw uitvoeren"
-          >↪️ Redo</button>
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 6.5A4.5 4.5 0 1 0 6.5 2"/><polyline points="11,2 11,6.5 6.5,6.5"/></svg>
+            Redo
+          </button>
 
-          <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.1)', margin: '0 0.2rem' }} />
+          <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
 
           <button
             onClick={(e) => { e.stopPropagation(); handleCopy(); }}
             disabled={!activeRangeObj}
-            style={{ padding: '0.25rem 0.45rem', background: activeRangeObj ? '#334155' : 'transparent', border: '1px solid var(--border-focus)', color: activeRangeObj ? '#e2e8f0' : '#475569', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', display: 'flex', alignItems: 'center' }}
+            style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
             title="Kopiëren"
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="1" width="8" height="9" rx="1"/>
-              <rect x="1" y="5" width="8" height="9" rx="1" style={{fill:'#334155'}}/>
+              <rect x="5" y="1" width="8" height="9" rx="1"/><rect x="1" y="5" width="8" height="9" rx="1" fill="#1e293b"/>
             </svg>
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); handleCut(); }}
             disabled={!activeRangeObj}
-            style={{ padding: '0.25rem 0.45rem', background: activeRangeObj ? '#334155' : 'transparent', border: '1px solid var(--border-focus)', color: activeRangeObj ? '#e2e8f0' : '#475569', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', display: 'flex', alignItems: 'center' }}
+            style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
             title="Knippen"
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <circle cx="3.5" cy="3.5" r="2"/>
-              <circle cx="3.5" cy="11.5" r="2"/>
-              <line x1="5.4" y1="4.9" x2="14" y2="10.5"/>
-              <line x1="5.4" y1="10.1" x2="14" y2="4.5"/>
+              <circle cx="3.5" cy="3.5" r="2"/><circle cx="3.5" cy="11.5" r="2"/>
+              <line x1="5.4" y1="4.9" x2="14" y2="10.5"/><line x1="5.4" y1="10.1" x2="14" y2="4.5"/>
             </svg>
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); handlePaste(); }}
             disabled={!clipboard || !activeRangeObj}
-            style={{ padding: '0.25rem 0.45rem', background: clipboard && activeRangeObj ? '#334155' : 'transparent', border: '1px solid var(--border-focus)', color: clipboard && activeRangeObj ? '#e2e8f0' : '#475569', borderRadius: '4px', cursor: clipboard && activeRangeObj ? 'pointer' : 'default', display: 'flex', alignItems: 'center' }}
+            style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: clipboard && activeRangeObj ? 'pointer' : 'default', opacity: clipboard && activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
             title="Plakken"
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="4" width="9" height="10" rx="1"/>
-              <path d="M5 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1"/>
-              <line x1="4" y1="8" x2="9" y2="8"/>
-              <line x1="4" y1="10.5" x2="9" y2="10.5"/>
+              <rect x="2" y="4" width="9" height="10" rx="1"/><path d="M5 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1"/>
+              <line x1="4" y1="8" x2="9" y2="8"/><line x1="4" y1="10.5" x2="9" y2="10.5"/>
             </svg>
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); handleClear(); }}
             disabled={!activeRangeObj}
-            style={{ padding: '0.25rem 0.45rem', background: activeRangeObj ? '#450a0a' : 'transparent', border: '1px solid var(--border-focus)', color: activeRangeObj ? '#fca5a5' : '#475569', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', display: 'flex', alignItems: 'center' }}
+            style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
             title="Wissen"
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 13L8.5 4L13 8.5L7 13Z"/>
-              <line x1="0.5" y1="13" x2="14.5" y2="13"/>
+              <path d="M2 13L8.5 4L13 8.5L7 13Z"/><line x1="0.5" y1="13" x2="14.5" y2="13"/>
             </svg>
           </button>
         </div>
