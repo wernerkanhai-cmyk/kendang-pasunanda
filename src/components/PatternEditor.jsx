@@ -540,7 +540,7 @@ if (setInputMode) setInputMode(trackId);
                   value={gridResolution}
                   onChange={(e) => { e.stopPropagation(); setGridResolution(Number(e.target.value)); }}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ background: '#1e293b', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.3rem', fontSize: '0.8rem', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box' }}
+                  style={{ background: '#1e293b', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', width: '4.5rem' }}
                   title="Grid Resolutie"
                 >
                   <option value="12">1/4</option>
