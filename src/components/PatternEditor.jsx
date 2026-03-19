@@ -316,10 +316,6 @@ if (setInputMode) setInputMode(trackId);
 
         {/* Snippet Library Controls — kept for isNamingSnippet inline form */}
         <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: showBeheer ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
-           {/* Maat beheer */}
-           <button onClick={(e) => { e.stopPropagation(); insertMeasure(); }} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#1e293b', border: '1px solid #334155', color: '#10b981', borderRadius: '4px', cursor: 'pointer' }} title="Voeg maat in na cursor">+ Maat</button>
-           <button onClick={(e) => { e.stopPropagation(); deleteMeasure(); }} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#1e293b', border: '1px solid #334155', color: '#ef4444', borderRadius: '4px', cursor: 'pointer' }} title="Verwijder maat bij cursor">− Maat</button>
-           <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
            {isNamingSnippet ? (
               <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', padding: '2px', borderRadius: '4px', gap: '4px' }}>
                 <input 
