@@ -520,7 +520,7 @@ if (setInputMode) setInputMode(trackId);
                   </button>
                   {showMetronomeMenu && (
                     <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-                      {[['', 'uit'], ['4', '4 tellen'], ['8', '8 tellen'], ['4+play', '4 tellen + play'], ['8+play', '8 tellen + play']].map(([val, label]) => (
+                      {[['', 'uit'], ['4', '4'], ['8', '8'], ['4+play', '4 + while playing'], ['8+play', '8 + while playing']].map(([val, label]) => (
                         <div key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                           {label}
                         </div>
