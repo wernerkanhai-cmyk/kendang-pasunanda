@@ -55,6 +55,7 @@ const PatternEditor = ({
   const [snippetFolder, setSnippetFolder] = useState('Algemeen');
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
 const [showBeheer, setShowBeheer] = useState(false);
+  const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
   const timelineRef = useRef(null);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
@@ -508,19 +509,28 @@ if (setInputMode) setInputMode(trackId);
 
            {isActive && activeRangeObj && (
              <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '3px', marginRight: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.3rem 0.4rem', borderRadius: '4px', alignItems: 'center' }}>
-                <select
-                  value={metronomeMode}
-                  onChange={(e) => { e.stopPropagation(); setMetronomeMode(e.target.value); }}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : '#1e293b', color: metronomeMode ? '#fb923c' : '#94a3b8', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, borderRadius: '4px', padding: '0.2rem 0.3rem', fontSize: '0.8rem', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box' }}
-                  title="Metronoom"
-                >
-                  <option value="">🎵 uit</option>
-                  <option value="4">🎵 4 tellen</option>
-                  <option value="8">🎵 8 tellen</option>
-                  <option value="4+play">🎵 4 tellen + play</option>
-                  <option value="8+play">🎵 8 tellen + play</option>
-                </select>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowMetronomeMenu(v => !v); }}
+                    style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#64748b', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
+                    title="Metronoom"
+                  >
+                    <svg width="11" height="13" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
+                      <line x1="5.5" y1="2.5" x2="8.5" y2="10"/>
+                      <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
+                    </svg>
+                  </button>
+                  {showMetronomeMenu && (
+                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+                      {[['', 'uit'], ['4', '4 tellen'], ['8', '8 tellen'], ['4+play', '4 tellen + play'], ['8+play', '8 tellen + play']].map(([val, label]) => (
+                        <div key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          {label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
                   style={{ background: inputEnabled ? 'rgba(22,163,74,0.2)' : 'transparent', color: inputEnabled ? '#4ade80' : '#64748b', border: `1px solid ${inputEnabled ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
