@@ -46,8 +46,8 @@ const PatternEditor = ({
   onLoopPattern,
   soloTrack = null,
   onToggleSolo,
-  precountPlay,
-  setPrecountPlay,
+  metronomeMode,
+  setMetronomeMode,
   onUpdateTempoTrack,
 }) => {
   const [isNamingSnippet, setIsNamingSnippet] = useState(false);
@@ -508,11 +508,19 @@ if (setInputMode) setInputMode(trackId);
 
            {isActive && activeRangeObj && (
              <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '3px', marginRight: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.3rem 0.4rem', borderRadius: '4px', alignItems: 'center' }}>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setPrecountPlay(!precountPlay); }}
-                  style={{ background: precountPlay ? '#f97316' : 'transparent', color: precountPlay ? '#fff' : '#64748b', border: `1px solid ${precountPlay ? '#f97316' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
-                  title="Precount voor play (4 tellen aanloop)"
-                >4</button>
+                <select
+                  value={metronomeMode}
+                  onChange={(e) => { e.stopPropagation(); setMetronomeMode(e.target.value); }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : '#1e293b', color: metronomeMode ? '#fb923c' : '#94a3b8', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, borderRadius: '4px', padding: '0.2rem 0.3rem', fontSize: '0.8rem', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box' }}
+                  title="Metronoom"
+                >
+                  <option value="">🎵 uit</option>
+                  <option value="4">🎵 4 tellen</option>
+                  <option value="8">🎵 8 tellen</option>
+                  <option value="click">🎵 click while play</option>
+                  <option value="precount">🎵 only precount</option>
+                </select>
                 <button
                   onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
                   style={{ background: inputEnabled ? 'rgba(22,163,74,0.2)' : 'transparent', color: inputEnabled ? '#4ade80' : '#64748b', border: `1px solid ${inputEnabled ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}

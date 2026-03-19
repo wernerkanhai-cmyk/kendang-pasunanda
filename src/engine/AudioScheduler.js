@@ -85,9 +85,11 @@ export class AudioScheduler {
     return this.loopStart + (totalSlots % loopLength);
   }
 
+  clickWhilePlaying = false;
+
   scheduleNote(slotNumber, time) {
-    // Metronoomklik tijdens opname
-    if (this.isRecording && slotNumber % 12 === 0) {
+    // Metronoomklik tijdens opname of bij clickWhilePlaying
+    if ((this.isRecording || this.clickWhilePlaying) && slotNumber % 12 === 0) {
       const osc = this.audioCtx.createOscillator();
       const gain = this.audioCtx.createGain();
       osc.connect(gain);
@@ -128,10 +130,10 @@ export class AudioScheduler {
   _logged = false;
 
   // Precount: 4 beats op audio clock, dan start
-  async startPlayPrecount(startSlot = 0) {
+  async startPlayPrecount(startSlot = 0, beats = 4) {
     this.init();
     if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
-    return this._precount(startSlot, false);
+    return this._precount(startSlot, false, beats);
   }
 
   async startRecordPrecount(startSlot = 0) {
@@ -141,12 +143,12 @@ export class AudioScheduler {
     return this._precount(startSlot, true);
   }
 
-  _precount(startSlot, isRecordingMode) {
+  _precount(startSlot, isRecordingMode, beats = 4) {
     const intervalSecs = 60.0 / this.bpm;
     const now = this.audioCtx.currentTime;
 
-    // 4 beeps op de audio clock — start onmiddellijk
-    for (let i = 0; i < 4; i++) {
+    // beats beeps op de audio clock — start onmiddellijk
+    for (let i = 0; i < beats; i++) {
       const t = now + i * intervalSecs;
       const osc = this.audioCtx.createOscillator();
       const gain = this.audioCtx.createGain();
@@ -158,11 +160,11 @@ export class AudioScheduler {
       osc.start(t);
       osc.stop(t + 0.1);
       // Visuele countdown gekoppeld aan audio clock
-      setTimeout(() => this.onPrecount(4 - i), (t - now) * 1000);
+      setTimeout(() => this.onPrecount(beats - i), (t - now) * 1000);
     }
 
-    // Song start precies na beat 4 (direct na de 4e tel)
-    const startTime = now + 4 * intervalSecs;
+    // Song start precies na de laatste beat
+    const startTime = now + beats * intervalSecs;
     return new Promise((resolve) => {
       this.timerID = setTimeout(() => {
         this.onPrecount(0);
@@ -203,6 +205,7 @@ export class AudioScheduler {
   pause() {
     this.isPlaying = false;
     this.isRecording = false;
+    this.clickWhilePlaying = false;
     clearTimeout(this.timerID);
   }
 

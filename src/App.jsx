@@ -28,7 +28,7 @@ function App() {
   const loopingPatternIdRef = useRef(null);
   const [soloTrack, setSoloTrack] = useState(null); // null | 'anak' | 'indung'
   const soloTrackRef = useRef(null);
-  const [precountPlay, setPrecountPlay] = useState(false);
+  const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
   
@@ -622,10 +622,23 @@ function App() {
       const totalSlots = song.reduce((sum, p) => sum + p.anak.length, 0);
       slotTimesRef.current = buildSlotTimesMs(globalStart, totalSlots, buildTempoAt(song, bpm));
 
-      if (precountPlay) {
+      if (metronomeMode === '4' || metronomeMode === 'precount') {
+        schedulerRef.current.clickWhilePlaying = false;
         setIsPlaying(true);
-        schedulerRef.current.startPlayPrecount(globalStart);
+        schedulerRef.current.startPlayPrecount(globalStart, 4);
+      } else if (metronomeMode === '8') {
+        schedulerRef.current.clickWhilePlaying = false;
+        setIsPlaying(true);
+        schedulerRef.current.startPlayPrecount(globalStart, 8);
+      } else if (metronomeMode === 'click') {
+        schedulerRef.current.clickWhilePlaying = true;
+        await schedulerRef.current.play(false, globalStart);
+        const ctx = schedulerRef.current.audioCtx;
+        const outputLatencyMs = ctx ? ((ctx.outputLatency || 0) + (ctx.baseLatency || 0)) * 1000 : 0;
+        playStartWallTimeRef.current = Date.now() + 50 + outputLatencyMs;
+        setIsPlaying(true);
       } else {
+        schedulerRef.current.clickWhilePlaying = false;
         await schedulerRef.current.play(false, globalStart);
         // Wall-clock starttijd voor cursor — NADAT audioCtx.resume() klaar is
         // Inclusief output latency zodat cursor en geluid gelijk lopen
@@ -1322,8 +1335,8 @@ function App() {
                       onLoopPattern={handleLoopPattern}
                       soloTrack={soloTrack}
                       onToggleSolo={toggleSolo}
-                      precountPlay={precountPlay}
-                      setPrecountPlay={setPrecountPlay}
+                      metronomeMode={metronomeMode}
+                      setMetronomeMode={setMetronomeMode}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
                     />
                   </div>
