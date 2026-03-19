@@ -681,25 +681,11 @@ if (setInputMode) setInputMode(trackId);
       <div className="timeline-wrapper" ref={timelineRef}>
         {/* Measure Ruler */}
         <div className="measure-ruler" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', color: '#64748b' }}>
-           {Array.from({ length: totalMeasures }).map((_, i) => {
-              // Count filled beats (4 per measure, each 12 slots)
-              const measureStart = i * 48;
-              const beatColors = Array.from({ length: 4 }, (__, b) => {
-                const beatSlot = measureStart + b * 12;
-                const a = pattern.anak[beatSlot];
-                const n = pattern.indung[beatSlot];
-                const filled = (a && (a.top !== '' || a.bottom !== '')) || (n && (n.top !== '' || n.bottom !== ''));
-                return filled ? '#22c55e' : '#334155';
-              });
-              return (
-                <div key={i} style={{ width: 48 * slotWidth + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span>{i + 1 + measureOffset}</span>
-                  <div style={{ display: 'flex', gap: '2px', paddingLeft: '1px' }}>
-                    {beatColors.map((c, b) => <span key={b} style={{ width: '5px', height: '5px', borderRadius: '50%', background: c, display: 'inline-block' }} />)}
-                  </div>
-                </div>
-              );
-           })}
+           {Array.from({ length: totalMeasures }).map((_, i) => (
+              <div key={i} style={{ width: 48 * slotWidth + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                {i + 1 + measureOffset}
+              </div>
+           ))}
         </div>
 
         {/* Track rows with gong overlay */}
