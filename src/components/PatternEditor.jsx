@@ -168,7 +168,13 @@ const [showBeheer, setShowBeheer] = useState(true);
       // Only handle if this specific pattern editor is the currently active one
       if (!isActive) return;
       if (document.activeElement.tagName === 'INPUT') return; // Don't steal backspace from naming input
-      
+
+      if (e.key === ' ') {
+        e.preventDefault();
+        togglePlay();
+        return;
+      }
+
       if (e.key === 'Backspace' || e.key === 'Delete') {
         const range = getActiveRange();
         if (range) {
@@ -180,7 +186,7 @@ const [showBeheer, setShowBeheer] = useState(true);
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isActive, activeSlot, pattern]); // Essential dependencies so handleClear gets fresh state!
+  }, [isActive, activeSlot, pattern, isPlaying]); // Essential dependencies so handleClear gets fresh state!
 
   const handleCopy = () => {
     const range = getActiveRange() || selectedRange.current;
