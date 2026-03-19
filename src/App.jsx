@@ -548,6 +548,21 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying]);
 
+  // Auto-scroll active pattern block into view during playback
+  const lastScrolledPatternRef = useRef(null);
+  useEffect(() => {
+    if (!isPlaying || !activeSlot) return;
+    const id = activeSlot.patternId;
+    if (id === lastScrolledPatternRef.current) return;
+    lastScrolledPatternRef.current = id;
+    document.getElementById(`block-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [isPlaying, activeSlot?.patternId]);
+
+  // Reset scroll tracker when playback stops
+  useEffect(() => {
+    if (!isPlaying) lastScrolledPatternRef.current = null;
+  }, [isPlaying]);
+
   // Keep a ref to song so the scheduler closure can always read the latest version
   const bpmRef = useRef(bpm);
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
