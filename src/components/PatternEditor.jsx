@@ -437,7 +437,7 @@ if (setInputMode) setInputMode(trackId);
                         onChange={(e) => setBpmInput(e.target.value)}
                         onBlur={() => {
                           const val = parseInt(bpmInput, 10);
-                          if (!isNaN(val)) handleBpmChange(Math.max(40, Math.min(240, val)) - bpm);
+                          if (!isNaN(val)) handleBpmChange(Math.max(20, Math.min(100, val)) - bpm);
                           setBpmEditing(false);
                         }}
                         onKeyDown={(e) => {

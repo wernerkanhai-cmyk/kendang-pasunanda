@@ -608,7 +608,7 @@ function App() {
   };
 
   const handleBpmChange = (delta) => {
-    const newBpm = Math.max(40, Math.min(240, bpm + delta));
+    const newBpm = Math.max(20, Math.min(100, bpm + delta));
     setBpm(newBpm);
     if (schedulerRef.current) schedulerRef.current.setBpm(newBpm);
   };
