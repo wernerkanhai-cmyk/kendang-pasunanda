@@ -729,6 +729,14 @@ function App() {
     samplerRef.current?.playGong();
   };
 
+  const handleGongFromInstrument = () => {
+    samplerRef.current?.playGong();
+    if (activeSlot) {
+      const blockStart = Math.floor(activeSlot.startIndex / 6) * 6;
+      handleGongToggle(activeSlot.patternId, blockStart);
+    }
+  };
+
   const handleDrumTrigger = (symbol, naturalTrack) => {
     // Speel altijd het geluid af, ook zonder actieve slot
     if (symbol !== '.') {
@@ -1208,7 +1216,14 @@ function App() {
               onTrigger={handleDrumTrigger}
               inputMode={inputMode}
               setInputMode={setInputMode}
-              onGongTrigger={handleGongSample}
+              onGongTrigger={handleGongFromInstrument}
+              gongActive={(() => {
+                if (!activeSlot) return false;
+                const pat = song.find(p => p.id === activeSlot.patternId);
+                if (!pat) return false;
+                const blockStart = Math.floor(activeSlot.startIndex / 6) * 6;
+                return (pat.gong || []).includes(blockStart);
+              })()}
             />
           </div>
 

@@ -142,7 +142,7 @@ const DrumZone = ({ drum, onTrigger }) => {
 
 // ── Main DrumPad ──────────────────────────────────────────────────────────────
 
-const DrumPad = ({ onTrigger, inputMode, onGongTrigger }) => {
+const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false }) => {
   const [showLegend, setShowLegend] = useState(false);
 
   const LEGEND = [
@@ -205,8 +205,12 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger }) => {
               transform: 'translateX(-50%)',
               width: '22%',
               cursor: 'pointer',
-              filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.55))',
-              transition: 'transform 0.1s',
+              filter: gongActive
+                ? 'drop-shadow(0 3px 10px rgba(0,0,0,0.55)) drop-shadow(0 0 12px rgba(212,175,55,1)) drop-shadow(0 0 20px rgba(212,175,55,0.6))'
+                : 'drop-shadow(0 3px 10px rgba(0,0,0,0.55))',
+              transition: 'filter 0.15s, transform 0.1s',
+              outline: gongActive ? '2px solid rgba(212,175,55,0.8)' : 'none',
+              borderRadius: '50%',
               zIndex: 10
             }}
             onMouseDown={e => { e.currentTarget.style.transform = 'translateX(-50%) scale(0.92)'; }}
