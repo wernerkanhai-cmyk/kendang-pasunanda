@@ -1198,8 +1198,8 @@ function App() {
             }}
           >
             <span style={{ letterSpacing: '1px' }}>⠿</span>
-            <span>Instrument</span>
-            <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#334155' }}>{drumCollapsed ? '▸' : '▾'}</span>
+            <span style={{ color: '#94a3b8' }}>Instrument</span>
+            <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#475569' }}>{drumCollapsed ? '▸' : '▾'}</span>
           </div>
 
           {/* Content — verborgen wanneer ingeklapt */}
