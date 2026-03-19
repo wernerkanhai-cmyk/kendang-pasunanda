@@ -141,8 +141,8 @@ function App() {
   const lastRewindTimeRef = useRef(0);
   const currentAudioSlotRef = useRef(0); // Werkelijke afspeelslot (gesynchroniseerd met onTick)
   const playStartWallTimeRef = useRef(0); // Date.now() op moment dat slot 0 klinkt
-  const cursorOffsetMsRef = useRef(-1750);   // Handmatige cursor-kalibratie in ms
-  const [cursorOffsetMs, setCursorOffsetMs] = useState(-1750);
+  const cursorOffsetMsRef = useRef(0);   // Handmatige cursor-kalibratie in ms
+  const [cursorOffsetMs, setCursorOffsetMs] = useState(0);
 
   const handleSaveSong = () => {
     const name = songName.trim() || 'Naamloos';
@@ -600,6 +600,10 @@ function App() {
   };
 
   const togglePlay = async () => {
+    // Ensure AudioContext is running — desktop Chrome requires resume() in user-gesture handler
+    const ctx = schedulerRef.current?.audioCtx;
+    if (ctx?.state === 'suspended') await ctx.resume();
+
     if (isPlaying && !isRecording) {
       schedulerRef.current.pause();
       setIsPlaying(false);
@@ -640,6 +644,9 @@ function App() {
   };
 
   const handleLoopPattern = async (patternId) => {
+    const ctx = schedulerRef.current?.audioCtx;
+    if (ctx?.state === 'suspended') await ctx.resume();
+
     if (loopingPatternIdRef.current === patternId) {
       // Stop loop — herstel normale song totalSlots
       loopingPatternIdRef.current = null;
