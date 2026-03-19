@@ -54,8 +54,7 @@ const PatternEditor = ({
   const [snippetName, setSnippetName] = useState('');
   const [snippetFolder, setSnippetFolder] = useState('Algemeen');
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
-  const [gongMode, setGongMode] = useState(false);
-  const [showBeheer, setShowBeheer] = useState(false);
+const [showBeheer, setShowBeheer] = useState(false);
   const timelineRef = useRef(null);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
@@ -271,12 +270,7 @@ const PatternEditor = ({
 
   const handleSlotClick = (trackId, slotIndex, isShift) => {
     onFocus();
-    if (gongMode) {
-      const blockStart = Math.floor(slotIndex / 6) * 6;
-      onGongToggle(pattern.id, blockStart);
-      return;
-    }
-    if (setInputMode) setInputMode(trackId);
+if (setInputMode) setInputMode(trackId);
     if (setActiveSlot) {
       if (isShift && activeSlot && activeSlot.patternId === pattern.id && activeSlot.trackId === trackId) {
         setActiveSlot({ ...activeSlot, endIndex: slotIndex });
@@ -618,13 +612,6 @@ const PatternEditor = ({
                 
              </div>
            )}
-           <button
-             onClick={(e) => { e.stopPropagation(); setGongMode(m => !m); }}
-             style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 'bold', background: gongMode ? 'rgba(212,175,55,0.25)' : 'transparent', border: `1px solid ${gongMode ? '#d4af37' : 'var(--border-focus)'}`, color: gongMode ? '#d4af37' : '#94a3b8', borderRadius: '4px', cursor: 'pointer' }}
-             title="Gong-modus: klik op een blokje om gong aan/uit te zetten"
-           >
-             ◯ Gong
-           </button>
         </div>
       </div>
 
