@@ -622,7 +622,7 @@ function App() {
       const totalSlots = song.reduce((sum, p) => sum + p.anak.length, 0);
       slotTimesRef.current = buildSlotTimesMs(globalStart, totalSlots, buildTempoAt(song, bpm));
 
-      if (metronomeMode === '4' || metronomeMode === 'precount') {
+      if (metronomeMode === '4') {
         schedulerRef.current.clickWhilePlaying = false;
         setIsPlaying(true);
         schedulerRef.current.startPlayPrecount(globalStart, 4);
@@ -630,13 +630,14 @@ function App() {
         schedulerRef.current.clickWhilePlaying = false;
         setIsPlaying(true);
         schedulerRef.current.startPlayPrecount(globalStart, 8);
-      } else if (metronomeMode === 'click') {
+      } else if (metronomeMode === '4+play') {
         schedulerRef.current.clickWhilePlaying = true;
-        await schedulerRef.current.play(false, globalStart);
-        const ctx = schedulerRef.current.audioCtx;
-        const outputLatencyMs = ctx ? ((ctx.outputLatency || 0) + (ctx.baseLatency || 0)) * 1000 : 0;
-        playStartWallTimeRef.current = Date.now() + 50 + outputLatencyMs;
         setIsPlaying(true);
+        schedulerRef.current.startPlayPrecount(globalStart, 4);
+      } else if (metronomeMode === '8+play') {
+        schedulerRef.current.clickWhilePlaying = true;
+        setIsPlaying(true);
+        schedulerRef.current.startPlayPrecount(globalStart, 8);
       } else {
         schedulerRef.current.clickWhilePlaying = false;
         await schedulerRef.current.play(false, globalStart);

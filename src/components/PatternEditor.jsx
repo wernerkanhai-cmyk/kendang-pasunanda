@@ -518,8 +518,8 @@ if (setInputMode) setInputMode(trackId);
                   <option value="">🎵 uit</option>
                   <option value="4">🎵 4 tellen</option>
                   <option value="8">🎵 8 tellen</option>
-                  <option value="click">🎵 click while play</option>
-                  <option value="precount">🎵 only precount</option>
+                  <option value="4+play">🎵 4 tellen + play</option>
+                  <option value="8+play">🎵 8 tellen + play</option>
                 </select>
                 <button
                   onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
