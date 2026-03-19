@@ -214,6 +214,14 @@ export class AudioScheduler {
     this.onTick(slot); // Update UI immediately
   }
 
+  seekTo(slot) {
+    if (!this.isPlaying || !this.audioCtx) return;
+    clearTimeout(this.timerID);
+    this.currentSlot = slot;
+    this.nextNoteTime = this.audioCtx.currentTime + 0.05;
+    this.scheduler();
+  }
+
   stop() {
     this.isPlaying = false;
     this.isRecording = false;

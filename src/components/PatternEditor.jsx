@@ -49,6 +49,7 @@ const PatternEditor = ({
   metronomeMode,
   setMetronomeMode,
   onUpdateTempoTrack,
+  onSeek,
   onDuplicate,
   onMoveUp,
   onMoveDown,
@@ -276,7 +277,11 @@ const [showBeheer, setShowBeheer] = useState(true);
 
   const handleSlotClick = (trackId, slotIndex, isShift) => {
     onFocus();
-if (setInputMode) setInputMode(trackId);
+    if (setInputMode) setInputMode(trackId);
+    if (isPlaying && onSeek) {
+      onSeek(pattern.id, slotIndex);
+      return;
+    }
     if (setActiveSlot) {
       if (isShift && activeSlot && activeSlot.patternId === pattern.id && activeSlot.trackId === trackId) {
         setActiveSlot({ ...activeSlot, endIndex: slotIndex });

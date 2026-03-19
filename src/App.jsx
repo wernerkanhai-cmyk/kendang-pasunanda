@@ -771,6 +771,17 @@ function App() {
     }
   };
 
+  const handleSeek = (patternId, localSlot) => {
+    if (!isPlaying || !schedulerRef.current || !slotTimesRef.current) return;
+    const globalSlot = localToGlobal(patternId, localSlot, song);
+    const { loopStart, times } = slotTimesRef.current;
+    const i = globalSlot - loopStart;
+    const offsetMs = (i >= 0 && i < times.length) ? times[i] : 0;
+    playStartWallTimeRef.current = Date.now() - offsetMs + cursorOffsetMsRef.current;
+    schedulerRef.current.seekTo(globalSlot);
+    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+  };
+
   const stepBack = () => {
     if (schedulerRef.current) {
       const globalCurrent = schedulerRef.current.currentSlot;
@@ -1410,6 +1421,7 @@ function App() {
                       metronomeMode={metronomeMode}
                       setMetronomeMode={setMetronomeMode}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
+                      onSeek={handleSeek}
                       onDuplicate={() => duplicateSongBlock(pattern.id)}
                       onMoveUp={() => movePatternUp(pattern.id)}
                       onMoveDown={() => movePatternDown(pattern.id)}
