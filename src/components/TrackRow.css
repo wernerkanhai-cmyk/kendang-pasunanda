@@ -122,7 +122,7 @@
 /* Positions anchored to the center line */
 .pos-above {
   bottom: 50%;
-  margin-bottom: 12px; /* Anak text sits on the line */
+  margin-bottom: 6px; /* Anak text sits on the line */
 }
 
 .pos-below {
