@@ -18,7 +18,7 @@ const getVerticalPositionClass = (symbol, hand) => {
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol }) => {
+const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
   const lastTapRef = useRef({ slotIndex: -1, time: 0 });
@@ -228,8 +228,15 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 const now = Date.now();
                 const last = lastTapRef.current;
                 if (last.slotIndex === index && now - last.time < 350) {
-                  openPopup(e, index);
                   lastTapRef.current = { slotIndex: -1, time: 0 };
+                  const hasSymbol = slot.top !== '' || slot.bottom !== '';
+                  if (hasSymbol && onClearSlot) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onClearSlot(index);
+                  } else {
+                    openPopup(e, index);
+                  }
                 } else {
                   lastTapRef.current = { slotIndex: index, time: now };
                 }

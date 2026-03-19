@@ -440,13 +440,21 @@ function App() {
     const id = setInterval(() => {
       const sched = schedulerRef.current;
       if (!sched?.isPlaying) return;
-      const spsMs = sched.getSecondsPerSlot() * 1000;
-      if (spsMs <= 0) return;
       const elapsed = Date.now() - playStartWallTimeRef.current + cursorOffsetMsRef.current;
       if (elapsed < 0) return;
-      const loopLen = sched.totalSlots - sched.loopStart;
-      if (loopLen <= 0) return;
-      const globalSlot = sched.loopStart + (Math.floor(elapsed / spsMs) % loopLen);
+
+      // Use precomputed slot time table when available (variable tempo), fall back to constant BPM
+      let globalSlot;
+      if (slotTimesRef.current) {
+        globalSlot = getSlotAtElapsed(slotTimesRef.current, elapsed);
+      } else {
+        const spsMs = sched.getSecondsPerSlot() * 1000;
+        if (spsMs <= 0) return;
+        const loopLen = sched.totalSlots - sched.loopStart;
+        if (loopLen <= 0) return;
+        globalSlot = sched.loopStart + (Math.floor(elapsed / spsMs) % loopLen);
+      }
+
       const currentSong = songRef.current;
       if (!currentSong) return;
       let remaining = globalSlot;
@@ -466,6 +474,7 @@ function App() {
       }
     }, 16);
     return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying]);
 
   // Keep a ref to song so the scheduler closure can always read the latest version
@@ -505,6 +514,80 @@ function App() {
     setSoloTrack(next);
   };
 
+  // ── Tempo automation ──────────────────────────────────────────────────────
+
+  // Precomputed slot→cumulative-ms table for variable-tempo cursor sync
+  const slotTimesRef = useRef(null);
+
+  /**
+   * Build a function globalSlot → bpm using each pattern's tempoTrack.
+   * Falls back to defaultBpm when a pattern has no nodes.
+   */
+  const buildTempoAt = (songArr, defaultBpm) => (globalSlot) => {
+    let offset = 0;
+    for (const pattern of songArr) {
+      const len = pattern.anak.length;
+      if (globalSlot < offset + len) {
+        const localSlot = globalSlot - offset;
+        const track = pattern.tempoTrack;
+        if (!track || track.length === 0) return defaultBpm;
+        const sorted = [...track].sort((a, b) => a.slot - b.slot);
+        if (localSlot <= sorted[0].slot) return sorted[0].bpm;
+        if (localSlot >= sorted[sorted.length - 1].slot) return sorted[sorted.length - 1].bpm;
+        for (let i = 0; i < sorted.length - 1; i++) {
+          if (localSlot >= sorted[i].slot && localSlot <= sorted[i + 1].slot) {
+            const t = (localSlot - sorted[i].slot) / (sorted[i + 1].slot - sorted[i].slot);
+            return sorted[i].bpm + t * (sorted[i + 1].bpm - sorted[i].bpm);
+          }
+        }
+        return defaultBpm;
+      }
+      offset += len;
+    }
+    return defaultBpm;
+  };
+
+  /** Precompute cumulative slot start times (ms) from loopStart to totalSlots. */
+  const buildSlotTimesMs = (loopStart, totalSlots, getTempoAt) => {
+    const n = totalSlots - loopStart;
+    const times = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) {
+      const bpmAtSlot = getTempoAt(loopStart + i);
+      times[i + 1] = times[i] + (60000 / bpmAtSlot) / 12;
+    }
+    return { loopStart, times };
+  };
+
+  /** Binary-search the slot at a given elapsed ms, respecting loop. */
+  const getSlotAtElapsed = (timesData, elapsedMs) => {
+    if (!timesData) return 0;
+    const { loopStart, times } = timesData;
+    const loopDuration = times[times.length - 1];
+    if (loopDuration <= 0) return loopStart;
+    const cyclic = ((elapsedMs % loopDuration) + loopDuration) % loopDuration;
+    let lo = 0, hi = times.length - 2;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (times[mid] <= cyclic) lo = mid;
+      else hi = mid - 1;
+    }
+    return loopStart + lo;
+  };
+
+  // Keep tempo callback in sync with song + bpm state
+  const tempoAtFnRef = useRef(null);
+  useEffect(() => {
+    tempoAtFnRef.current = buildTempoAt(song, bpm);
+    if (schedulerRef.current) {
+      schedulerRef.current.setTempoCallback((slot) => tempoAtFnRef.current(slot));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song, bpm]);
+
+  const handleUpdateTempoTrack = (patternId, newTempoTrack) => {
+    setSong(prev => prev.map(p => p.id === patternId ? { ...p, tempoTrack: newTempoTrack } : p));
+  };
+
   const handleBpmChange = (delta) => {
     const newBpm = Math.max(40, Math.min(240, bpm + delta));
     setBpm(newBpm);
@@ -535,6 +618,10 @@ function App() {
       const globalStart = activeSlot
         ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
         : 0;
+      // Build slot time table for variable-tempo cursor sync
+      const totalSlots = song.reduce((sum, p) => sum + p.anak.length, 0);
+      slotTimesRef.current = buildSlotTimesMs(globalStart, totalSlots, buildTempoAt(song, bpm));
+
       if (precountPlay) {
         setIsPlaying(true);
         schedulerRef.current.startPlayPrecount(globalStart);
@@ -573,7 +660,10 @@ function App() {
     if (!pattern) return;
     loopingPatternIdRef.current = patternId;
     setLoopingPatternId(patternId);
-    schedulerRef.current.setTotalSlots(globalStart + pattern.anak.length);
+    const loopTotal = globalStart + pattern.anak.length;
+    schedulerRef.current.setTotalSlots(loopTotal);
+    // Build slot time table for this loop range
+    slotTimesRef.current = buildSlotTimesMs(globalStart, loopTotal, buildTempoAt(song, bpm));
     await schedulerRef.current.play(false, globalStart);
     const ctx2 = schedulerRef.current.audioCtx;
     const latMs2 = ctx2 ? ((ctx2.outputLatency || 0) + (ctx2.baseLatency || 0)) * 1000 : 0;
@@ -1216,6 +1306,7 @@ function App() {
                       setPrecountPlay={setPrecountPlay}
                       cursorOffsetMs={cursorOffsetMs}
                       adjustCursorOffset={adjustCursorOffset}
+                      onUpdateTempoTrack={handleUpdateTempoTrack}
                     />
                   </div>
                 </React.Fragment>

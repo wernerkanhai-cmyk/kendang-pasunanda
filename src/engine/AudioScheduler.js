@@ -28,6 +28,19 @@ export class AudioScheduler {
     this.audioCtx = ctx;
   }
 
+  // Optional callback: (globalSlot) => bpm — for per-slot tempo automation
+  setTempoCallback(fn) {
+    this.getTempoAt = fn;
+  }
+
+  getBpmAt(slot) {
+    if (this.getTempoAt) {
+      const bpm = this.getTempoAt(slot);
+      if (typeof bpm === 'number' && isFinite(bpm) && bpm > 0) return bpm;
+    }
+    return this.bpm;
+  }
+
   init() {
     if (!this.audioCtx) {
       this.audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
@@ -44,9 +57,10 @@ export class AudioScheduler {
   }
 
   nextNote() {
-    const secondsPerSlot = this.getSecondsPerSlot();
-    this.nextNoteTime += secondsPerSlot;
-    
+    // Use per-slot BPM if a tempo callback is set, otherwise fall back to global BPM
+    const bpm = this.getBpmAt(this.currentSlot);
+    this.nextNoteTime += (60.0 / bpm) / 12.0;
+
     this.currentSlot++;
     if (this.currentSlot >= this.totalSlots) {
       this.currentSlot = this.loopStart; // Loop terug naar startpunt

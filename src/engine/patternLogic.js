@@ -27,7 +27,8 @@ export const createEmptyPattern = (name = 'Song 1') => {
     name,
     anak: generateEmptySlots(192),    // Top track
     indung: generateEmptySlots(192),  // Bottom track
-    gong: []                          // Array of slot indices (multiples of 6) where gong plays
+    gong: [],                         // Array of slot indices (multiples of 6) where gong plays
+    tempoTrack: []                    // Array of { slot, bpm } tempo nodes; empty = use global BPM
   };
 };
 

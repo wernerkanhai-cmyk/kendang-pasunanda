@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import TrackRow from './TrackRow';
+import TempoTrack from './TempoTrack';
 import { generateEmptySlots, writeSymbolToPattern } from '../engine/patternLogic';
 
 const PatternEditor = ({ 
@@ -49,6 +50,7 @@ const PatternEditor = ({
   setPrecountPlay,
   cursorOffsetMs = 0,
   adjustCursorOffset,
+  onUpdateTempoTrack,
 }) => {
   const [isNamingSnippet, setIsNamingSnippet] = useState(false);
   const [snippetName, setSnippetName] = useState('');
@@ -796,6 +798,18 @@ const PatternEditor = ({
         {zoom !== 1 && <button onClick={(e) => { e.stopPropagation(); setZoom(1); }} style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.65rem', cursor: 'pointer' }}>reset</button>}
       </div>
 
+      {/* Tempo Track — outside horizontal scroll so it's always visible */}
+      {onUpdateTempoTrack && (
+        <div style={{ padding: '4px 1rem 0' }}>
+          <TempoTrack
+            pattern={pattern}
+            defaultBpm={bpm}
+            onUpdate={onUpdateTempoTrack}
+            slotWidth={slotWidth}
+          />
+        </div>
+      )}
+
       <div className="timeline-wrapper" ref={timelineRef}>
         {/* Measure Ruler */}
         <div className="measure-ruler" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', color: '#64748b' }}>
@@ -847,6 +861,11 @@ const PatternEditor = ({
                 onNoteMove={handleNoteMove}
                 gong={pattern.gong || []}
                 onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('anak', slotIndex, symbol)}
+                onClearSlot={(slotIndex) => {
+                  const newTrack = [...pattern.anak];
+                  newTrack[slotIndex] = { top: '', bottom: '' };
+                  updatePattern({ ...pattern, anak: newTrack });
+                }}
               />
             </div>
           </div>
@@ -879,6 +898,11 @@ const PatternEditor = ({
                 onNoteMove={handleNoteMove}
                 gong={pattern.gong || []}
                 onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('indung', slotIndex, symbol)}
+                onClearSlot={(slotIndex) => {
+                  const newTrack = [...pattern.indung];
+                  newTrack[slotIndex] = { top: '', bottom: '' };
+                  updatePattern({ ...pattern, indung: newTrack });
+                }}
               />
             </div>
           </div>
