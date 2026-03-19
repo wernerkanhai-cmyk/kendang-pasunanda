@@ -17,8 +17,9 @@ const PatternEditor = ({
   handleRedo, 
   undoStack, 
   redoStack, 
-  bpm, 
-  handleBpmChange, 
+  bpm,
+  realtimeBpm = null,
+  handleBpmChange,
   isRecording, 
   toggleRecord, 
   precount, 
@@ -500,7 +501,11 @@ const [showBeheer, setShowBeheer] = useState(true);
                           }
                           bpmDragRef.current = null;
                         }}
-                      >{bpm}</span>
+                      >
+                        {realtimeBpm !== null ? (
+                          <span style={{ color: '#d4af37' }}>{realtimeBpm}</span>
+                        ) : bpm}
+                      </span>
                     )}
                  </div>
 

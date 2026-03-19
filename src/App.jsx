@@ -33,6 +33,7 @@ function App() {
   
   // Audio Transport State
   const [bpm, setBpm] = useState(60);
+  const [realtimeBpm, setRealtimeBpm] = useState(null); // null = not playing or no automation
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [precount, setPrecount] = useState(0);
@@ -518,6 +519,15 @@ function App() {
 
       const currentSong = songRef.current;
       if (!currentSong) return;
+
+      // Realtime BPM from tempo automation
+      const hasAutomation = currentSong.some(p => p.tempoTrack && p.tempoTrack.length > 0);
+      if (hasAutomation) {
+        const currentBpmRef = bpmRef.current;
+        const rt = Math.round(buildTempoAt(currentSong, currentBpmRef)(globalSlot));
+        setRealtimeBpm(rt);
+      }
+
       let remaining = globalSlot;
       for (const p of currentSong) {
         if (remaining < p.anak.length) {
@@ -539,6 +549,9 @@ function App() {
   }, [isPlaying]);
 
   // Keep a ref to song so the scheduler closure can always read the latest version
+  const bpmRef = useRef(bpm);
+  useEffect(() => { bpmRef.current = bpm; }, [bpm]);
+
   const songRef = useRef(song);
   useEffect(() => {
     songRef.current = song;
@@ -664,6 +677,7 @@ function App() {
     if (isPlaying && !isRecording) {
       schedulerRef.current.pause();
       setIsPlaying(false);
+      setRealtimeBpm(null);
       if (loopingPatternIdRef.current) {
         loopingPatternIdRef.current = null;
         setLoopingPatternId(null);
@@ -1400,6 +1414,7 @@ function App() {
                       undoStack={undoStack}
                       redoStack={redoStack}
                       bpm={bpm}
+                      realtimeBpm={realtimeBpm}
                       handleBpmChange={handleBpmChange}
                       isRecording={isRecording}
                       toggleRecord={toggleRecord}
