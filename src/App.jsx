@@ -657,6 +657,9 @@ function App() {
         schedulerRef.current.clickWhilePlaying = true;
         setIsPlaying(true);
         schedulerRef.current.startPlayPrecount(globalStart, 8);
+      } else if (metronomeMode === 'on') {
+        schedulerRef.current.clickWhilePlaying = true;
+        await schedulerRef.current.play(false, globalStart);
       } else {
         schedulerRef.current.clickWhilePlaying = false;
         await schedulerRef.current.play(false, globalStart);
