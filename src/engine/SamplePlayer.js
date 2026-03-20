@@ -3,9 +3,20 @@
  * Bestanden staan in /public/audio/ met naamconventie: {track}_{geluid}_{01-04}.wav
  */
 
-// Volume multiplier per sound (1.0 = normaal)
-const SOUND_GAIN = {
-  'det': 3.0,
+export const DEFAULT_SOUND_SETTINGS = {
+  tung:    { gain: 1.0, pitch: 1.0 },
+  dong:    { gain: 1.0, pitch: 1.0 },
+  ting:    { gain: 1.0, pitch: 1.0 },
+  det:     { gain: 3.0, pitch: 1.0 },
+  dededet: { gain: 1.0, pitch: 1.0 },
+  pling:   { gain: 1.0, pitch: 1.0 },
+  pang:    { gain: 1.0, pitch: 1.0 },
+  ping:    { gain: 1.0, pitch: 1.0 },
+  pong:    { gain: 1.0, pitch: 1.0 },
+  plak:    { gain: 1.0, pitch: 1.0 },
+  pak:     { gain: 1.0, pitch: 1.0 },
+  peung:   { gain: 1.0, pitch: 1.0 },
+  gong:    { gain: 1.0, pitch: 1.0 },
 };
 
 export const SYMBOL_TO_SOUND = {
@@ -31,11 +42,15 @@ export class SamplePlayer {
   constructor() {
     this.audioCtx = null;
     this.buffers = {};   // key → AudioBuffer
+    this.settings = {}; // sound → { gain, pitch }
+  }
+
+  updateSettings(settings) {
+    this.settings = settings || {};
   }
 
   _initCtx() {
     if (!this.audioCtx) {
-      // 'interactive' = laagste latency die de browser toestaat
       this.audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     }
     if (this.audioCtx.state === 'suspended') {
@@ -57,14 +72,9 @@ export class SamplePlayer {
       }
     }
 
-    // Gong heeft maar 1 sample
     promises.push(this._load('gong_01', '/audio/gong_01.wav'));
 
     await Promise.allSettled(promises);
-
-    // Warm up: speel een stil 1-frame buffer af zodat de audio pipeline al
-    // actief is bij de eerste echte noot. Zonder dit heeft de eerste noot
-    // extra opstartlatency.
     this._warmup();
   }
 
@@ -95,25 +105,27 @@ export class SamplePlayer {
     const sound = SYMBOL_TO_SOUND[symbol];
     if (!sound) return;
     const n = String(Math.floor(Math.random() * VARIANTS) + 1).padStart(2, '0');
-    this._trigger(`${track}_${sound}_${n}`, when, SOUND_GAIN[sound] ?? 1.0);
+    const s = this.settings[sound] || DEFAULT_SOUND_SETTINGS[sound] || {};
+    this._trigger(`${track}_${sound}_${n}`, when, s.gain ?? 1.0, s.pitch ?? 1.0);
   }
 
   /** Speel de gong af */
   playGong(when = 0) {
-    this._trigger('gong_01', when);
+    const s = this.settings['gong'] || DEFAULT_SOUND_SETTINGS['gong'] || {};
+    this._trigger('gong_01', when, s.gain ?? 1.0, s.pitch ?? 1.0);
   }
 
-  _trigger(key, when, gainValue = 1.0) {
+  _trigger(key, when, gainValue = 1.0, pitchValue = 1.0) {
     const buf = this.buffers[key];
     if (!buf || !this.audioCtx) return;
 
-    // Zorg dat de context altijd actief is voor directe weergave
     if (this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
     }
 
     const src = this.audioCtx.createBufferSource();
     src.buffer = buf;
+    if (pitchValue !== 1.0) src.playbackRate.value = pitchValue;
 
     if (gainValue !== 1.0) {
       const gain = this.audioCtx.createGain();
@@ -124,9 +136,6 @@ export class SamplePlayer {
       src.connect(this.audioCtx.destination);
     }
 
-    // when > 0: gepland door AudioScheduler (gebruik die tijd exact)
-    // when = 0: directe aanslag — gebruik currentTime + 3ms kleine buffer
-    //           om underruns te voorkomen zonder hoorbare vertraging
     const t = when > 0 ? when : this.audioCtx.currentTime + 0.003;
     src.start(t);
   }
