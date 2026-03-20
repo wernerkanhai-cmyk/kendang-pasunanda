@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ensembleImg from '../assets/drums_ensemble.png';
 import gongImg from '../assets/Gong.png';
 import './DrumPad.css';
+import SoundSettingsContent from './SettingsPanel';
 
 // ── SVG pie helpers ──────────────────────────────────────────────────────────
 // Convention: 0° = top (12 o'clock), clockwise
@@ -142,8 +143,9 @@ const DrumZone = ({ drum, onTrigger }) => {
 
 // ── Main DrumPad ──────────────────────────────────────────────────────────────
 
-const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false }) => {
+const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soundSettings, onSoundSettingsChange }) => {
   const [showLegend, setShowLegend] = useState(false);
+  const [activeTab, setActiveTab] = useState('pad');
 
   const LEGEND = [
     { key: 'N', name: 'Tung' }, { key: 'C', name: 'Dong' }, { key: '?', name: 'Ting' },
@@ -152,8 +154,31 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false }) =>
     { key: 'G', name: 'Pak' },  { key: 'F', name: 'Peung' },{ key: 'S', name: 'Dededet' },
   ];
 
+  const tabBtn = (id, label) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      style={{
+        flex: 1, background: activeTab === id ? '#334155' : 'transparent',
+        color: activeTab === id ? '#e2e8f0' : '#64748b',
+        border: 'none', borderBottom: `2px solid ${activeTab === id ? '#3b82f6' : 'transparent'}`,
+        padding: '0.3rem 0', fontSize: '0.75rem', cursor: 'pointer', fontWeight: activeTab === id ? 'bold' : 'normal',
+      }}
+    >{label}</button>
+  );
+
   return (
     <section className="drum-module glass-panel">
+      {/* Tabs */}
+      <div style={{ display: 'flex', borderBottom: '1px solid #334155', marginBottom: '0.25rem' }}>
+        {tabBtn('pad', '🥁 Pad')}
+        {tabBtn('geluid', '⚙️ Geluid')}
+      </div>
+
+      {activeTab === 'geluid' && soundSettings && onSoundSettingsChange && (
+        <SoundSettingsContent settings={soundSettings} onChange={onSoundSettingsChange} />
+      )}
+
+      {activeTab === 'pad' && <>
       <div className="drum-module-header">
         {showLegend && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px 6px', marginBottom: '0.4rem' }}>
@@ -252,6 +277,7 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false }) =>
         </div>
 
       </div>
+      </>}
     </section>
   );
 };

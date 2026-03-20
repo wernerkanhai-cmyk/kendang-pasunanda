@@ -9,7 +9,6 @@ import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
 import { FACTORY_PRESETS, FACTORY_CATEGORIES } from './factory/presets';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
-import SettingsPanel from './components/SettingsPanel';
 
 function App() {
   const [song, setSong] = useState(() => {
@@ -53,7 +52,6 @@ function App() {
       return saved ? { ...DEFAULT_SOUND_SETTINGS, ...saved } : { ...DEFAULT_SOUND_SETTINGS };
     } catch { return { ...DEFAULT_SOUND_SETTINGS }; }
   });
-  const [showSoundSettings, setShowSoundSettings] = useState(false);
   const soundSettingsRef = useRef(soundSettings);
   useEffect(() => {
     soundSettingsRef.current = soundSettings;
@@ -1356,6 +1354,8 @@ function App() {
                 const blockStart = Math.floor(activeSlot.startIndex / 6) * 6;
                 return (pat.gong || []).includes(blockStart);
               })()}
+              soundSettings={soundSettings}
+              onSoundSettingsChange={setSoundSettings}
             />
           </div>
 
@@ -1387,11 +1387,6 @@ function App() {
               style={{ background: 'transparent', border: '1px solid #334155', borderRadius: '4px', color: '#64748b', cursor: 'pointer', padding: '0.2rem 0.5rem', fontSize: '0.85rem', lineHeight: 1, flexShrink: 0 }}
               title="Compositie-overzicht"
             >☰</button>
-            <button
-              onClick={() => setShowSoundSettings(true)}
-              style={{ background: 'transparent', border: '1px solid #334155', borderRadius: '4px', color: '#64748b', cursor: 'pointer', padding: '0.2rem 0.5rem', fontSize: '0.85rem', lineHeight: 1, flexShrink: 0 }}
-              title="Geluid instellingen"
-            >⚙️</button>
             <div style={{ flex: 1, fontSize: '1.1rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center' }}>
               {songName}
             </div>
@@ -1510,13 +1505,6 @@ function App() {
         </main>
       </div>
 
-      {showSoundSettings && (
-        <SettingsPanel
-          settings={soundSettings}
-          onChange={setSoundSettings}
-          onClose={() => setShowSoundSettings(false)}
-        />
-      )}
     </div>
   );
 }
