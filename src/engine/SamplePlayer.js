@@ -5,7 +5,7 @@
 
 // Volume multiplier per sound (1.0 = normaal)
 const SOUND_GAIN = {
-  'det': 6.0,
+  'det': 1.0,
 };
 
 export const SYMBOL_TO_SOUND = {
