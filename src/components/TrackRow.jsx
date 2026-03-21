@@ -102,6 +102,12 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
   const collapsedRests = useMemo(() => {
     const result = new Set();
     for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
+      // Only collapse rests if the beat has at least one actual note
+      const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
+        (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
+      );
+      if (!beatHasNote) continue;
+
       for (const [ai, bi] of [[0, 3], [6, 9]]) {
         const sa = slots[beatStart + ai];
         const sb = slots[beatStart + bi];

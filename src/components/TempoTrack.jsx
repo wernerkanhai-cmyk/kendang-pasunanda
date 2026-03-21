@@ -294,6 +294,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, slotWidth }) => {
                 onMouseDown={(e) => { if (e.button === 0) startDrag(e, node.slot); }}
                 onTouchStart={(e) => startDrag(e, node.slot)}
                 onClick={(e) => { e.stopPropagation(); openZoom(e, node); }}
+                onDoubleClick={(e) => deleteNode(e, node.slot)}
                 onContextMenu={(e) => deleteNode(e, node.slot)}
               >
                 <circle r={5} fill={zoomedNode?.slot === node.slot ? '#fff' : '#d4af37'} stroke="#1e293b" strokeWidth={1.5} />
