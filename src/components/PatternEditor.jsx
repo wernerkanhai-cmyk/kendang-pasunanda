@@ -64,6 +64,8 @@ const PatternEditor = ({
 const [showBeheer, setShowBeheer] = useState(true);
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
   const timelineRef = useRef(null);
+  const tracksContainerRef = useRef(null);
+  const playheadDragRef = useRef(false);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
   const [bpmEditing, setBpmEditing] = useState(false);
@@ -313,6 +315,25 @@ const [showBeheer, setShowBeheer] = useState(true);
   };
 
   const activeRangeObj = getActiveRange();
+
+  const SOLO_BTN_W = 24; // 20px button + 4px margin
+  const playheadSlot = (activeSlot?.patternId === pattern.id && activeSlot?.startIndex !== undefined)
+    ? activeSlot.startIndex : null;
+
+  const handlePlayheadPointerDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    playheadDragRef.current = true;
+  };
+  const handlePlayheadPointerMove = (e) => {
+    if (!playheadDragRef.current || !tracksContainerRef.current) return;
+    const rect = tracksContainerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - SOLO_BTN_W;
+    const slot = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
+    onSeek?.(pattern.id, slot);
+  };
+  const handlePlayheadPointerUp = () => { playheadDragRef.current = false; };
 
   return (
     <div 
@@ -759,7 +780,7 @@ const [showBeheer, setShowBeheer] = useState(true);
         </div>
 
         {/* Track rows with gong overlay */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative' }} ref={tracksContainerRef}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
@@ -830,6 +851,39 @@ const [showBeheer, setShowBeheer] = useState(true);
               />
             </div>
           </div>
+
+        {/* Playhead */}
+        {playheadSlot !== null && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: SOLO_BTN_W + playheadSlot * slotWidth,
+            width: 2,
+            background: 'rgba(59,130,246,0.85)',
+            zIndex: 30,
+            pointerEvents: 'none',
+          }}>
+            {/* Draggable triangle handle */}
+            <div
+              style={{
+                position: 'absolute',
+                top: -10,
+                left: -5,
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: '10px solid #3b82f6',
+                cursor: 'ew-resize',
+                pointerEvents: 'all',
+              }}
+              onPointerDown={handlePlayheadPointerDown}
+              onPointerMove={handlePlayheadPointerMove}
+              onPointerUp={handlePlayheadPointerUp}
+            />
+          </div>
+        )}
 
         </div>
       </div>
