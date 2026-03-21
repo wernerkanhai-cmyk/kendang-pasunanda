@@ -67,12 +67,12 @@ export class SamplePlayer {
         for (let i = 1; i <= VARIANTS; i++) {
           const n = String(i).padStart(2, '0');
           const key = `${track}_${sound}_${n}`;
-          promises.push(this._load(key, `/audio/${key}.wav`));
+          promises.push(this._load(key, `${import.meta.env.BASE_URL}audio/${key}.wav`));
         }
       }
     }
 
-    promises.push(this._load('gong_01', '/audio/gong_01.wav'));
+    promises.push(this._load('gong_01', `${import.meta.env.BASE_URL}audio/gong_01.wav`));
 
     await Promise.allSettled(promises);
     this._warmup();
