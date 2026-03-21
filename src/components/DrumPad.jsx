@@ -230,11 +230,11 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
               transform: 'translateX(-50%)',
               width: '22%',
               cursor: 'pointer',
-              filter: gongActive
-                ? 'drop-shadow(0 3px 10px rgba(0,0,0,0.55)) drop-shadow(0 0 12px rgba(212,175,55,1)) drop-shadow(0 0 20px rgba(212,175,55,0.6))'
-                : 'drop-shadow(0 3px 10px rgba(0,0,0,0.55))',
-              transition: 'filter 0.15s, transform 0.1s',
-              outline: gongActive ? '2px solid rgba(212,175,55,0.8)' : 'none',
+              filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.55))',
+              boxShadow: gongActive
+                ? '0 0 12px 4px rgba(212,175,55,1), 0 0 28px 10px rgba(212,175,55,0.55)'
+                : 'none',
+              transition: 'box-shadow 0.15s, transform 0.1s',
               borderRadius: '50%',
               zIndex: 10
             }}
