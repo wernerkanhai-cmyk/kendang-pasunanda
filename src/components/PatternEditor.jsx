@@ -503,7 +503,7 @@ const [showBeheer, setShowBeheer] = useState(true);
         <div className="pattern-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
            {isActive && (
-              <div className="transport-controls" style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px', padding: '3px', marginRight: '0.5rem' }}>
+              <div className="transport-controls" style={{ position: 'fixed', bottom: '1.2rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(15,23,42,0.92)', backdropFilter: 'blur(12px)', border: '1px solid #334155', borderRadius: '12px', padding: '6px 10px', zIndex: 500, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
                  {/* Tempo */}
                  <div style={{ border: '1px solid #475569', borderRadius: '4px', height: '2.2rem', display: 'flex', alignItems: 'center', padding: '0 0.4rem', gap: '3px', boxSizing: 'border-box', background: 'transparent' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
