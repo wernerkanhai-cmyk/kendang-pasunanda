@@ -638,7 +638,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               </div>
            )}
 
-           {isActive && activeRangeObj && (
+           {isActive && (
              <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '3px', marginRight: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.3rem 0.4rem', borderRadius: '4px', alignItems: 'center' }}>
                 <div style={{ position: 'relative' }}>
                   <button
