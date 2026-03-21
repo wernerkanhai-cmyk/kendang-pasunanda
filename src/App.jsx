@@ -1435,11 +1435,11 @@ function App() {
             onDoubleClick={(e) => { e.preventDefault(); setDrumCollapsed(c => !c); }}
             style={{
               cursor: 'grab',
-              background: drumCollapsed ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)',
-              borderBottom: '1px solid var(--border-subtle)',
+              background: drumCollapsed ? 'rgba(34,197,94,0.18)' : 'rgba(34,197,94,0.12)',
+              borderBottom: '1px solid rgba(34,197,94,0.3)',
               padding: '4px 8px',
               fontSize: '0.65rem',
-              color: '#475569',
+              color: '#86efac',
               userSelect: 'none',
               flexShrink: 0,
               display: 'flex',
@@ -1449,8 +1449,8 @@ function App() {
             }}
           >
             <span style={{ letterSpacing: '1px' }}>⠿</span>
-            <span style={{ color: '#94a3b8' }}>Instrument</span>
-            <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#475569' }}>{drumCollapsed ? '▸' : '▾'}</span>
+            <span style={{ color: '#86efac' }}>Instrument</span>
+            <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#4ade80' }}>{drumCollapsed ? '▸' : '▾'}</span>
           </div>
 
           {/* Content — verborgen wanneer ingeklapt */}
