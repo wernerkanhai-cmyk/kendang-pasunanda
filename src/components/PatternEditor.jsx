@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
-import { generateEmptySlots, writeSymbolToPattern } from '../engine/patternLogic';
+import { generateEmptySlots, writeSymbolToPattern, getHandForSymbol, SYMBOL_REST } from '../engine/patternLogic';
 
 const PatternEditor = ({ 
   pattern, 
@@ -160,7 +160,21 @@ const [showBeheer, setShowBeheer] = useState(true);
   };
 
   const handleInsertSymbol = (trackId, slotIndex, symbol) => {
-    updatePattern(writeSymbolToPattern(pattern, trackId, slotIndex, symbol));
+    let updated = writeSymbolToPattern(pattern, trackId, slotIndex, symbol);
+    if (symbol !== SYMBOL_REST) {
+      const hand = getHandForSymbol(symbol);
+      const beatStart = Math.floor(slotIndex / 12) * 12;
+      for (let g = beatStart; g < slotIndex; g += gridResolution) {
+        const slot = updated[trackId][g];
+        if (hand === 'top' || hand === 'both') {
+          if (!slot.top) slot.top = SYMBOL_REST;
+        }
+        if (hand === 'bottom' || hand === 'both') {
+          if (!slot.bottom) slot.bottom = SYMBOL_REST;
+        }
+      }
+    }
+    updatePattern(updated);
   };
 
   useEffect(() => {
