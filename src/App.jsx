@@ -235,6 +235,43 @@ function App() {
     if (currentSongId === id) setCurrentSongId(null);
   };
 
+  const handleExportSong = (s) => {
+    const blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${s.name.replace(/[^a-z0-9]/gi, '_')}.kendang.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportSong = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        // Accepteer zowel losse song als array van songs
+        const songs = Array.isArray(imported) ? imported : [imported];
+        const valid = songs.filter(s => s.name && Array.isArray(s.patterns));
+        if (valid.length === 0) throw new Error();
+        setSavedSongs(prev => {
+          const existingIds = new Set(prev.map(s => s.id));
+          return [...prev, ...valid.map(s => ({
+            ...s,
+            id: existingIds.has(s.id) ? Date.now().toString() + Math.random() : s.id,
+          }))];
+        });
+        alert(`${valid.length} song(s) geïmporteerd.`);
+      } catch {
+        alert('Ongeldig bestand — verwacht een .kendang.json bestand.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const handleExportLibrary = () => {
     const blob = new Blob([JSON.stringify(savedSongs, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1226,10 +1263,17 @@ function App() {
                       title="Download bibliotheek als .json bestand"
                     >⬇ Exporteer</button>
                     <label
-                      style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
-                      title="Importeer .json bibliotheek van een ander apparaat"
+                      style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
+                      title="Importeer een gedeelde song (.kendang.json)"
                     >
-                      ⬆ Importeer
+                      ⬆ Song importeren
+                      <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportSong} />
+                    </label>
+                    <label
+                      style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
+                      title="Importeer volledige bibliotheek"
+                    >
+                      ⬆ Bibliotheek
                       <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportLibrary} />
                     </label>
                     <button onClick={() => setShowSongLibrary(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
@@ -1275,15 +1319,16 @@ function App() {
                             <button
                               onClick={() => handleLoadSong(s.id)}
                               style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                            >
-                              Laad
-                            </button>
+                            >Laad</button>
+                            <button
+                              onClick={() => handleExportSong(s)}
+                              style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                              title="Exporteer als .json"
+                            >↓</button>
                             <button
                               onClick={() => handleDeleteSong(s.id)}
                               style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                            >
-                              🗑
-                            </button>
+                            >🗑</button>
                           </div>
                         ))}
                       </div>
