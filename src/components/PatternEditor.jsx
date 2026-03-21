@@ -323,17 +323,20 @@ const [showBeheer, setShowBeheer] = useState(true);
   const handlePlayheadPointerDown = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    e.currentTarget.setPointerCapture(e.pointerId);
     playheadDragRef.current = true;
   };
-  const handlePlayheadPointerMove = (e) => {
+  const handleTracksPointerMove = (e) => {
     if (!playheadDragRef.current || !tracksContainerRef.current) return;
     const rect = tracksContainerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - SOLO_BTN_W;
     const slot = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
-    onSeek?.(pattern.id, slot);
+    if (isPlaying) {
+      onSeek?.(pattern.id, slot);
+    } else {
+      setActiveSlot({ patternId: pattern.id, trackId: activeSlot?.trackId || 'anak', startIndex: slot, endIndex: slot });
+    }
   };
-  const handlePlayheadPointerUp = () => { playheadDragRef.current = false; };
+  const handleTracksPointerUp = () => { playheadDragRef.current = false; };
 
   return (
     <div 
@@ -780,7 +783,13 @@ const [showBeheer, setShowBeheer] = useState(true);
         </div>
 
         {/* Track rows with gong overlay */}
-        <div style={{ position: 'relative' }} ref={tracksContainerRef}>
+        <div
+          style={{ position: 'relative' }}
+          ref={tracksContainerRef}
+          onPointerMove={handleTracksPointerMove}
+          onPointerUp={handleTracksPointerUp}
+          onPointerLeave={handleTracksPointerUp}
+        >
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
@@ -879,8 +888,6 @@ const [showBeheer, setShowBeheer] = useState(true);
                 pointerEvents: 'all',
               }}
               onPointerDown={handlePlayheadPointerDown}
-              onPointerMove={handlePlayheadPointerMove}
-              onPointerUp={handlePlayheadPointerUp}
             />
           </div>
         )}
