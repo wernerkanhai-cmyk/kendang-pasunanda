@@ -884,6 +884,17 @@ function App() {
 
     if (isPlaying) {
       schedulerRef.current.seekTo(targetGlobal);
+      // Update wall-clock reference so the cursor interval snaps to the new position
+      if (slotTimesRef.current) {
+        const { loopStart, times } = slotTimesRef.current;
+        const i = targetGlobal - loopStart;
+        const offsetMs = (i >= 0 && i < times.length) ? times[i] : 0;
+        playStartWallTimeRef.current = Date.now() - offsetMs + cursorOffsetMsRef.current;
+      } else {
+        const spsMs = schedulerRef.current.getSecondsPerSlot() * 1000;
+        const loopStart = schedulerRef.current.loopStart;
+        playStartWallTimeRef.current = Date.now() - (targetGlobal - loopStart) * spsMs + cursorOffsetMsRef.current;
+      }
     } else {
       schedulerRef.current.setCurrentSlot(targetGlobal);
     }
