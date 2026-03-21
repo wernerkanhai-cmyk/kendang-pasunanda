@@ -791,6 +791,9 @@ const [showBeheer, setShowBeheer] = useState(true);
           style={{ position: 'relative' }}
           ref={tracksContainerRef}
         >
+          {/* Track name labels */}
+          <span style={{ position: 'absolute', top: 2, left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, zIndex: 5, userSelect: 'none', pointerEvents: 'none' }}>Anak</span>
+
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
@@ -826,7 +829,9 @@ const [showBeheer, setShowBeheer] = useState(true);
           </div>
 
           {/* The thin central line connecting Anak and Indung visually */}
-          <div style={{ height: '2px', background: 'var(--border-subtle)', width: '100%', margin: '4px 0' }}></div>
+          <div style={{ height: '14px', background: 'var(--border-subtle)', width: '100%', margin: '4px 0', position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <span style={{ position: 'absolute', left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, userSelect: 'none', pointerEvents: 'none' }}>Indung</span>
+          </div>
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
