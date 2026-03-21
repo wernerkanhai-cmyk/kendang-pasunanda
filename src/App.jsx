@@ -1208,6 +1208,52 @@ function App() {
           
           <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
 
+          {/* Track volume knobs */}
+          {['anak', 'indung'].map(track => {
+            const color = track === 'anak' ? '#222' : '#cc0000';
+            const val = trackVolumes[track];
+            const angle = -135 + (val / 2) * 270; // -135° = min, +135° = max
+            const r = 14, cx = 18, cy = 18;
+            const rad = (a) => (a - 90) * Math.PI / 180;
+            const arcX = (a) => cx + r * Math.cos(rad(a));
+            const arcY = (a) => cy + r * Math.sin(rad(a));
+            const startAngle = -135, endAngle = angle;
+            const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+            return (
+              <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+                <svg
+                  width="36" height="36" viewBox="0 0 36 36"
+                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                  title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    const startY = e.clientY, startVal = val;
+                    const onMove = (ev) => {
+                      const delta = (startY - ev.clientY) / 80;
+                      setTrackVolumes(v => ({ ...v, [track]: Math.max(0, Math.min(2, startVal + delta)) }));
+                    };
+                    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
+                    window.addEventListener('pointermove', onMove);
+                    window.addEventListener('pointerup', onUp);
+                  }}
+                  onDoubleClick={() => setTrackVolumes(v => ({ ...v, [track]: 1.0 }))}
+                >
+                  {/* Background arc */}
+                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
+                  {/* Value arc */}
+                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
+                  {/* Knob body */}
+                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
+                  {/* Indicator line */}
+                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                <span style={{ fontSize: '0.55rem', color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{track === 'anak' ? 'A' : 'I'}</span>
+              </div>
+            );
+          })}
+
+          <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
+
           {FACTORY_PRESETS.length > 0 && (
             <select
               defaultValue=""

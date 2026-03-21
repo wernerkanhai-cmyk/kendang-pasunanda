@@ -797,28 +797,18 @@ const [showBeheer, setShowBeheer] = useState(true);
           <span style={{ position: 'absolute', top: 2, left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, zIndex: 5, userSelect: 'none', pointerEvents: 'none' }}>Anak</span>
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{ flexShrink: 0, width: '20px', marginRight: '4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-              <button
-                onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
-                style={{
-                  width: '20px', height: '20px',
-                  background: soloTrack === 'anak' ? '#f97316' : 'transparent',
-                  color: soloTrack === 'anak' ? '#fff' : '#f97316',
-                  border: '1px solid #f97316', borderRadius: '3px',
-                  cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-                title="Solo anak"
-              >S</button>
-              <input
-                type="range" min="0" max="2" step="0.05"
-                value={trackVolumes.anak}
-                onChange={e => onTrackVolumeChange?.('anak', parseFloat(e.target.value))}
-                onClick={e => e.stopPropagation()}
-                title={`Anak volume: ${Math.round(trackVolumes.anak * 100)}%`}
-                style={{ writingMode: 'vertical-lr', direction: 'rtl', height: '52px', width: '16px', accentColor: '#f97316', cursor: 'pointer' }}
-              />
-            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
+              style={{
+                flexShrink: 0, width: '20px', height: '20px', marginRight: '4px', marginBottom: '70px',
+                background: soloTrack === 'anak' ? '#f97316' : 'transparent',
+                color: soloTrack === 'anak' ? '#fff' : '#f97316',
+                border: '1px solid #f97316', borderRadius: '3px',
+                cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+              title="Solo anak"
+            >S</button>
             <div style={{ flex: 1 }}>
               <TrackRow
                 trackId="anak"
@@ -846,28 +836,18 @@ const [showBeheer, setShowBeheer] = useState(true);
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div style={{ flexShrink: 0, width: '20px', marginRight: '4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-              <button
-                onClick={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
-                style={{
-                  width: '20px', height: '20px',
-                  background: soloTrack === 'indung' ? '#f97316' : 'transparent',
-                  color: soloTrack === 'indung' ? '#fff' : '#f97316',
-                  border: '1px solid #f97316', borderRadius: '3px',
-                  cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-                title="Solo indung"
-              >S</button>
-              <input
-                type="range" min="0" max="2" step="0.05"
-                value={trackVolumes.indung}
-                onChange={e => onTrackVolumeChange?.('indung', parseFloat(e.target.value))}
-                onClick={e => e.stopPropagation()}
-                title={`Indung volume: ${Math.round(trackVolumes.indung * 100)}%`}
-                style={{ writingMode: 'vertical-lr', direction: 'rtl', height: '52px', width: '16px', accentColor: '#cc0000', cursor: 'pointer' }}
-              />
-            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
+              style={{
+                flexShrink: 0, width: '20px', height: '20px', marginRight: '4px', marginBottom: '70px',
+                background: soloTrack === 'indung' ? '#f97316' : 'transparent',
+                color: soloTrack === 'indung' ? '#fff' : '#f97316',
+                border: '1px solid #f97316', borderRadius: '3px',
+                cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+              title="Solo indung"
+            >S</button>
             <div style={{ flex: 1 }}>
               <TrackRow
                 trackId="indung"
