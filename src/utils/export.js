@@ -16,7 +16,7 @@ const ROW_SLOT_H     = Math.floor(USABLE_H / ROWS_PER_PAGE); // 408 px per row s
 
 const NAME_H        = 28;  // pattern-name label height
 const TRACK_H       = 115; // height of each track band (anak or indung)
-const SEPARATOR_H   = 8;   // gap between anak and indung bands
+const SEPARATOR_H   = 32;  // gap between anak and indung bands
 // Gap between bottom of music area and next row name:  ROW_SLOT_H - NAME_H - (TRACK_H*2+SEPARATOR_H) = 60 px
 
 // ─── Typography ────────────────────────────────────────────────────────────────
