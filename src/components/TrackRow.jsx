@@ -117,7 +117,25 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
            if (hasNote) activeIndices.push(i);
          }
          
-         if (activeIndices.length < 2) continue; // Need at least 2 notes to beam
+         if (activeIndices.length < 2) {
+           // Special case: lone rest at beat start — if there are notes later in this beat
+           // (in either hand), draw a level-1 beam so the rest shows its rhythmic value.
+           if (activeIndices.length === 1 && activeIndices[0] === 0) {
+             const thisSlot = slots[beatStart];
+             const isRest = position === 'top' ? thisSlot.top === SYMBOL_REST : thisSlot.bottom === SYMBOL_REST;
+             if (isRest) {
+               let lastNoteIdx = 0;
+               for (let i = 1; i < 12; i++) {
+                 const s = slots[beatStart + i];
+                 if (s.top !== '' || s.bottom !== '') lastNoteIdx = i;
+               }
+               if (lastNoteIdx > 0) {
+                 handResults.push({ startIdx: beatStart, span: lastNoteIdx, level: 1, position });
+               }
+             }
+           }
+           continue;
+         }
          if (activeIndices.length === 3 && activeIndices[0] === 0 && activeIndices[1] === 4 && activeIndices[2] === 8) continue; // Triplet overrides this
 
          // Level 1 Beam (8th note spacing umbrella) spans all notes in the beat
