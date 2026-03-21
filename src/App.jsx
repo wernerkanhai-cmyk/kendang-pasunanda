@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
-import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots } from './engine/patternLogic';
+import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots, SYMBOL_REST } from './engine/patternLogic';
 import PatternEditor from './components/PatternEditor';
 import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
@@ -1004,6 +1004,22 @@ function App() {
          }
       } else {
          modifiedPattern = writeSymbolToPattern(prevSong[currentPatternIdx], targetTrack, targetSlotIndex, symbol);
+
+         // Auto-fill preceding empty grid positions in this beat with rests
+         if (symbol !== SYMBOL_REST) {
+           const hand = getHandForSymbol(symbol);
+           const beatStart = Math.floor(targetSlotIndex / 12) * 12;
+           const step = gridResolution;
+           for (let g = beatStart; g < targetSlotIndex; g += step) {
+             const slot = modifiedPattern[targetTrack][g];
+             if (hand === 'top' || hand === 'both') {
+               if (!slot.top) slot.top = SYMBOL_REST;
+             }
+             if (hand === 'bottom' || hand === 'both') {
+               if (!slot.bottom) slot.bottom = SYMBOL_REST;
+             }
+           }
+         }
       }
 
       const nextSong = [...prevSong];
