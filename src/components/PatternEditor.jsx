@@ -323,20 +323,24 @@ const [showBeheer, setShowBeheer] = useState(true);
   const handlePlayheadPointerDown = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    playheadDragRef.current = true;
+    const onMove = (ev) => {
+      if (!tracksContainerRef.current) return;
+      const rect = tracksContainerRef.current.getBoundingClientRect();
+      const x = ev.clientX - rect.left - SOLO_BTN_W;
+      const slot = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
+      if (isPlaying) {
+        onSeek?.(pattern.id, slot);
+      } else {
+        setActiveSlot({ patternId: pattern.id, trackId: activeSlot?.trackId || 'anak', startIndex: slot, endIndex: slot });
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
   };
-  const handleTracksPointerMove = (e) => {
-    if (!playheadDragRef.current || !tracksContainerRef.current) return;
-    const rect = tracksContainerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - SOLO_BTN_W;
-    const slot = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
-    if (isPlaying) {
-      onSeek?.(pattern.id, slot);
-    } else {
-      setActiveSlot({ patternId: pattern.id, trackId: activeSlot?.trackId || 'anak', startIndex: slot, endIndex: slot });
-    }
-  };
-  const handleTracksPointerUp = () => { playheadDragRef.current = false; };
 
   return (
     <div 
@@ -786,9 +790,6 @@ const [showBeheer, setShowBeheer] = useState(true);
         <div
           style={{ position: 'relative' }}
           ref={tracksContainerRef}
-          onPointerMove={handleTracksPointerMove}
-          onPointerUp={handleTracksPointerUp}
-          onPointerLeave={handleTracksPointerUp}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
