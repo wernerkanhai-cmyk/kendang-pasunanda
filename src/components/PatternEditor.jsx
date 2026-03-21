@@ -65,6 +65,8 @@ const PatternEditor = ({
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
 const [showBeheer, setShowBeheer] = useState(true);
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
+  const [transportPos, setTransportPos] = useState(null); // null = default centered bottom
+  const transportDragRef = useRef(null);
   const timelineRef = useRef(null);
   const tracksContainerRef = useRef(null);
   const playheadDragRef = useRef(false);
@@ -503,7 +505,40 @@ const [showBeheer, setShowBeheer] = useState(true);
         <div className="pattern-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
            {isActive && (
-              <div className="transport-controls" style={{ position: 'fixed', bottom: '1.2rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(15,23,42,0.92)', backdropFilter: 'blur(12px)', border: '1px solid #334155', borderRadius: '12px', padding: '6px 10px', zIndex: 500, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+              <div
+                className="transport-controls"
+                style={{
+                  position: 'fixed',
+                  ...(transportPos
+                    ? { left: transportPos.x, top: transportPos.y, bottom: 'auto', transform: 'none' }
+                    : { bottom: '1.2rem', left: '50%', transform: 'translateX(-50%)' }),
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  background: 'rgba(15,23,42,0.92)', backdropFilter: 'blur(12px)',
+                  border: '1px solid #334155', borderRadius: '12px',
+                  padding: '6px 10px', zIndex: 500, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  userSelect: 'none',
+                }}
+              >
+                {/* Drag handle */}
+                <div
+                  title="Verplaats"
+                  style={{ cursor: 'grab', color: '#475569', padding: '0 4px 0 0', fontSize: '0.8rem', lineHeight: 1 }}
+                  onPointerDown={(e) => {
+                    e.currentTarget.style.cursor = 'grabbing';
+                    const startX = e.clientX, startY = e.clientY;
+                    const initX = transportPos?.x ?? (window.innerWidth / 2 - 120);
+                    const initY = transportPos?.y ?? (window.innerHeight - 60);
+                    const onMove = (ev) => {
+                      setTransportPos({ x: initX + ev.clientX - startX, y: initY + ev.clientY - startY });
+                    };
+                    const onUp = () => {
+                      window.removeEventListener('pointermove', onMove);
+                      window.removeEventListener('pointerup', onUp);
+                    };
+                    window.addEventListener('pointermove', onMove);
+                    window.addEventListener('pointerup', onUp);
+                  }}
+                >⠿</div>
                  {/* Tempo */}
                  <div style={{ border: '1px solid #475569', borderRadius: '4px', height: '2.2rem', display: 'flex', alignItems: 'center', padding: '0 0.4rem', gap: '3px', boxSizing: 'border-box', background: 'transparent' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
