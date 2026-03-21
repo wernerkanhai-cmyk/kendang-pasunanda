@@ -183,12 +183,59 @@ const [showBeheer, setShowBeheer] = useState(true);
     updatePattern({ ...pattern, [range.trackId]: newTrack });
   };
 
+  // When clearing a single slot, replace with rest if notes exist later in the same beat
+  const clearSlotWithRestFill = (trackId, slotIndex) => {
+    const newTrack = [...pattern[trackId]];
+    const beatEnd = Math.floor(slotIndex / 12) * 12 + 12;
+    const slot = newTrack[slotIndex];
+    const newSlot = { ...slot };
+    for (const hand of ['top', 'bottom']) {
+      if (slot[hand] && slot[hand] !== '') {
+        const hasNotesAfter = newTrack.slice(slotIndex + 1, beatEnd)
+          .some(s => s[hand] && s[hand] !== '');
+        newSlot[hand] = hasNotesAfter ? SYMBOL_REST : '';
+      }
+    }
+    newTrack[slotIndex] = newSlot;
+    updatePattern({ ...pattern, [trackId]: newTrack });
+  };
+
+  const handleClearPattern = () => {
+    const newAnak = pattern.anak.map((_, i) => emptySlot(i));
+    const newIndung = pattern.indung.map((_, i) => emptySlot(i));
+    updatePattern({ ...pattern, anak: newAnak, indung: newIndung });
+  };
+
   const handleNoteMove = ({ fromTrackId, fromSlot, fromHand, toTrackId, toSlot, toHand, symbol }) => {
     const newAnak = [...pattern.anak];
     const newIndung = [...pattern.indung];
     const getTrack = (id) => id === 'anak' ? newAnak : newIndung;
+
+    // Clear source slot
     getTrack(fromTrackId)[fromSlot] = { ...getTrack(fromTrackId)[fromSlot], [fromHand]: '' };
+
+    // If there are notes AFTER the source in the same beat on the same hand,
+    // replace source with a rest (to preserve the beat gap in notation)
+    const fromBeatEnd = Math.floor(fromSlot / 12) * 12 + 12;
+    const fromTrack = getTrack(fromTrackId);
+    const hasNotesAfterFrom = fromTrack.slice(fromSlot + 1, fromBeatEnd)
+      .some(s => { const v = s[fromHand]; return v && v !== ''; });
+    if (hasNotesAfterFrom) {
+      fromTrack[fromSlot] = { ...fromTrack[fromSlot], [fromHand]: SYMBOL_REST };
+    }
+
+    // Place note at destination
     getTrack(toTrackId)[toSlot] = { ...getTrack(toTrackId)[toSlot], [toHand]: symbol };
+
+    // Auto-fill rests before destination in its beat (same as handleInsertSymbol)
+    if (symbol !== SYMBOL_REST) {
+      const toBeatStart = Math.floor(toSlot / 12) * 12;
+      const toTrack = getTrack(toTrackId);
+      for (let g = toBeatStart; g < toSlot; g += gridResolution) {
+        if (!toTrack[g][toHand]) toTrack[g] = { ...toTrack[g], [toHand]: SYMBOL_REST };
+      }
+    }
+
     updatePattern({ ...pattern, anak: newAnak, indung: newIndung });
   };
 
@@ -219,6 +266,18 @@ const [showBeheer, setShowBeheer] = useState(true);
       if (e.key === ' ') {
         e.preventDefault();
         togglePlay();
+        return;
+      }
+
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === 'z') {
+        e.preventDefault();
+        handleUndo?.();
+        return;
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'z') {
+        e.preventDefault();
+        handleRedo?.();
         return;
       }
 
@@ -699,6 +758,15 @@ const [showBeheer, setShowBeheer] = useState(true);
       {isActive && (
         <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)' }}>
           <button
+            onClick={(e) => { e.stopPropagation(); handleClearPattern(); }}
+            style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+            title="Wis hele regel"
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="2" x2="11" y2="11"/><line x1="11" y1="2" x2="2" y2="11"/></svg>
+            Clear
+          </button>
+          <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
+          <button
             onClick={(e) => { e.stopPropagation(); handleUndo(); }}
             disabled={undoStack.length === 0}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: undoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: undoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -870,11 +938,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 onNoteMove={handleNoteMove}
                 gong={pattern.gong || []}
                 onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('anak', slotIndex, symbol)}
-                onClearSlot={(slotIndex) => {
-                  const newTrack = [...pattern.anak];
-                  newTrack[slotIndex] = { top: '', bottom: '' };
-                  updatePattern({ ...pattern, anak: newTrack });
-                }}
+                onClearSlot={(slotIndex) => clearSlotWithRestFill('anak', slotIndex)}
               />
             </div>
           </div>
@@ -909,11 +973,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 onNoteMove={handleNoteMove}
                 gong={pattern.gong || []}
                 onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('indung', slotIndex, symbol)}
-                onClearSlot={(slotIndex) => {
-                  const newTrack = [...pattern.indung];
-                  newTrack[slotIndex] = { top: '', bottom: '' };
-                  updatePattern({ ...pattern, indung: newTrack });
-                }}
+                onClearSlot={(slotIndex) => clearSlotWithRestFill('indung', slotIndex)}
               />
             </div>
           </div>

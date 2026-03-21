@@ -73,17 +73,8 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
   // Triplet Detection Logic
   // A beat has 12 slots (indices 0 to 11).
   // A standard triplet sits at intervals of 4 slots: 0, 4, 8.
-  // We scan every 12-slot chunk. If there are exactly three non-empty symbols 
+  // We scan every 12-slot chunk. If there are exactly three non-empty symbols
   // at relative indices 0, 4, 8, and the rest are empty, we mark it as a triplet.
-  const emptyBeats = useMemo(() => {
-    const found = [];
-    for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
-      const hasAny = slots.slice(beatStart, beatStart + 12).some(s => s.top !== '' || s.bottom !== '');
-      if (!hasAny) found.push(beatStart);
-    }
-    return found;
-  }, [slots]);
-
   const triplets = useMemo(() => {
     const found = [];
     for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
@@ -105,18 +96,56 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     return found;
   }, [slots]);
 
+  // Collapsed rests: within each beat, 8th-note pairs (slots 0+3 and 6+9) where
+  // neither position has an actual note (only rests or empty) are visually suppressed
+  // — rest symbols hidden, excluded from level-2 beam. Level-1 beam still spans all.
+  const collapsedRests = useMemo(() => {
+    const result = new Set();
+    for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
+      for (const [ai, bi] of [[0, 3], [6, 9]]) {
+        const sa = slots[beatStart + ai];
+        const sb = slots[beatStart + bi];
+        if (!sa || !sb) continue;
+        for (const hand of ['top', 'bottom']) {
+          const aVal = sa[hand];
+          const bVal = sb[hand];
+          const aIsNote = aVal !== '' && aVal !== SYMBOL_REST;
+          const bIsNote = bVal !== '' && bVal !== SYMBOL_REST;
+
+          if (!aIsNote && !bIsNote) {
+            // Neither position is a note: collapse any rests in this pair
+            if (aVal === SYMBOL_REST) result.add(`${beatStart + ai}-${hand}`);
+            if (bVal === SYMBOL_REST) result.add(`${beatStart + bi}-${hand}`);
+          } else if (aIsNote && bVal === SYMBOL_REST) {
+            // Note followed by rest: trailing rest — collapse b
+            result.add(`${beatStart + bi}-${hand}`);
+          }
+          // aVal === SYMBOL_REST && bIsNote: leading rest before note — keep it
+          // Both notes: nothing to collapse
+        }
+      }
+    }
+    return result;
+  }, [slots]);
+
   // Beam Rendering Logic for 8ths (1 line) and 16ths (2 lines)
   const beams = useMemo(() => {
     const calculateBeamsForHand = (position) => {
        const handResults = [];
        for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
          const activeIndices = [];
+         const l2Indices = []; // Non-collapsed only
          for (let i = 0; i < 12; i++) {
            const slot = slots[beatStart + i];
            const hasNote = (position === 'top') ? (slot.top !== '') : (slot.bottom !== '');
-           if (hasNote) activeIndices.push(i);
+           if (hasNote) {
+             activeIndices.push(i);
+             if (!collapsedRests.has(`${beatStart + i}-${position}`)) {
+               l2Indices.push(i);
+             }
+           }
          }
-         
+
          if (activeIndices.length < 2) {
            // Special case: lone rest at beat start — if there are notes later in this beat
            // (in either hand), draw a level-1 beam so the rest shows its rhythmic value.
@@ -127,7 +156,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                let lastNoteIdx = 0;
                for (let i = 1; i < 12; i++) {
                  const s = slots[beatStart + i];
-                 if (s.top !== '' || s.bottom !== '') lastNoteIdx = i;
+                 if ((position === 'top' ? s.top : s.bottom) !== '') lastNoteIdx = i;
                }
                if (lastNoteIdx > 0) {
                  handResults.push({ startIdx: beatStart, span: lastNoteIdx, level: 1, position });
@@ -143,11 +172,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
          const last = activeIndices[activeIndices.length - 1];
          handResults.push({ startIdx: beatStart + first, span: last - first, level: 1, position });
 
-         // Level 2 Beams (16th note spacing) span adjacent notes <= 3 slots apart
+         // Level 2 Beams (16th note spacing) — only for non-collapsed positions
          let l2Start = -1;
          let prev = -1;
-         for (let i = 0; i < activeIndices.length; i++) {
-           const curr = activeIndices[i];
+         for (let i = 0; i < l2Indices.length; i++) {
+           const curr = l2Indices[i];
            if (l2Start === -1) {
              l2Start = curr;
            } else {
@@ -155,7 +184,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 if (prev > l2Start) {
                    handResults.push({ startIdx: beatStart + l2Start, span: prev - l2Start, level: 2, position });
                 }
-                l2Start = curr; 
+                l2Start = curr;
              }
            }
            prev = curr;
@@ -170,7 +199,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     const topBeams = calculateBeamsForHand('top');
     const bottomBeams = calculateBeamsForHand('bottom');
     return [...topBeams, ...bottomBeams];
-  }, [slots]);
+  }, [slots, collapsedRests]);
 
   return (
     <div className={`track-row theme-${theme}`}>
@@ -189,14 +218,6 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
             />
           );
         })}
-
-        {emptyBeats.map(beatStart => (
-          <span
-            key={`empty-${beatStart}`}
-            className="kendang-font slot-empty-dot"
-            style={{ left: (beatStart + 9) * slotWidth - 4 }}
-          >.</span>
-        ))}
 
         {slots.map((slot, index) => {
           const isBarStart = index % 48 === 0;
@@ -272,7 +293,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 </div>
               )}
 
-              {slot.top !== '' && (
+              {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
                 <span
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'top', slot.top)}
@@ -282,7 +303,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.top}
                 </span>
               )}
-              {slot.bottom !== '' && (
+              {slot.bottom !== '' && !collapsedRests.has(`${index}-bottom`) && (
                 <span
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'bottom', slot.bottom)}

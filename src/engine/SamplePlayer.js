@@ -92,10 +92,11 @@ export class SamplePlayer {
   async _load(key, url) {
     try {
       const res = await fetch(url);
+      if (!res.ok) { console.warn('[SamplePlayer] 404:', url); return; }
       const arr = await res.arrayBuffer();
       this.buffers[key] = await this.audioCtx.decodeAudioData(arr);
-    } catch {
-      // sample niet gevonden — stil doorgaan
+    } catch (e) {
+      console.warn('[SamplePlayer] load error:', url, e);
     }
   }
 
@@ -119,25 +120,29 @@ export class SamplePlayer {
     const buf = this.buffers[key];
     if (!buf || !this.audioCtx) return;
 
+    const schedule = () => {
+      const src = this.audioCtx.createBufferSource();
+      src.buffer = buf;
+      if (pitchValue !== 1.0) src.playbackRate.value = pitchValue;
+
+      if (gainValue !== 1.0) {
+        const gain = this.audioCtx.createGain();
+        gain.gain.value = gainValue;
+        src.connect(gain);
+        gain.connect(this.audioCtx.destination);
+      } else {
+        src.connect(this.audioCtx.destination);
+      }
+
+      const t = when > 0 ? when : this.audioCtx.currentTime + 0.003;
+      src.start(t);
+    };
+
     if (this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
-    }
-
-    const src = this.audioCtx.createBufferSource();
-    src.buffer = buf;
-    if (pitchValue !== 1.0) src.playbackRate.value = pitchValue;
-
-    if (gainValue !== 1.0) {
-      const gain = this.audioCtx.createGain();
-      gain.gain.value = gainValue;
-      src.connect(gain);
-      gain.connect(this.audioCtx.destination);
+      this.audioCtx.resume().then(schedule);
     } else {
-      src.connect(this.audioCtx.destination);
+      schedule();
     }
-
-    const t = when > 0 ? when : this.audioCtx.currentTime + 0.003;
-    src.start(t);
   }
 
   /** Geeft de AudioContext terug (zodat AudioScheduler die kan delen) */

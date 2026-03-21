@@ -78,7 +78,9 @@ export class AudioScheduler {
   getCurrentGlobalSlot() {
     if (!this.isPlaying || !this.audioCtx) return this.loopStart;
     const secondsPerSlot = this.getSecondsPerSlot();
-    const elapsed = this.audioCtx.currentTime - this.playStartAudioTime;
+    // Subtract outputLatency so cursor aligns with what the user actually hears
+    const outputLatency = this.audioCtx.outputLatency || 0;
+    const elapsed = this.audioCtx.currentTime - this.playStartAudioTime - outputLatency;
     if (elapsed < 0) return this.loopStart;
     const loopLength = this.totalSlots - this.loopStart;
     const totalSlots = Math.floor(elapsed / secondsPerSlot);
@@ -109,25 +111,12 @@ export class AudioScheduler {
   }
 
   scheduler = () => {
-    if (!this._logged) {
-      this._logged = true;
-      const latency = (this.audioCtx.outputLatency || 0) + (this.audioCtx.baseLatency || 0);
-      console.log('[AudioScheduler] EERSTE RUN',
-        'currentTime=', this.audioCtx.currentTime.toFixed(3),
-        'nextNoteTime=', this.nextNoteTime.toFixed(3),
-        'diff (ms)=', ((this.nextNoteTime - this.audioCtx.currentTime) * 1000).toFixed(1),
-        'outputLatency=', (this.audioCtx.outputLatency || 0).toFixed(4),
-        'baseLatency=', (this.audioCtx.baseLatency || 0).toFixed(4),
-        'totalLatency (ms)=', (latency * 1000).toFixed(1)
-      );
-    }
     while (this.nextNoteTime < this.audioCtx.currentTime + this.scheduleAheadTime) {
       this.scheduleNote(this.currentSlot, this.nextNoteTime);
       this.nextNote();
     }
     this.timerID = setTimeout(this.scheduler, this.lookahead);
   };
-  _logged = false;
 
   // Precount: 4 beats op audio clock, dan start
   async startPlayPrecount(startSlot = 0, beats = 4) {
@@ -194,10 +183,9 @@ export class AudioScheduler {
     this.isRecording = isRecordingMode;
     if (startSlot !== null) {
       this.currentSlot = startSlot;
-      this.loopStart = startSlot; // Loop terug naar dit punt
+      this.loopStart = startSlot;
     }
-    this._logged = false;
-    this.playStartAudioTime = this.audioCtx.currentTime + 0.05;
+    this.playStartAudioTime = this.audioCtx.currentTime + 0.01;
     this.nextNoteTime = this.playStartAudioTime;
     this.scheduler();
   }
@@ -218,7 +206,10 @@ export class AudioScheduler {
     if (!this.isPlaying || !this.audioCtx) return;
     clearTimeout(this.timerID);
     this.currentSlot = slot;
-    this.nextNoteTime = this.audioCtx.currentTime + 0.05;
+    const delay = 0.02;
+    this.nextNoteTime = this.audioCtx.currentTime + delay;
+    // Recalculate reference time so cursor shows correct slot immediately after seek
+    this.playStartAudioTime = this.nextNoteTime - (slot - this.loopStart) * this.getSecondsPerSlot();
     this.scheduler();
   }
 
