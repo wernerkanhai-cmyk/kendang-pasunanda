@@ -838,25 +838,28 @@ function App() {
   };
 
   const rewind = () => {
-    if (schedulerRef.current) {
-      const now = Date.now();
-      const isDoubleClick = now - lastRewindTimeRef.current < 500;
-      lastRewindTimeRef.current = now;
+    if (!schedulerRef.current) return;
+    const now = Date.now();
+    const isDoubleClick = now - lastRewindTimeRef.current < 500;
+    lastRewindTimeRef.current = now;
 
-      const globalCurrent = schedulerRef.current.currentSlot;
-      let targetGlobal;
-      if (isDoubleClick) {
-        // Ga naar begin van het huidige patroon (regel)
-        const { patternId } = globalToLocal(globalCurrent, song);
-        targetGlobal = localToGlobal(patternId, 0, song);
-      } else {
-        // Ga naar begin van de huidige maat
-        targetGlobal = globalCurrent - (globalCurrent % 48);
-      }
-      schedulerRef.current.setCurrentSlot(targetGlobal);
-      const { patternId, localSlot } = globalToLocal(targetGlobal, song);
-      setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+    const globalCurrent = schedulerRef.current.currentSlot;
+    let targetGlobal;
+    if (isDoubleClick) {
+      // 2× klikken → begin van de song
+      targetGlobal = 0;
+    } else {
+      // 1× klikken → 1 maat terug
+      targetGlobal = Math.max(0, globalCurrent - 48);
     }
+
+    if (isPlaying) {
+      schedulerRef.current.seekTo(targetGlobal);
+    } else {
+      schedulerRef.current.setCurrentSlot(targetGlobal);
+    }
+    const { patternId, localSlot } = globalToLocal(targetGlobal, song);
+    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
   const handleSeek = (patternId, localSlot) => {
@@ -1226,7 +1229,7 @@ function App() {
                   style={{ cursor: 'ns-resize', touchAction: 'none' }}
                   title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
                   onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
+                    e.preventDefault();
                     const startY = e.clientY, startVal = val;
                     const onMove = (ev) => {
                       const delta = (startY - ev.clientY) / 80;
