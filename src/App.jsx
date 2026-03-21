@@ -874,14 +874,21 @@ function App() {
   };
 
   const stepBack = () => {
-    if (schedulerRef.current) {
-      const globalCurrent = schedulerRef.current.currentSlot;
-      const currentMeasureStart = globalCurrent - (globalCurrent % 48);
-      const prevMeasureStart = Math.max(0, currentMeasureStart - 48);
-      schedulerRef.current.setCurrentSlot(prevMeasureStart);
-      const { patternId, localSlot } = globalToLocal(prevMeasureStart, song);
-      setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+    if (!schedulerRef.current) return;
+    const now = Date.now();
+    const isDoubleClick = now - lastRewindTimeRef.current < 500;
+    lastRewindTimeRef.current = now;
+
+    const globalCurrent = schedulerRef.current.currentSlot;
+    const targetGlobal = isDoubleClick ? 0 : Math.max(0, globalCurrent - 48);
+
+    if (isPlaying) {
+      schedulerRef.current.seekTo(targetGlobal);
+    } else {
+      schedulerRef.current.setCurrentSlot(targetGlobal);
     }
+    const { patternId, localSlot } = globalToLocal(targetGlobal, song);
+    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
   const toggleRecord = async () => {
