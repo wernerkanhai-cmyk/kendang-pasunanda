@@ -174,10 +174,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
 
   return (
     <div className={`track-row theme-${theme}`}>
-      <div className="track-label">
-        {trackId === 'anak' ? 'Anak' : 'Indung'}
-      </div>
-      
+
       <div className="slots-container" style={{ '--sw': slotWidth + 'px' }} onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverSlot(null); }}>
         {/* Render the calculated horizontal rhythmic beams */}
         {beams.map((beam, i) => {

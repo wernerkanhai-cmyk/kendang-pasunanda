@@ -100,13 +100,13 @@ export class SamplePlayer {
   }
 
   /** Speel een drumsymbool af (bijv. 'N', 'C', '?') op het opgegeven track */
-  play(symbol, track, when = 0) {
+  play(symbol, track, when = 0, trackGain = 1.0) {
     if (symbol === '.' || !symbol) return;
     const sound = SYMBOL_TO_SOUND[symbol];
     if (!sound) return;
     const n = String(Math.floor(Math.random() * VARIANTS) + 1).padStart(2, '0');
     const s = this.settings[sound] || DEFAULT_SOUND_SETTINGS[sound] || {};
-    this._trigger(`${track}_${sound}_${n}`, when, s.gain ?? 1.0, s.pitch ?? 1.0);
+    this._trigger(`${track}_${sound}_${n}`, when, (s.gain ?? 1.0) * trackGain, s.pitch ?? 1.0);
   }
 
   /** Speel de gong af */

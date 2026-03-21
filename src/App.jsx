@@ -59,6 +59,11 @@ function App() {
     samplerRef.current?.updateSettings(soundSettings);
   }, [soundSettings]);
 
+  // Track volumes
+  const [trackVolumes, setTrackVolumes] = useState({ anak: 1.0, indung: 1.0 });
+  const trackVolumesRef = useRef({ anak: 1.0, indung: 1.0 });
+  useEffect(() => { trackVolumesRef.current = trackVolumes; }, [trackVolumes]);
+
   // Grid & Quantize State
   const [gridResolution, setGridResolution] = useState(6); // 1/8 by default
   const [magneticInput, setMagneticInput] = useState(false);
@@ -532,8 +537,9 @@ function App() {
           if (soloTrackRef.current && soloTrackRef.current !== track) return;
           const slot = tickPattern[track][localSlot];
           if (slot) {
-            if (slot.top && slot.top !== '.') sampler.play(slot.top, track, audioTime);
-            if (slot.bottom && slot.bottom !== '.') sampler.play(slot.bottom, track, audioTime);
+            const tvol = trackVolumesRef.current[track] ?? 1.0;
+            if (slot.top && slot.top !== '.') sampler.play(slot.top, track, audioTime, tvol);
+            if (slot.bottom && slot.bottom !== '.') sampler.play(slot.bottom, track, audioTime, tvol);
           }
         });
         if ((tickPattern.gong || []).includes(localSlot)) sampler.playGong(audioTime);
@@ -1540,6 +1546,8 @@ function App() {
                       setMetronomeMode={setMetronomeMode}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
                       onSeek={handleSeek}
+                      trackVolumes={trackVolumes}
+                      onTrackVolumeChange={(track, val) => setTrackVolumes(v => ({ ...v, [track]: val }))}
                       onDuplicate={() => duplicateSongBlock(pattern.id)}
                       onMoveUp={() => movePatternUp(pattern.id)}
                       onMoveDown={() => movePatternDown(pattern.id)}
