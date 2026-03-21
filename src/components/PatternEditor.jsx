@@ -66,7 +66,34 @@ const PatternEditor = ({
 const [showBeheer, setShowBeheer] = useState(true);
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
   const [transportPos, setTransportPos] = useState(null); // null = default centered bottom
-  const transportDragRef = useRef(null);
+  const transportInteractRef = useRef(null);
+
+  const startTransportDrag = (clientX, clientY) => {
+    const initX = transportPos?.x ?? (window.innerWidth / 2 - 120);
+    const initY = transportPos?.y ?? (window.innerHeight - 60);
+    transportInteractRef.current = { startX: clientX, startY: clientY, origX: initX, origY: initY };
+    const onMove = (ev) => {
+      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      const d = transportInteractRef.current;
+      if (!d) return;
+      setTransportPos({
+        x: Math.max(0, Math.min(window.innerWidth - 260, d.origX + cx - d.startX)),
+        y: Math.max(0, Math.min(window.innerHeight - 50, d.origY + cy - d.startY)),
+      });
+    };
+    const onEnd = () => {
+      transportInteractRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
+  };
   const timelineRef = useRef(null);
   const tracksContainerRef = useRef(null);
   const playheadDragRef = useRef(false);
@@ -523,21 +550,8 @@ const [showBeheer, setShowBeheer] = useState(true);
                 <div
                   title="Verplaats"
                   style={{ cursor: 'grab', color: '#475569', padding: '0 4px 0 0', fontSize: '0.8rem', lineHeight: 1 }}
-                  onPointerDown={(e) => {
-                    e.currentTarget.style.cursor = 'grabbing';
-                    const startX = e.clientX, startY = e.clientY;
-                    const initX = transportPos?.x ?? (window.innerWidth / 2 - 120);
-                    const initY = transportPos?.y ?? (window.innerHeight - 60);
-                    const onMove = (ev) => {
-                      setTransportPos({ x: initX + ev.clientX - startX, y: initY + ev.clientY - startY });
-                    };
-                    const onUp = () => {
-                      window.removeEventListener('pointermove', onMove);
-                      window.removeEventListener('pointerup', onUp);
-                    };
-                    window.addEventListener('pointermove', onMove);
-                    window.addEventListener('pointerup', onUp);
-                  }}
+                  onMouseDown={(e) => { e.preventDefault(); startTransportDrag(e.clientX, e.clientY); }}
+                  onTouchStart={(e) => { e.preventDefault(); startTransportDrag(e.touches[0].clientX, e.touches[0].clientY); }}
                 >⠿</div>
                  {/* Tempo */}
                  <div style={{ border: '1px solid #475569', borderRadius: '4px', height: '2.2rem', display: 'flex', alignItems: 'center', padding: '0 0.4rem', gap: '3px', boxSizing: 'border-box', background: 'transparent' }}>
