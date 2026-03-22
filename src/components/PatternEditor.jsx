@@ -39,6 +39,8 @@ const PatternEditor = ({
   handleSaveSnippet, 
   handleInsertSnippet, 
   handleDeleteSnippet,
+  handleExportSnippets,
+  handleImportSnippets,
   insertMeasure,
   deleteMeasure,
   onGongToggle,
@@ -564,7 +566,14 @@ const [showBeheer, setShowBeheer] = useState(true);
              <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '1rem', zIndex: 100, minWidth: '250px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem' }}>
                    <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '0.9rem' }}>Snippet Beheer</h4>
-                   <button onClick={() => setIsManagingSnippets(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                     <button onClick={handleExportSnippets} style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title="Exporteer snippets">⬇ Export</button>
+                     <label style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title="Importeer snippets">
+                       ⬆ Import
+                       <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />
+                     </label>
+                     <button onClick={() => setIsManagingSnippets(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+                   </div>
                 </div>
                 
                 {savedSnippets.length === 0 ? (

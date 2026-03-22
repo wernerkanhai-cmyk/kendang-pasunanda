@@ -1111,6 +1111,39 @@ function App() {
   const handleDeleteSnippet = (snippetId) => {
      setSavedSnippets(prev => prev.filter(s => s.id !== snippetId));
   };
+
+  const handleExportSnippets = () => {
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(savedSnippets))));
+    const blob = new Blob([encoded], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kendang-snippets-${new Date().toISOString().slice(0, 10)}.kendang`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportSnippets = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const decoded = decodeURIComponent(escape(atob(ev.target.result)));
+        const imported = JSON.parse(decoded);
+        if (!Array.isArray(imported)) throw new Error();
+        setSavedSnippets(prev => {
+          const existingIds = new Set(prev.map(s => s.id));
+          const nieuwen = imported.filter(s => s.id && s.name && !existingIds.has(s.id));
+          return [...prev, ...nieuwen];
+        });
+      } catch {
+        alert('Ongeldig bestand — verwacht een .kendang snippet bibliotheek.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
   
   const handleInsertSnippet = (snippet) => {
      let targetPatternIdx = 0;
@@ -1652,6 +1685,8 @@ function App() {
                       handleSaveSnippet={handleSaveSnippet}
                       handleInsertSnippet={handleInsertSnippet}
                       handleDeleteSnippet={handleDeleteSnippet}
+                      handleExportSnippets={handleExportSnippets}
+                      handleImportSnippets={handleImportSnippets}
                       insertMeasure={() => insertMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
                       deleteMeasure={() => deleteMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
                       onGongToggle={handleGongToggle}
