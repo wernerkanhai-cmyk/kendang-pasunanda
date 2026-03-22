@@ -167,7 +167,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       const by = nullY + (beam.position === 'top'
         ? (beam.level === 1 ? cfg.beamTop1    : cfg.beamTop2)
         : (beam.level === 1 ? cfg.beamBottom1 : cfg.beamBottom2));
-      ctx.strokeStyle = '#000000';
+      ctx.strokeStyle = baseColor;
       ctx.beginPath();
       ctx.moveTo(bx, by);
       ctx.lineTo(bx + bw, by);
@@ -194,8 +194,13 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
         ctx.font = `${isRest ? REST_SIZE : SYM_SIZE}px Kendang, monospace`;
         ctx.fillStyle = baseColor;
         ctx.globalAlpha = isRest ? 0.45 : 1.0;
-        ctx.textBaseline = 'top';
-        ctx.fillText(slot.bottom, x, nullY + cfg.symBelow);
+        if (isRest) {
+          ctx.textBaseline = 'top';
+          ctx.fillText(slot.bottom, x, nullY + cfg.symBelow - 16);
+        } else {
+          ctx.textBaseline = 'top';
+          ctx.fillText(slot.bottom, x, nullY + cfg.symBelow);
+        }
       }
 
       ctx.globalAlpha = 1.0;

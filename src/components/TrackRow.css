@@ -152,8 +152,8 @@
 }
 
 .slot-rest.pos-above {
-  bottom: 75%; /* Halverwege bovenkant en nullijn */
-  margin-bottom: 0;
+  bottom: 50%;
+  margin-bottom: 6px; /* Zelfde als .pos-above noot-symbolen */
 }
 
 .slot-rest.pos-below {
@@ -164,7 +164,7 @@
 /* Rhythmic Beams (8ths / 16ths) */
 .rhythmic-beam {
   position: absolute;
-  height: 1px;
+  height: 2px;
   background-color: #000000;
   z-index: 10;
   pointer-events: none;

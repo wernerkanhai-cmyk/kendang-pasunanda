@@ -96,6 +96,41 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     return found;
   }, [slots]);
 
+  // Implied rests: empty 8th-note downbeat positions (0 and 6 within a beat) that
+  // should show a rest dot when the beat contains at least one actual note.
+  const impliedRests = useMemo(() => {
+    const result = new Set();
+    for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
+      const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
+        (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
+      );
+      if (!beatHasNote) continue;
+      const slot0 = slots[beatStart];
+      for (const pos of [0, 6]) {
+        const slot = slots[beatStart + pos];
+        if (!slot) continue;
+        if (pos === 6) {
+          // Only show rest at position 6 if the beat has 8th/16th subdivision for that hand
+          // (notes at positions 1–5 or 7–11). A lone note at position 0 is a quarter note
+          // and needs no rest at position 6.
+          const beatSlices = slots.slice(beatStart, beatStart + 12);
+          const topHasSubdivision = beatSlices.some((s, i) =>
+            i !== 0 && i !== 6 && s.top !== '' && s.top !== SYMBOL_REST
+          );
+          const bottomHasSubdivision = beatSlices.some((s, i) =>
+            i !== 0 && i !== 6 && s.bottom !== '' && s.bottom !== SYMBOL_REST
+          );
+          if ((slot.top === '' || slot.top === SYMBOL_REST) && topHasSubdivision)    result.add(`${beatStart + pos}-top`);
+          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasSubdivision) result.add(`${beatStart + pos}-bottom`);
+        } else {
+          if (slot.top === '' || slot.top === SYMBOL_REST)    result.add(`${beatStart + pos}-top`);
+          if (slot.bottom === '' || slot.bottom === SYMBOL_REST) result.add(`${beatStart + pos}-bottom`);
+        }
+      }
+    }
+    return result;
+  }, [slots]);
+
   // Collapsed rests: within each beat, 8th-note pairs (slots 0+3 and 6+9) where
   // neither position has an actual note (only rests or empty) are visually suppressed
   // — rest symbols hidden, excluded from level-2 beam. Level-1 beam still spans all.
@@ -153,8 +188,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
          }
 
          if (activeIndices.length < 2) {
-           // Special case: lone rest at beat start — if there are notes later in this beat
-           // (in either hand), draw a level-1 beam so the rest shows its rhythmic value.
+           // Special case: lone rest at beat start — draw level-1 beam so the rest shows its rhythmic value.
            if (activeIndices.length === 1 && activeIndices[0] === 0) {
              const thisSlot = slots[beatStart];
              const isRest = position === 'top' ? thisSlot.top === SYMBOL_REST : thisSlot.bottom === SYMBOL_REST;
@@ -173,7 +207,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
          }
          if (activeIndices.length === 3 && activeIndices[0] === 0 && activeIndices[1] === 4 && activeIndices[2] === 8) continue; // Triplet overrides this
 
-         // Level 1 Beam (8th note spacing umbrella) spans all notes in the beat
+         // Level 1 Beam spans all active positions in the beat
          const first = activeIndices[0];
          const last = activeIndices[activeIndices.length - 1];
          handResults.push({ startIdx: beatStart + first, span: last - first, level: 1, position });
@@ -299,7 +333,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 </div>
               )}
 
-              {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
+              {slot.top !== '' && (!collapsedRests.has(`${index}-top`) || impliedRests.has(`${index}-top`)) && !(isRestTop && isRestBottom && trackId === 'indung') && (
                 <span
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'top', slot.top)}
@@ -309,7 +343,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.top}
                 </span>
               )}
-              {slot.bottom !== '' && !collapsedRests.has(`${index}-bottom`) && (
+              {slot.bottom !== '' && (!collapsedRests.has(`${index}-bottom`) || impliedRests.has(`${index}-bottom`)) && !(isRestBottom && isRestTop && trackId === 'anak') && (
                 <span
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'bottom', slot.bottom)}
@@ -318,6 +352,12 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 >
                   {slot.bottom}
                 </span>
+              )}
+              {slot.top === '' && impliedRests.has(`${index}-top`) && !(slot.bottom === '' && impliedRests.has(`${index}-bottom`) && trackId === 'indung') && (
+                <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
+              )}
+              {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && !(slot.top === '' && impliedRests.has(`${index}-top`) && trackId === 'anak') && (
+                <span className={`kendang-font slot-rest pos-below color-${trackId}`}>{SYMBOL_REST}</span>
               )}
             </div>
           );

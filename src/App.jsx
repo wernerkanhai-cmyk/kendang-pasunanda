@@ -181,9 +181,19 @@ function App() {
   // Ref to track tapping speed without stale closures for smart resolution
   const drumTapRef = useRef({ time: 0, slotIndex: 0, trackId: '' });
   const lastRewindTimeRef = useRef(0);
+  const stepBackTargetRef = useRef(null);
   const currentAudioSlotRef = useRef(0); // Werkelijke afspeelslot (gesynchroniseerd met onTick)
   const playStartWallTimeRef = useRef(0); // Date.now() op moment dat slot 0 klinkt
-  const cursorOffsetMsRef = useRef(0);
+
+  // Cursor-audio offset: negatief = cursor volgt later (compenseert AirPlay/Bluetooth latency)
+  const [cursorOffsetMs, setCursorOffsetMs] = useState(() => {
+    return parseInt(localStorage.getItem('kendangCursorOffsetMs') || '0', 10);
+  });
+  const cursorOffsetMsRef = useRef(cursorOffsetMs);
+  useEffect(() => {
+    cursorOffsetMsRef.current = cursorOffsetMs;
+    localStorage.setItem('kendangCursorOffsetMs', String(cursorOffsetMs));
+  }, [cursorOffsetMs]);
 
   const handleSaveSong = () => {
     const name = songName.trim() || 'Naamloos';
@@ -554,13 +564,16 @@ function App() {
     };
   }, []); // Run once on mount
 
-  // Cursor: wall-clock interval — onafhankelijk van AudioContext timing
+  // Cursor: AudioContext-clock interval — exact dezelfde klok als de audio scheduler
   useEffect(() => {
     if (!isPlaying) return;
     const id = setInterval(() => {
       const sched = schedulerRef.current;
-      if (!sched?.isPlaying) return;
-      const elapsed = Date.now() - playStartWallTimeRef.current + cursorOffsetMsRef.current;
+      if (!sched?.isPlaying || !sched.audioCtx) return;
+      const ctx = sched.audioCtx;
+      // Safari rapporteert outputLatency als negatief getal (omgekeerd teken) — gebruik Math.abs
+      const outputLatencyS = Math.abs(ctx.outputLatency || 0) + Math.abs(ctx.baseLatency || 0);
+      const elapsed = (ctx.currentTime - sched.playStartAudioTime - outputLatencyS) * 1000 + cursorOffsetMsRef.current;
       if (elapsed < 0) return;
 
       // Use precomputed slot time table when available (variable tempo), fall back to constant BPM
@@ -789,11 +802,11 @@ function App() {
       } else {
         schedulerRef.current.clickWhilePlaying = metronomeMode === 'on';
         await schedulerRef.current.play(false, globalStart);
-        // Wall-clock starttijd voor cursor — NADAT audioCtx.resume() klaar is
-        // Inclusief output latency zodat cursor en geluid gelijk lopen
+        // Wall-clock starttijd voor cursor — gebruik exact geplande audiotijd (zoals precount-pad)
         const ctx = schedulerRef.current.audioCtx;
         const outputLatencyMs = ctx ? ((ctx.outputLatency || 0) + (ctx.baseLatency || 0)) * 1000 : 0;
-        playStartWallTimeRef.current = Date.now() + 50 + outputLatencyMs;
+        const msUntilFirstNote = Math.max(0, (schedulerRef.current.playStartAudioTime - ctx.currentTime) * 1000);
+        playStartWallTimeRef.current = Date.now() + msUntilFirstNote + outputLatencyMs;
         setIsPlaying(true);
       }
       const { patternId, localSlot } = globalToLocal(globalStart, song);
@@ -832,7 +845,8 @@ function App() {
     await schedulerRef.current.play(false, globalStart);
     const ctx2 = schedulerRef.current.audioCtx;
     const latMs2 = ctx2 ? ((ctx2.outputLatency || 0) + (ctx2.baseLatency || 0)) * 1000 : 0;
-    playStartWallTimeRef.current = Date.now() + 50 + latMs2;
+    const msUntilLoop = Math.max(0, (schedulerRef.current.playStartAudioTime - ctx2.currentTime) * 1000);
+    playStartWallTimeRef.current = Date.now() + msUntilLoop + latMs2;
     setIsPlaying(true);
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: 0, endIndex: 0 } : prev);
   };
@@ -876,11 +890,23 @@ function App() {
   const stepBack = () => {
     if (!schedulerRef.current) return;
     const now = Date.now();
-    const isDoubleClick = now - lastRewindTimeRef.current < 500;
+    const timeSinceLast = now - lastRewindTimeRef.current;
+    const isDoubleClick = timeSinceLast < 500;
     lastRewindTimeRef.current = now;
 
-    const globalCurrent = schedulerRef.current.currentSlot;
-    const targetGlobal = isDoubleClick ? 0 : Math.max(0, globalCurrent - 48);
+    let targetGlobal;
+    if (isDoubleClick) {
+      targetGlobal = 0;
+      stepBackTargetRef.current = null;
+    } else {
+      const globalCurrent = schedulerRef.current.currentSlot;
+      if (stepBackTargetRef.current !== null && timeSinceLast < 800) {
+        targetGlobal = Math.max(0, stepBackTargetRef.current - 48);
+      } else {
+        targetGlobal = Math.floor(globalCurrent / 48) * 48;
+      }
+      stepBackTargetRef.current = targetGlobal;
+    }
 
     if (isPlaying) {
       schedulerRef.current.seekTo(targetGlobal);
@@ -1099,42 +1125,61 @@ function App() {
      const snippetLength = anakData.length;
 
      const newSong = [...song];
-     const newPattern = JSON.parse(JSON.stringify(newSong[targetPatternIdx]));
+     // WRITE SNIPPET ACROSS FIXED 4-BAR PATTERNS (192 slots each), overflow to next pattern
+     const BARS = 192;
+     let snippetOffset = 0;
+     let patIdx = targetPatternIdx;
+     let patSlot = targetSlotIdx;
+     let lastWrittenPatIdx = targetPatternIdx;
+     let lastWrittenSlot = targetSlotIdx;
 
-     // AUTO-EXTEND SEQUENCE IF SNIPPET EXCEEDS CURRENT LENGTH
-     const requiredLength = targetSlotIdx + snippetLength;
-     if (requiredLength > newPattern.anak.length) {
-        const slotsNeeded = requiredLength - newPattern.anak.length;
-        const measuresNeeded = Math.ceil(slotsNeeded / 48);
-        newPattern.anak.push(...generateEmptySlots(measuresNeeded * 48));
-        newPattern.indung.push(...generateEmptySlots(measuresNeeded * 48));
+     while (snippetOffset < snippetLength) {
+       if (patIdx >= newSong.length) {
+         newSong.push(createEmptyPattern(`Regel ${newSong.length + 1}`));
+       } else {
+         // Create new array references so React's useMemo sees the change
+         newSong[patIdx] = { ...newSong[patIdx], anak: [...newSong[patIdx].anak], indung: [...newSong[patIdx].indung] };
+       }
+       const pat = newSong[patIdx];
+       const slotsToWrite = Math.min(snippetLength - snippetOffset, BARS - patSlot);
+
+       for (let i = 0; i < slotsToWrite; i++) {
+         const src = snippetOffset + i;
+         const dst = patSlot + i;
+         pat.anak[dst] = JSON.parse(JSON.stringify(anakData[src]));
+         if (indungData && src < indungData.length)
+           pat.indung[dst] = JSON.parse(JSON.stringify(indungData[src]));
+       }
+
+       if (gongData && gongData.length > 0) {
+         const gongSet = new Set(pat.gong || []);
+         for (const g of gongData) {
+           if (g >= snippetOffset && g < snippetOffset + slotsToWrite)
+             gongSet.add(patSlot + (g - snippetOffset));
+         }
+         pat.gong = Array.from(gongSet).sort((a, b) => a - b);
+       }
+
+       lastWrittenPatIdx = patIdx;
+       lastWrittenSlot = patSlot + slotsToWrite;
+       snippetOffset += slotsToWrite;
+       patIdx++;
+       patSlot = 0;
      }
 
-     for (let i = 0; i < snippetLength; i++) {
-        const destIdx = targetSlotIdx + i;
-        if (destIdx >= newPattern.anak.length) break;
-        newPattern.anak[destIdx]   = JSON.parse(JSON.stringify(anakData[i]));
-        if (indungData && i < indungData.length)
-          newPattern.indung[destIdx] = JSON.parse(JSON.stringify(indungData[i]));
-     }
-     
-     if (gongData && gongData.length > 0) {
-       const existingGong = new Set(newPattern.gong || []);
-       gongData.forEach(g => existingGong.add(targetSlotIdx + g));
-       newPattern.gong = Array.from(existingGong).sort((a, b) => a - b);
-     }
-
-     newSong[targetPatternIdx] = newPattern;
      setUndoStack(prev => [...prev.slice(-49), song]);
      setRedoStack([]);
      setSong(newSong);
 
-     // Advance the cursor past the inserted snippet Length if we are using an active tracking slot
      if (activeSlot) {
-        let nextCursor = targetSlotIdx + snippetLength;
+        let nextCursor = lastWrittenSlot >= BARS ? 0 : lastWrittenSlot;
         if (magneticInput) nextCursor = Math.round(nextCursor / gridResolution) * gridResolution;
-        if (nextCursor >= newPattern.anak.length) nextCursor = 0;
-        setActiveSlot(prev => ({...prev, startIndex: nextCursor, endIndex: nextCursor}));
+        setActiveSlot(prev => ({
+          ...prev,
+          patternId: newSong[lastWrittenPatIdx].id,
+          startIndex: nextCursor,
+          endIndex: nextCursor,
+        }));
      }
   };
 
@@ -1490,6 +1535,8 @@ function App() {
               })()}
               soundSettings={soundSettings}
               onSoundSettingsChange={setSoundSettings}
+              cursorOffsetMs={cursorOffsetMs}
+              onCursorOffsetChange={setCursorOffsetMs}
             />
           </div>
 
