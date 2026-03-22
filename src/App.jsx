@@ -778,6 +778,11 @@ function App() {
     const ctx = schedulerRef.current?.audioCtx;
     if (ctx?.state === 'suspended') await ctx.resume();
 
+    // Als vox-modus actief is, wacht tot samples geladen zijn
+    if (sampleSetRef.current === 'vox') {
+      await samplerRef.current?.waitForVox();
+    }
+
     if (isPlaying && !isRecording) {
       schedulerRef.current.pause();
       setIsPlaying(false);
@@ -835,6 +840,9 @@ function App() {
   const handleLoopPattern = async (patternId) => {
     const ctx = schedulerRef.current?.audioCtx;
     if (ctx?.state === 'suspended') await ctx.resume();
+    if (sampleSetRef.current === 'vox') {
+      await samplerRef.current?.waitForVox();
+    }
 
     if (loopingPatternIdRef.current === patternId) {
       // Stop loop — herstel normale song totalSlots

@@ -69,6 +69,7 @@ export class SamplePlayer {
     this.voxBuffers = {};  // vox buffers: key → AudioBuffer
     this.settings   = {};
     this.sampleSet  = 'kendang'; // 'kendang' | 'vox'
+    this._voxLoadPromise = null; // Promise die resolved als vox klaar is
   }
 
   updateSettings(settings) {
@@ -77,9 +78,14 @@ export class SamplePlayer {
 
   setSampleSet(set) {
     this.sampleSet = set;
-    if (set === 'vox' && Object.keys(this.voxBuffers).length === 0) {
-      this.loadVox();
+    if (set === 'vox' && !this._voxLoadPromise) {
+      this._voxLoadPromise = this.loadVox();
     }
+  }
+
+  /** Wacht tot vox samples geladen zijn (resolved direct als al klaar) */
+  waitForVox() {
+    return this._voxLoadPromise || Promise.resolve();
   }
 
   _initCtx() {
