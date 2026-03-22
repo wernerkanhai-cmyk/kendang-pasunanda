@@ -113,7 +113,7 @@ export class SamplePlayer {
 
   async loadVox() {
     this._initCtx();
-    const base = `${import.meta.env.BASE_URL}audio/KENDANG VOX/`;
+    const base = `${import.meta.env.BASE_URL}audio/KENDANG%20VOX/`;
     const promises = [];
 
     for (const track of TRACKS) {
@@ -206,8 +206,14 @@ export class SamplePlayer {
     const gain = (s.gain ?? 1.0) * trackGain;
 
     if (this.sampleSet === 'vox') {
-      const key = `vox_${track}_${sound}_${n}`;
-      this._trigger(key, when, gain, s.pitch ?? 1.0, this.voxBuffers);
+      const voxKey = `vox_${track}_${sound}_${n}`;
+      if (this.voxBuffers[voxKey]) {
+        this._trigger(voxKey, when, gain, s.pitch ?? 1.0, this.voxBuffers);
+      } else {
+        // Fallback naar kendang-buffer als vox nog niet geladen is
+        const key = `${track}_${sound}_${n}`;
+        this._trigger(key, when, gain, s.pitch ?? 1.0, this.buffers);
+      }
     } else {
       const key = `${track}_${sound}_${n}`;
       this._trigger(key, when, gain, s.pitch ?? 1.0, this.buffers);
