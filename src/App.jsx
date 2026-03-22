@@ -44,7 +44,16 @@ function App() {
   const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
-  
+
+  // Sample set: 'kendang' of 'vox'
+  const [sampleSet, setSampleSet] = useState(() => localStorage.getItem('kendangSampleSet') || 'kendang');
+  const sampleSetRef = useRef(sampleSet);
+  useEffect(() => {
+    sampleSetRef.current = sampleSet;
+    localStorage.setItem('kendangSampleSet', sampleSet);
+    samplerRef.current?.setSampleSet(sampleSet);
+  }, [sampleSet]);
+
   // Sound settings (volume + pitch per geluid)
   const [soundSettings, setSoundSettings] = useState(() => {
     try {
@@ -505,6 +514,7 @@ function App() {
     const sampler = new SamplePlayer();
     samplerRef.current = sampler;
     sampler.updateSettings(soundSettingsRef.current);
+    sampler.setSampleSet(sampleSetRef.current);
     // Maak de gedeelde AudioContext direct aan (voor sampler én scheduler)
     const sharedCtx = sampler.getContext();
     sampler.loadAll();
@@ -552,8 +562,7 @@ function App() {
           const slot = tickPattern[track][localSlot];
           if (slot) {
             const tvol = trackVolumesRef.current[track] ?? 1.0;
-            if (slot.top && slot.top !== '.') sampler.play(slot.top, track, audioTime, tvol);
-            if (slot.bottom && slot.bottom !== '.') sampler.play(slot.bottom, track, audioTime, tvol);
+            sampler.playSlot(slot.top, slot.bottom, track, audioTime, tvol);
           }
         });
         if ((tickPattern.gong || []).includes(localSlot)) sampler.playGong(audioTime);
@@ -1405,6 +1414,13 @@ function App() {
             title="Open song bibliotheek"
           >
             📚 Bibliotheek
+          </button>
+          <button
+            onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
+            title="Wissel sample set"
+            style={{ background: sampleSet === 'vox' ? '#7c3aed' : '#334155', color: '#fff', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid #475569', cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            {sampleSet === 'vox' ? '🎤 Vox' : '🥁 Kendang'}
           </button>
           <button
             className="btn-primary"
