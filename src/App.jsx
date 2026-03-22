@@ -73,6 +73,11 @@ function App() {
   const trackVolumesRef = useRef({ anak: 1.0, indung: 1.0 });
   useEffect(() => { trackVolumesRef.current = trackVolumes; }, [trackVolumes]);
 
+  // Vox volume (afzonderlijk van track volumes)
+  const [voxVolume, setVoxVolume] = useState(1.0);
+  const voxVolumeRef = useRef(1.0);
+  useEffect(() => { voxVolumeRef.current = voxVolume; }, [voxVolume]);
+
   // Grid & Quantize State
   const [gridResolution, setGridResolution] = useState(6); // 1/8 by default
   const [magneticInput, setMagneticInput] = useState(false);
@@ -561,7 +566,7 @@ function App() {
           if (soloTrackRef.current && soloTrackRef.current !== track) return;
           const slot = tickPattern[track][localSlot];
           if (slot) {
-            const tvol = trackVolumesRef.current[track] ?? 1.0;
+            const tvol = (trackVolumesRef.current[track] ?? 1.0) * (sampleSetRef.current === 'vox' ? voxVolumeRef.current : 1.0);
             sampler.playSlot(slot.top, slot.bottom, track, audioTime, tvol);
           }
         });
@@ -1363,6 +1368,46 @@ function App() {
               </div>
             );
           })}
+
+          {/* Vox volume knob — alleen zichtbaar in vox-modus */}
+          {sampleSet === 'vox' && (() => {
+            const val = voxVolume;
+            const color = '#7c3aed';
+            const angle = -135 + (val / 2) * 270;
+            const r = 14, cx = 18, cy = 18;
+            const rad = (a) => (a - 90) * Math.PI / 180;
+            const arcX = (a) => cx + r * Math.cos(rad(a));
+            const arcY = (a) => cy + r * Math.sin(rad(a));
+            const startAngle = -135, endAngle = angle;
+            const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+                <svg
+                  width="36" height="36" viewBox="0 0 36 36"
+                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                  title={`Vox volume: ${Math.round(val * 100)}%`}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    const startY = e.clientY, startVal = val;
+                    const onMove = (ev) => {
+                      const delta = (startY - ev.clientY) / 80;
+                      setVoxVolume(Math.max(0, Math.min(2, startVal + delta)));
+                    };
+                    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
+                    window.addEventListener('pointermove', onMove);
+                    window.addEventListener('pointerup', onUp);
+                  }}
+                  onDoubleClick={() => setVoxVolume(1.0)}
+                >
+                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
+                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
+                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                <span style={{ fontSize: '0.55rem', color: '#7c3aed', letterSpacing: '0.05em', textTransform: 'uppercase' }}>V</span>
+              </div>
+            );
+          })()}
 
           <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
 
