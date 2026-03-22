@@ -251,11 +251,12 @@ function App() {
   };
 
   const handleExportSong = (s) => {
-    const blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' });
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(s))));
+    const blob = new Blob([encoded], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${s.name.replace(/[^a-z0-9]/gi, '_')}.kendang.json`;
+    a.download = `${s.name.replace(/[^a-z0-9]/gi, '_')}.kendang`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -266,7 +267,8 @@ function App() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const imported = JSON.parse(ev.target.result);
+        const decoded = decodeURIComponent(escape(atob(ev.target.result)));
+        const imported = JSON.parse(decoded);
         // Accepteer zowel losse song als array van songs
         const songs = Array.isArray(imported) ? imported : [imported];
         const valid = songs.filter(s => s.name && Array.isArray(s.patterns));
@@ -280,7 +282,7 @@ function App() {
         });
         alert(`${valid.length} song(s) geïmporteerd.`);
       } catch {
-        alert('Ongeldig bestand — verwacht een .kendang.json bestand.');
+        alert('Ongeldig bestand — verwacht een .kendang bestand.');
       }
     };
     reader.readAsText(file);
@@ -288,11 +290,12 @@ function App() {
   };
 
   const handleExportLibrary = () => {
-    const blob = new Blob([JSON.stringify(savedSongs, null, 2)], { type: 'application/json' });
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(savedSongs))));
+    const blob = new Blob([encoded], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kendang-bibliotheek-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `kendang-bibliotheek-${new Date().toISOString().slice(0, 10)}.kendang`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -303,7 +306,8 @@ function App() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const imported = JSON.parse(ev.target.result);
+        const decoded = decodeURIComponent(escape(atob(ev.target.result)));
+        const imported = JSON.parse(decoded);
         if (!Array.isArray(imported)) throw new Error();
         setSavedSongs(prev => {
           const existingIds = new Set(prev.map(s => s.id));
@@ -311,7 +315,7 @@ function App() {
           return [...prev, ...nieuwen];
         });
       } catch {
-        alert('Ongeldig bestand — verwacht een .json bibliotheek.');
+        alert('Ongeldig bestand — verwacht een .kendang bibliotheek.');
       }
     };
     reader.readAsText(file);
@@ -1401,14 +1405,14 @@ function App() {
                       title="Importeer een gedeelde song (.kendang.json)"
                     >
                       ⬆ Song importeren
-                      <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportSong} />
+                      <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSong} />
                     </label>
                     <label
                       style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
                       title="Importeer volledige bibliotheek"
                     >
                       ⬆ Bibliotheek
-                      <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportLibrary} />
+                      <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportLibrary} />
                     </label>
                     <button onClick={() => setShowSongLibrary(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
