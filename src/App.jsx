@@ -1411,6 +1411,27 @@ function App() {
 
           <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
 
+          {/* Cursor sync offset — altijd zichtbaar in header */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ color: '#f59e0b', fontSize: '0.6rem', whiteSpace: 'nowrap' }}>⏱ {cursorOffsetMs} ms</span>
+              <button
+                onClick={() => setCursorOffsetMs(0)}
+                disabled={cursorOffsetMs === 0}
+                title="Reset sync offset"
+                style={{ background: 'transparent', border: 'none', color: cursorOffsetMs === 0 ? '#1e3a5f' : '#64748b', cursor: cursorOffsetMs === 0 ? 'default' : 'pointer', fontSize: '0.85rem', padding: 0, lineHeight: 1 }}
+              >↺</button>
+            </div>
+            <input
+              type="range" min="-3000" max="500" step="25" value={cursorOffsetMs}
+              onChange={e => setCursorOffsetMs(parseInt(e.target.value, 10))}
+              style={{ width: '90px', accentColor: '#f59e0b' }}
+              title={`Cursor sync offset: ${cursorOffsetMs} ms`}
+            />
+          </div>
+
+          <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
+
           {FACTORY_PRESETS.length > 0 && (
             <select
               defaultValue=""
