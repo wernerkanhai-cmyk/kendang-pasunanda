@@ -1539,42 +1539,54 @@ function App() {
             )}
           </div>
 
-          {/* ── Kendang / Vox flip card ──────────────────────────────────── */}
+          {/* ── Kendang / Vox ronde schakelaar ──────────────────────────── */}
           <div
-            style={{ perspective: '300px', cursor: 'pointer', flexShrink: 0 }}
             onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
-            title={`Wissel naar ${sampleSet === 'kendang' ? 'Vox' : 'Kendang'}`}
+            title={`Actief: ${sampleSet === 'kendang' ? 'Kendang' : 'Vox'} — klik om te wisselen`}
+            style={{
+              width: '68px', height: '68px', borderRadius: '50%', flexShrink: 0,
+              background: 'radial-gradient(circle at 38% 32%, #4a4e58, #1c2030)',
+              border: '4px solid #6b7280',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.7), inset 0 1px 4px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.4)',
+              cursor: 'pointer', userSelect: 'none', position: 'relative',
+              display: 'flex', alignItems: 'center', overflow: 'hidden',
+            }}
           >
+            {/* Linker helft — Kendang 🥁 */}
             <div style={{
-              width: '52px', height: '52px', position: 'relative',
-              transformStyle: 'preserve-3d',
-              transition: 'transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1)',
-              transform: sampleSet === 'vox' ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.3rem',
+              opacity: sampleSet === 'kendang' ? 1 : 0.25,
+              transition: 'opacity 0.3s',
+              filter: sampleSet === 'kendang' ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' : 'none',
+            }}>🥁</div>
+
+            {/* Centrale richel met indicator */}
+            <div style={{
+              width: '4px', height: '68%', background: '#2a2e3a',
+              borderRadius: '2px', flexShrink: 0, position: 'relative',
+              boxShadow: '1px 0 2px rgba(255,255,255,0.05), -1px 0 2px rgba(0,0,0,0.3)',
             }}>
-              {/* Voorkant: Kendang */}
               <div style={{
-                position: 'absolute', inset: 0,
-                backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                background: '#334155', borderRadius: '10px', border: '2px solid #475569',
-                fontSize: '1.5rem', gap: '1px',
-              }}>
-                🥁
-                <span style={{ fontSize: '0.42rem', color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Kendang</span>
-              </div>
-              {/* Achterkant: Vox */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
-                transform: 'rotateY(180deg)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                background: '#7c3aed', borderRadius: '10px', border: '2px solid #6d28d9',
-                fontSize: '1.5rem', gap: '1px',
-              }}>
-                🎤
-                <span style={{ fontSize: '0.42rem', color: '#ddd6fe', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Vox</span>
-              </div>
+                position: 'absolute', left: '50%', top: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '6px', height: '18px', borderRadius: '2px',
+                background: sampleSet === 'kendang' ? '#60a5fa' : '#a78bfa',
+                boxShadow: sampleSet === 'kendang'
+                  ? '0 0 6px 2px rgba(96,165,250,0.7)'
+                  : '0 0 6px 2px rgba(167,139,250,0.7)',
+                transition: 'background 0.3s, box-shadow 0.3s',
+              }} />
             </div>
+
+            {/* Rechter helft — Vox 🎤 */}
+            <div style={{
+              flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.3rem',
+              opacity: sampleSet === 'vox' ? 1 : 0.25,
+              transition: 'opacity 0.3s',
+              filter: sampleSet === 'vox' ? 'drop-shadow(0 0 4px rgba(167,139,250,0.8))' : 'none',
+            }}>🎤</div>
           </div>
 
           {/* Song Library Modal */}
