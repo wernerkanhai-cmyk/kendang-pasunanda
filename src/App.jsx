@@ -1261,6 +1261,98 @@ function App() {
           <h1>Kendang Pasunanda</h1>
           <p>Sequencer & OCR Studio (v7.1)</p>
         </div>
+
+        {/* ── Gecentreerd: volume knobs + schakelaar ───────────────────── */}
+        <div className="header-center">
+          {/* Track volume knobs A + I */}
+          {['anak', 'indung'].map(track => {
+            const color = track === 'anak' ? '#222' : '#cc0000';
+            const val = trackVolumes[track];
+            const angle = -135 + (val / 2) * 270;
+            const r = 14, cx = 18, cy = 18;
+            const rad = (a) => (a - 90) * Math.PI / 180;
+            const arcX = (a) => cx + r * Math.cos(rad(a));
+            const arcY = (a) => cy + r * Math.sin(rad(a));
+            const startAngle = -135, endAngle = angle;
+            const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+            return (
+              <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+                <svg width="36" height="36" viewBox="0 0 36 36"
+                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                  title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    const startY = e.clientY, startVal = val;
+                    const onMove = (ev) => { const delta = (startY - ev.clientY) / 80; setTrackVolumes(v => ({ ...v, [track]: Math.max(0, Math.min(2, startVal + delta)) })); };
+                    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
+                    window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp);
+                  }}
+                  onDoubleClick={() => setTrackVolumes(v => ({ ...v, [track]: 1.0 }))}
+                >
+                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
+                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
+                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                <span style={{ fontSize: '0.55rem', color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{track === 'anak' ? 'A' : 'I'}</span>
+              </div>
+            );
+          })}
+
+          {/* Vox volume knob V — alleen in vox-modus */}
+          {sampleSet === 'vox' && (() => {
+            const val = voxVolume, color = '#7c3aed';
+            const angle = -135 + (val / 2) * 270;
+            const r = 14, cx = 18, cy = 18;
+            const rad = (a) => (a - 90) * Math.PI / 180;
+            const arcX = (a) => cx + r * Math.cos(rad(a));
+            const arcY = (a) => cy + r * Math.sin(rad(a));
+            const startAngle = -135, endAngle = angle;
+            const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+                <svg width="36" height="36" viewBox="0 0 36 36"
+                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                  title={`Vox volume: ${Math.round(val * 100)}%`}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    const startY = e.clientY, startVal = val;
+                    const onMove = (ev) => { const delta = (startY - ev.clientY) / 80; setVoxVolume(Math.max(0, Math.min(2, startVal + delta))); };
+                    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
+                    window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp);
+                  }}
+                  onDoubleClick={() => setVoxVolume(1.0)}
+                >
+                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
+                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
+                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                <span style={{ fontSize: '0.55rem', color: '#7c3aed', letterSpacing: '0.05em', textTransform: 'uppercase' }}>V</span>
+              </div>
+            );
+          })()}
+
+          {/* Kendang / Vox ronde schakelaar */}
+          <div
+            onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
+            title={`Actief: ${sampleSet === 'kendang' ? 'Kendang' : 'Vox'} — klik om te wisselen`}
+            style={{
+              width: '68px', height: '68px', borderRadius: '50%', flexShrink: 0,
+              background: 'radial-gradient(circle at 38% 32%, #4a4e58, #1c2030)',
+              border: '4px solid #6b7280',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.7), inset 0 1px 4px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.4)',
+              cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', overflow: 'hidden',
+            }}
+          >
+            <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', opacity: sampleSet === 'kendang' ? 1 : 0.25, transition: 'opacity 0.3s', filter: sampleSet === 'kendang' ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' : 'none' }}>🥁</div>
+            <div style={{ width: '4px', height: '68%', background: '#2a2e3a', borderRadius: '2px', flexShrink: 0, position: 'relative', boxShadow: '1px 0 2px rgba(255,255,255,0.05), -1px 0 2px rgba(0,0,0,0.3)' }}>
+              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: '6px', height: '18px', borderRadius: '2px', background: sampleSet === 'kendang' ? '#60a5fa' : '#a78bfa', boxShadow: sampleSet === 'kendang' ? '0 0 6px 2px rgba(96,165,250,0.7)' : '0 0 6px 2px rgba(167,139,250,0.7)', transition: 'background 0.3s, box-shadow 0.3s' }} />
+            </div>
+            <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', opacity: sampleSet === 'vox' ? 1 : 0.25, transition: 'opacity 0.3s', filter: sampleSet === 'vox' ? 'drop-shadow(0 0 4px rgba(167,139,250,0.8))' : 'none' }}>🎤</div>
+          </div>
+        </div>
+
         <div className="global-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
           {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
@@ -1359,94 +1451,6 @@ function App() {
             )}
           </div>
 
-          <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
-
-          {/* Track volume knobs */}
-          {['anak', 'indung'].map(track => {
-            const color = track === 'anak' ? '#222' : '#cc0000';
-            const val = trackVolumes[track];
-            const angle = -135 + (val / 2) * 270; // -135° = min, +135° = max
-            const r = 14, cx = 18, cy = 18;
-            const rad = (a) => (a - 90) * Math.PI / 180;
-            const arcX = (a) => cx + r * Math.cos(rad(a));
-            const arcY = (a) => cy + r * Math.sin(rad(a));
-            const startAngle = -135, endAngle = angle;
-            const largeArc = endAngle - startAngle > 180 ? 1 : 0;
-            return (
-              <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
-                <svg
-                  width="36" height="36" viewBox="0 0 36 36"
-                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
-                  title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    const startY = e.clientY, startVal = val;
-                    const onMove = (ev) => {
-                      const delta = (startY - ev.clientY) / 80;
-                      setTrackVolumes(v => ({ ...v, [track]: Math.max(0, Math.min(2, startVal + delta)) }));
-                    };
-                    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
-                    window.addEventListener('pointermove', onMove);
-                    window.addEventListener('pointerup', onUp);
-                  }}
-                  onDoubleClick={() => setTrackVolumes(v => ({ ...v, [track]: 1.0 }))}
-                >
-                  {/* Background arc */}
-                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                  {/* Value arc */}
-                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
-                  {/* Knob body */}
-                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
-                  {/* Indicator line */}
-                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-                <span style={{ fontSize: '0.55rem', color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{track === 'anak' ? 'A' : 'I'}</span>
-              </div>
-            );
-          })}
-
-          {/* Vox volume knob — alleen zichtbaar in vox-modus */}
-          {sampleSet === 'vox' && (() => {
-            const val = voxVolume;
-            const color = '#7c3aed';
-            const angle = -135 + (val / 2) * 270;
-            const r = 14, cx = 18, cy = 18;
-            const rad = (a) => (a - 90) * Math.PI / 180;
-            const arcX = (a) => cx + r * Math.cos(rad(a));
-            const arcY = (a) => cy + r * Math.sin(rad(a));
-            const startAngle = -135, endAngle = angle;
-            const largeArc = endAngle - startAngle > 180 ? 1 : 0;
-            return (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
-                <svg
-                  width="36" height="36" viewBox="0 0 36 36"
-                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
-                  title={`Vox volume: ${Math.round(val * 100)}%`}
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    const startY = e.clientY, startVal = val;
-                    const onMove = (ev) => {
-                      const delta = (startY - ev.clientY) / 80;
-                      setVoxVolume(Math.max(0, Math.min(2, startVal + delta)));
-                    };
-                    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
-                    window.addEventListener('pointermove', onMove);
-                    window.addEventListener('pointerup', onUp);
-                  }}
-                  onDoubleClick={() => setVoxVolume(1.0)}
-                >
-                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
-                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
-                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-                <span style={{ fontSize: '0.55rem', color: '#7c3aed', letterSpacing: '0.05em', textTransform: 'uppercase' }}>V</span>
-              </div>
-            );
-          })()}
-
-          <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
-
           {/* Cursor sync offset — altijd zichtbaar in header */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -1537,56 +1541,6 @@ function App() {
                 </div>
               </>
             )}
-          </div>
-
-          {/* ── Kendang / Vox ronde schakelaar ──────────────────────────── */}
-          <div
-            onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
-            title={`Actief: ${sampleSet === 'kendang' ? 'Kendang' : 'Vox'} — klik om te wisselen`}
-            style={{
-              width: '68px', height: '68px', borderRadius: '50%', flexShrink: 0,
-              background: 'radial-gradient(circle at 38% 32%, #4a4e58, #1c2030)',
-              border: '4px solid #6b7280',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.7), inset 0 1px 4px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.4)',
-              cursor: 'pointer', userSelect: 'none', position: 'relative',
-              display: 'flex', alignItems: 'center', overflow: 'hidden',
-            }}
-          >
-            {/* Linker helft — Kendang 🥁 */}
-            <div style={{
-              flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.3rem',
-              opacity: sampleSet === 'kendang' ? 1 : 0.25,
-              transition: 'opacity 0.3s',
-              filter: sampleSet === 'kendang' ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' : 'none',
-            }}>🥁</div>
-
-            {/* Centrale richel met indicator */}
-            <div style={{
-              width: '4px', height: '68%', background: '#2a2e3a',
-              borderRadius: '2px', flexShrink: 0, position: 'relative',
-              boxShadow: '1px 0 2px rgba(255,255,255,0.05), -1px 0 2px rgba(0,0,0,0.3)',
-            }}>
-              <div style={{
-                position: 'absolute', left: '50%', top: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '6px', height: '18px', borderRadius: '2px',
-                background: sampleSet === 'kendang' ? '#60a5fa' : '#a78bfa',
-                boxShadow: sampleSet === 'kendang'
-                  ? '0 0 6px 2px rgba(96,165,250,0.7)'
-                  : '0 0 6px 2px rgba(167,139,250,0.7)',
-                transition: 'background 0.3s, box-shadow 0.3s',
-              }} />
-            </div>
-
-            {/* Rechter helft — Vox 🎤 */}
-            <div style={{
-              flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.3rem',
-              opacity: sampleSet === 'vox' ? 1 : 0.25,
-              transition: 'opacity 0.3s',
-              filter: sampleSet === 'vox' ? 'drop-shadow(0 0 4px rgba(167,139,250,0.8))' : 'none',
-            }}>🎤</div>
           </div>
 
           {/* Song Library Modal */}
