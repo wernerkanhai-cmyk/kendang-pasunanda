@@ -111,6 +111,8 @@ function App() {
   const [songName, setSongName] = useState('Song 1');
   const [songFolder, setSongFolder] = useState('Algemeen');
   const [showSongLibrary, setShowSongLibrary] = useState(false);
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [showManual, setShowManual] = useState(false);
   const [pdfSettings, setPdfSettings] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('pdfSettings'));
@@ -1259,78 +1261,103 @@ function App() {
           <p>Sequencer & OCR Studio (v7.1)</p>
         </div>
         <div className="global-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <OCRScanner onScanResult={(patterns) => {
-            if (patterns.length === 0) return;
-            setUndoStack(prev => [...prev.slice(-49), song]);
-            setRedoStack([]);
-            setSong(prev => {
-              // Verwijder de standaard lege startregel als die er nog als enige staat
-              const isDefault = prev.length === 1 &&
-                prev[0].name === 'Regel 1' &&
-                prev[0].anak.every(s => s.top === '.' || s.top === '') &&
-                prev[0].indung.every(s => s.top === '.' || s.top === '');
-              return isDefault ? patterns : [...prev, ...patterns];
-            });
-            setActivePatternId(patterns[0].id);
-            setActiveSlot({ patternId: patterns[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 });
-          }} />
-          <div style={{ position: 'relative', display: 'inline-flex', gap: '2px' }}>
-            <button
-              className="btn-secondary"
-              style={{ background: 'transparent', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px 0 0 6px', border: '1px solid var(--border-focus)' }}
-              onClick={() => exportSequencerToPDF(song, songName, pdfSettings)}
-            >📄 PDF Export</button>
-            <button
-              style={{ background: 'transparent', color: '#e2e8f0', padding: '0.6rem 0.5rem', borderRadius: '0 6px 6px 0', border: '1px solid var(--border-focus)', borderLeft: 'none', cursor: 'pointer' }}
-              onClick={() => setShowPdfSettings(v => !v)}
-              title="PDF layout instellingen"
-            >⚙️</button>
 
-            {showPdfSettings && (
-              <div style={{
-                position: 'absolute', top: '110%', right: 0, zIndex: 200,
-                background: '#1e293b', border: '1px solid #334155', borderRadius: '8px',
-                padding: '1rem', minWidth: '260px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                color: '#e2e8f0', fontSize: '0.8rem',
-              }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '0.7rem', color: '#94a3b8' }}>PDF layout instellingen</div>
-                {[
-                  { key: 'beamTop1',    label: 'Beam boven (8e)' },
-                  { key: 'beamTop2',    label: 'Beam boven (16e)' },
-                  { key: 'beamBottom1', label: 'Beam onder (8e)' },
-                  { key: 'beamBottom2', label: 'Beam onder (16e)' },
-                  { key: 'symAbove',    label: 'Symbool afstand boven' },
-                  { key: 'symBelow',    label: 'Symbool afstand onder' },
-                  { key: 'dotTopOffset',    label: 'Stip boven (offset)' },
-                  { key: 'dotBottomOffset', label: 'Stip onder (offset)' },
-                ].map(({ key, label }) => (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', gap: '0.5rem' }}>
-                    <span style={{ flex: 1 }}>{label}</span>
-                    <input
-                      type="number"
-                      value={pdfSettings[key]}
-                      onChange={e => {
-                        const val = parseInt(e.target.value, 10);
-                        if (isNaN(val)) return;
-                        const next = { ...pdfSettings, [key]: val };
-                        setPdfSettings(next);
-                        localStorage.setItem('pdfSettings', JSON.stringify(next));
-                      }}
-                      style={{ width: '60px', padding: '2px 4px', borderRadius: '4px', border: '1px solid #475569', background: '#0f172a', color: '#e2e8f0', textAlign: 'right' }}
-                    />
-                  </div>
-                ))}
-                <button
-                  onClick={() => {
-                    setPdfSettings({ ...DEFAULT_PDF_SETTINGS });
-                    localStorage.setItem('pdfSettings', JSON.stringify(DEFAULT_PDF_SETTINGS));
-                  }}
-                  style={{ marginTop: '0.5rem', width: '100%', padding: '0.3rem', background: '#334155', border: 'none', borderRadius: '4px', color: '#e2e8f0', cursor: 'pointer', fontSize: '0.75rem' }}
-                >↺ Standaard herstellen</button>
-              </div>
+          {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowToolsMenu(v => !v)}
+              style={{ background: showToolsMenu ? '#334155' : 'transparent', color: '#e2e8f0', padding: '0.6rem 0.9rem', borderRadius: '6px', border: '1px solid var(--border-focus)', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
+              title="Scan / PDF / Handleiding"
+            >⋯</button>
+
+            {showToolsMenu && (
+              <>
+                {/* overlay to close on outside click */}
+                <div onClick={() => setShowToolsMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
+                <div style={{
+                  position: 'absolute', top: '110%', left: 0, zIndex: 200,
+                  background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+                  padding: '0.75rem', minWidth: '220px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  display: 'flex', flexDirection: 'column', gap: '0.4rem',
+                }}>
+                  {/* Scan */}
+                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Scan</div>
+                  <OCRScanner onScanResult={(patterns) => {
+                    setShowToolsMenu(false);
+                    if (patterns.length === 0) return;
+                    setUndoStack(prev => [...prev.slice(-49), song]);
+                    setRedoStack([]);
+                    setSong(prev => {
+                      const isDefault = prev.length === 1 &&
+                        prev[0].name === 'Regel 1' &&
+                        prev[0].anak.every(s => s.top === '.' || s.top === '') &&
+                        prev[0].indung.every(s => s.top === '.' || s.top === '');
+                      return isDefault ? patterns : [...prev, ...patterns];
+                    });
+                    setActivePatternId(patterns[0].id);
+                    setActiveSlot({ patternId: patterns[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+                  }} />
+
+                  <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
+
+                  {/* PDF */}
+                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>PDF</div>
+                  <button
+                    onClick={() => { exportSequencerToPDF(song, songName, pdfSettings); setShowToolsMenu(false); }}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >📄 Exporteer als PDF</button>
+                  <button
+                    onClick={() => setShowPdfSettings(v => !v)}
+                    style={{ background: '#0f172a', color: '#94a3b8', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >⚙️ PDF layout instellingen</button>
+
+                  {showPdfSettings && (
+                    <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '0.7rem', fontSize: '0.8rem', color: '#e2e8f0' }}>
+                      {[
+                        { key: 'beamTop1',        label: 'Beam boven (8e)' },
+                        { key: 'beamTop2',        label: 'Beam boven (16e)' },
+                        { key: 'beamBottom1',     label: 'Beam onder (8e)' },
+                        { key: 'beamBottom2',     label: 'Beam onder (16e)' },
+                        { key: 'symAbove',        label: 'Symbool afstand boven' },
+                        { key: 'symBelow',        label: 'Symbool afstand onder' },
+                        { key: 'dotTopOffset',    label: 'Stip boven (offset)' },
+                        { key: 'dotBottomOffset', label: 'Stip onder (offset)' },
+                      ].map(({ key, label }) => (
+                        <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', gap: '0.5rem' }}>
+                          <span style={{ flex: 1 }}>{label}</span>
+                          <input
+                            type="number"
+                            value={pdfSettings[key]}
+                            onChange={e => {
+                              const val = parseInt(e.target.value, 10);
+                              if (isNaN(val)) return;
+                              const next = { ...pdfSettings, [key]: val };
+                              setPdfSettings(next);
+                              localStorage.setItem('pdfSettings', JSON.stringify(next));
+                            }}
+                            style={{ width: '60px', padding: '2px 4px', borderRadius: '4px', border: '1px solid #475569', background: '#1e293b', color: '#e2e8f0', textAlign: 'right' }}
+                          />
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => { setPdfSettings({ ...DEFAULT_PDF_SETTINGS }); localStorage.setItem('pdfSettings', JSON.stringify(DEFAULT_PDF_SETTINGS)); }}
+                        style={{ marginTop: '0.3rem', width: '100%', padding: '0.3rem', background: '#334155', border: 'none', borderRadius: '4px', color: '#e2e8f0', cursor: 'pointer', fontSize: '0.75rem' }}
+                      >↺ Standaard herstellen</button>
+                    </div>
+                  )}
+
+                  <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
+
+                  {/* Handleiding */}
+                  <button
+                    onClick={() => { setShowManual(true); setShowToolsMenu(false); }}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >📖 Handleiding</button>
+                </div>
+              </>
             )}
           </div>
-          
+
           <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
 
           {/* Track volume knobs */}
@@ -1817,6 +1844,42 @@ function App() {
         </main>
       </div>
 
+      {/* ── Handleiding Modal ──────────────────────────────────────────── */}
+      {showManual && (
+        <div
+          onClick={() => setShowManual(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.2rem', borderBottom: '1px solid #334155' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>📖 Handleiding</span>
+              <button onClick={() => setShowManual(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.3rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+            </div>
+            <div style={{ overflowY: 'auto', padding: '1.2rem', color: '#cbd5e1', fontSize: '0.85rem', lineHeight: 1.7 }}>
+              {[
+                { title: '1. Klanken invoeren', body: 'Klik op een zone in het Drum Pad, gebruik het toetsenbord (N, C, X, V, A, J, ;, :, L, G, F, S), of rechtsklik op een cel in het rooster voor een keuzelijst. Sleep noten tussen cellen om te verplaatsen. Backspace/Delete wist de selectie.' },
+                { title: '2. Afspelen & opnemen', body: 'Spatie = Play/Stop. Klik ● om opname te starten (4 tellen aftelling). BPM aanpassen: klik het getal of sleep omhoog/omlaag. Rewind ⏮ terug naar begin, ◀ één maat terug.' },
+                { title: '3. Het rooster', body: '1 maat = 4 tellen = 48 slots. Dikke lijnen = maatstrepen, dunne lijnen = telmomenten. Balken boven/onder noten = 8e/16e verdeling. Gele blokken = gong. Stippels (·) = impliciete rusten.' },
+                { title: '4. Songs & patronen', body: 'Een song bestaat uit meerdere regels (patronen). Voeg toe, verwijder of versleep ze in de linker zijbalk. Sla op via 💾, laad via 📚 Bibliotheek. Exporteer/importeer als .kendang bestand.' },
+                { title: '5. Snippets', body: 'Selecteer een reeks cellen en klik "Snippet opslaan". Gebruik "Snippet invoegen" om een opgeslagen fragment in te plakken. Snippets kunnen ook worden geëxporteerd/geïmporteerd.' },
+                { title: '6. Volume & geluid', body: 'Knoppen A (Anak) en I (Indung) in de header regelen het volume per spoor (sleep omhoog/omlaag, dubbelklik = reset). Geluidsdetails per klank (volume, toonhoogte) staan in het Instrument-venster onder ⚙️ Geluid.' },
+                { title: '7. Bluetooth & AirPlay vertraging', body: 'Bij Bluetooth- of AirPlay-luidsprekers klinkt het geluid later dan de cursor. Stel de "Cursor sync offset" in via ⚙️ Geluid in het Instrument-venster. Schuif naar links (negatief) als het geluid te laat klinkt.' },
+                { title: '8. Vox-modus', body: 'Klik op 🥁 Kendang om te wisselen naar 🎤 Vox. In Vox-modus worden klanken gezongen. Combinaties (bijv. Dong + Pak = "Bang") worden automatisch herkend. De V-knop regelt het Vox-volume.' },
+                { title: '9. PDF exporteren', body: 'Klik ⋯ → 📄 Exporteer als PDF. De notatie wordt als printbaar PDF geopend. Pas de layout aan via ⚙️ PDF layout instellingen.' },
+                { title: '10. Sneltoetsen', body: 'Spatie: Play/Stop | Cmd+Z: Ongedaan | Cmd+Shift+Z: Opnieuw | Backspace: Wis selectie | N C X V A J ; : L G F S: Klanken invoeren' },
+              ].map(({ title, body }) => (
+                <div key={title} style={{ marginBottom: '1rem' }}>
+                  <div style={{ fontWeight: 'bold', color: '#f1f5f9', marginBottom: '0.3rem' }}>{title}</div>
+                  <div style={{ color: '#94a3b8' }}>{body}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
