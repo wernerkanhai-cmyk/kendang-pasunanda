@@ -113,6 +113,7 @@ function App() {
   const [showSongLibrary, setShowSongLibrary] = useState(false);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  const [showSongMenu, setShowSongMenu] = useState(false);
   const [pdfSettings, setPdfSettings] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('pdfSettings'));
@@ -1467,69 +1468,114 @@ function App() {
 
           <div style={{ width: '1px', height: '30px', background: 'var(--border-subtle)', margin: '0 0.5rem' }}></div>
 
-          {FACTORY_PRESETS.length > 0 && (
-            <select
-              defaultValue=""
-              onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; } }}
-              style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '6px', padding: '0.55rem 0.6rem', fontSize: '0.85rem', cursor: 'pointer' }}
-            >
-              <option value="">🎓 Presets...</option>
-              {FACTORY_CATEGORIES.map(cat => {
-                const items = FACTORY_PRESETS.filter(p => p.category === cat.label);
-                if (items.length === 0) return null;
-                return (
-                  <optgroup key={cat.label} label={cat.label}>
-                    {items.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </optgroup>
-                );
-              })}
-            </select>
-          )}
+          {/* ── Song dropdown ────────────────────────────────────────────── */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowSongMenu(v => !v)}
+              style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              title="Song beheren"
+            >🎵 {songName || 'Song'}</button>
 
-          <input
-            type="text"
-            value={songName}
-            onChange={(e) => setSongName(e.target.value)}
-            style={{ background: '#1e293b', color: '#e2e8f0', border: '1px solid var(--border-focus)', borderRadius: '6px', padding: '0.55rem 0.6rem', fontSize: '0.85rem', width: '140px' }}
-            placeholder="Song naam..."
-          />
-          <input
-            type="text"
-            value={songFolder}
-            onChange={(e) => setSongFolder(e.target.value)}
-            style={{ background: '#1e293b', color: '#e2e8f0', border: '1px solid var(--border-focus)', borderRadius: '6px', padding: '0.55rem 0.6rem', fontSize: '0.85rem', width: '110px' }}
-            placeholder="Map..."
-          />
-          <button
-            style={{ background: '#3b82f6', color: '#fff', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
-            onClick={handleSaveSong}
-            title={currentSongId ? 'Overschrijf opgeslagen song' : 'Sla huidige song op'}
-          >
-            💾 {currentSongId ? 'Bewaar' : 'Sla op'}
-          </button>
-          <button
-            style={{ background: '#475569', color: '#fff', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
-            onClick={() => setShowSongLibrary(true)}
-            title="Open song bibliotheek"
-          >
-            📚 Bibliotheek
-          </button>
-          <button
+            {showSongMenu && (
+              <>
+                <div onClick={() => setShowSongMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
+                <div style={{
+                  position: 'absolute', top: '110%', right: 0, zIndex: 200,
+                  background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+                  padding: '0.75rem', minWidth: '240px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  display: 'flex', flexDirection: 'column', gap: '0.5rem',
+                }}>
+                  <input
+                    type="text"
+                    value={songName}
+                    onChange={(e) => setSongName(e.target.value)}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
+                    placeholder="Song naam..."
+                  />
+                  <input
+                    type="text"
+                    value={songFolder}
+                    onChange={(e) => setSongFolder(e.target.value)}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
+                    placeholder="Map..."
+                  />
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button
+                      onClick={() => { handleSaveSong(); setShowSongMenu(false); }}
+                      style={{ flex: 1, background: '#3b82f6', color: '#fff', padding: '0.5rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                      title={currentSongId ? 'Overschrijf opgeslagen song' : 'Sla huidige song op'}
+                    >💾 {currentSongId ? 'Bewaar' : 'Sla op'}</button>
+                    <button
+                      onClick={() => { handleNewSong(); setShowSongMenu(false); }}
+                      style={{ background: '#10b981', color: '#fff', padding: '0.5rem 0.8rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                    >+ Nieuw</button>
+                  </div>
+                  <button
+                    onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >📚 Bibliotheek</button>
+                  {FACTORY_PRESETS.length > 0 && (
+                    <select
+                      defaultValue=""
+                      onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; setShowSongMenu(false); } }}
+                      style={{ background: '#0f172a', color: '#cbd5e1', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.6rem', fontSize: '0.85rem', cursor: 'pointer' }}
+                    >
+                      <option value="">🎓 Preset laden...</option>
+                      {FACTORY_CATEGORIES.map(cat => {
+                        const items = FACTORY_PRESETS.filter(p => p.category === cat.label);
+                        if (items.length === 0) return null;
+                        return (
+                          <optgroup key={cat.label} label={cat.label}>
+                            {items.map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
+                    </select>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ── Kendang / Vox flip card ──────────────────────────────────── */}
+          <div
+            style={{ perspective: '300px', cursor: 'pointer', flexShrink: 0 }}
             onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
-            title="Wissel sample set"
-            style={{ background: sampleSet === 'vox' ? '#7c3aed' : '#334155', color: '#fff', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid #475569', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            title={`Wissel naar ${sampleSet === 'kendang' ? 'Vox' : 'Kendang'}`}
           >
-            {sampleSet === 'vox' ? '🎤 Vox' : '🥁 Kendang'}
-          </button>
-          <button
-            className="btn-primary"
-            style={{ background: '#10b981', color: '#fff', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: 'none' }}
-            onClick={handleNewSong}
-          >
-            + New Song
-          </button>
+            <div style={{
+              width: '52px', height: '52px', position: 'relative',
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1)',
+              transform: sampleSet === 'vox' ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            }}>
+              {/* Voorkant: Kendang */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: '#334155', borderRadius: '10px', border: '2px solid #475569',
+                fontSize: '1.5rem', gap: '1px',
+              }}>
+                🥁
+                <span style={{ fontSize: '0.42rem', color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Kendang</span>
+              </div>
+              {/* Achterkant: Vox */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: '#7c3aed', borderRadius: '10px', border: '2px solid #6d28d9',
+                fontSize: '1.5rem', gap: '1px',
+              }}>
+                🎤
+                <span style={{ fontSize: '0.42rem', color: '#ddd6fe', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Vox</span>
+              </div>
+            </div>
+          </div>
 
           {/* Song Library Modal */}
           {showSongLibrary && (
