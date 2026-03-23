@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
+import { useT } from '../i18n';
 
 const SongMap = ({ song, activePatternId, open, onClose, onActivate, onMoveUp, onMoveDown }) => {
+  const t = useT();
   // Close on outside tap
   useEffect(() => {
     if (!open) return;
@@ -49,7 +51,7 @@ const SongMap = ({ song, activePatternId, open, onClose, onActivate, onMoveUp, o
           flexShrink: 0,
         }}>
           <span style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 'bold', letterSpacing: '0.06em' }}>
-            COMPOSITIE
+            {t('compositionLabel')}
           </span>
           <button
             onPointerDown={(e) => { e.stopPropagation(); onClose(); }}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { DEFAULT_SOUND_SETTINGS } from '../engine/SamplePlayer';
+import { useT } from '../i18n';
 
 const SOUND_LABELS = {
   tung: 'Tung', dong: 'Dong', ting: 'Ting', det: 'Det',
@@ -11,7 +12,8 @@ const SOUND_LABELS = {
 const pitchToSemitones = (pitch) => Math.round(12 * Math.log2(pitch) * 10) / 10;
 const semitonesToPitch = (st) => Math.pow(2, st / 12);
 
-export default function SoundSettingsContent({ settings, onChange }) {
+export default function SoundSettingsContent({ settings, onChange, cursorOffsetMs = 0, onCursorOffsetChange }) {
+  const t = useT();
   const handleGain = (sound, value) =>
     onChange({ ...settings, [sound]: { ...settings[sound], gain: parseFloat(value) } });
 
@@ -28,9 +30,9 @@ export default function SoundSettingsContent({ settings, onChange }) {
         <button
           onClick={() => onChange({ ...DEFAULT_SOUND_SETTINGS })}
           style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '4px', color: '#94a3b8', padding: '0.15rem 0.3rem', cursor: 'pointer', fontSize: '0.65rem', gridColumn: '1' }}
-        >Reset alles</button>
-        <span style={{ color: '#64748b', fontSize: '0.7rem', textAlign: 'center' }}>Volume</span>
-        <span style={{ color: '#64748b', fontSize: '0.7rem', textAlign: 'center' }}>Toonhoogte</span>
+        >{t('resetAll')}</button>
+        <span style={{ color: '#64748b', fontSize: '0.7rem', textAlign: 'center' }}>{t('volumeLabel')}</span>
+        <span style={{ color: '#64748b', fontSize: '0.7rem', textAlign: 'center' }}>{t('pitchLabel')}</span>
         <span />
       </div>
 
@@ -64,6 +66,26 @@ export default function SoundSettingsContent({ settings, onChange }) {
           </div>
         );
       })}
+
+      {/* Cursor-audio sync offset */}
+      {onCursorOffsetChange && (
+        <div style={{ borderTop: '1px solid #334155', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem' }}>
+            <span style={{ color: '#94a3b8', fontSize: '0.7rem', flex: 1 }}>{t('cursorSyncOffsetTitle')}</span>
+            <span style={{ color: '#e2e8f0', fontSize: '0.7rem', minWidth: '4rem', textAlign: 'right' }}>{cursorOffsetMs} ms</span>
+            <button
+              onClick={() => onCursorOffsetChange(0)}
+              style={{ background: 'transparent', border: 'none', color: cursorOffsetMs === 0 ? '#1e3a5f' : '#64748b', cursor: cursorOffsetMs === 0 ? 'default' : 'pointer', fontSize: '1rem', padding: 0 }}
+              title="Reset">↺</button>
+          </div>
+          <input type="range" min="-3000" max="500" step="25" value={cursorOffsetMs}
+            onChange={e => onCursorOffsetChange(parseInt(e.target.value, 10))}
+            style={{ width: '100%', accentColor: '#f59e0b' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569', fontSize: '0.6rem' }}>
+            <span>-3000ms</span><span>0</span><span>+500ms</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

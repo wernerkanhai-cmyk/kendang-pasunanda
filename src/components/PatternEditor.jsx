@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
 import { generateEmptySlots, writeSymbolToPattern, getHandForSymbol, SYMBOL_REST } from '../engine/patternLogic';
+import { useT } from '../i18n';
 
 const PatternEditor = ({ 
   pattern, 
@@ -61,6 +62,7 @@ const PatternEditor = ({
   trackVolumes = { anak: 1.0, indung: 1.0 },
   onTrackVolumeChange,
 }) => {
+  const t = useT();
   const [isNamingSnippet, setIsNamingSnippet] = useState(false);
   const [snippetName, setSnippetName] = useState('');
   const [snippetFolder, setSnippetFolder] = useState('Algemeen');
@@ -462,8 +464,8 @@ const [showBeheer, setShowBeheer] = useState(true);
             border: `1px solid ${showBeheer ? '#475569' : 'var(--border-subtle)'}`,
             borderRadius: '4px', cursor: 'pointer',
           }}
-          title="Song-beheer: maten en snippets"
-        >☰ Beheer</button>
+          title={t('manageTooltip')}
+        >{t('manage')}</button>
 
         {/* Snippet Library Controls — kept for isNamingSnippet inline form */}
         <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: showBeheer ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
@@ -476,17 +478,17 @@ const [showBeheer, setShowBeheer] = useState(true);
                   onChange={(e) => setSnippetName(e.target.value)}
                   onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
                   onClick={(e) => e.stopPropagation()}
-                  placeholder="Naam..."
+                  placeholder={t('snippetNamePlaceholder')}
                   style={{ background: 'transparent', color: '#fff', border: 'none', outline: 'none', width: '80px', fontSize: '0.8rem', padding: '0 4px' }}
                 />
                 <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }}></div>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={snippetFolder}
                   onChange={(e) => setSnippetFolder(e.target.value)}
                   onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
                   onClick={(e) => e.stopPropagation()}
-                  placeholder="Map..."
+                  placeholder={t('snippetFolderPlaceholder')}
                   style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', width: '70px', fontSize: '0.8rem', padding: '0 4px' }}
                 />
                 <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
@@ -506,7 +508,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                   borderRadius: '4px', 
                   cursor: activeRangeObj ? 'pointer' : 'default' 
                 }}
-                title="Selectie Opslaan als Snippet"
+                title={t('saveSnippetTooltip')}
               >
                 💾
               </button>
@@ -536,7 +538,7 @@ const [showBeheer, setShowBeheer] = useState(true);
            <button
              onClick={(e) => { e.stopPropagation(); setIsManagingSnippets(!isManagingSnippets); }}
              style={{ background: isManagingSnippets ? '#334155' : 'transparent', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '1rem', cursor: 'pointer' }}
-             title="Beheer Snippets"
+             title={t('manageSnippetsTooltip')}
            >
              ⚙️
            </button>
@@ -544,32 +546,32 @@ const [showBeheer, setShowBeheer] = useState(true);
            <button
              onClick={(e) => { e.stopPropagation(); onDuplicate?.(); }}
              style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
-             title="Dupliceer deze regel"
+             title={t('duplicatePattern')}
            >⧉</button>
 
            <button
              onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }}
              disabled={isFirst}
              style={{ background: 'transparent', color: isFirst ? '#334155' : '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.75rem', cursor: isFirst ? 'default' : 'pointer', opacity: isFirst ? 0.35 : 1 }}
-             title="Verplaats omhoog"
+             title={t('moveUp')}
            >▲</button>
 
            <button
              onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
              disabled={isLast}
              style={{ background: 'transparent', color: isLast ? '#334155' : '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.75rem', cursor: isLast ? 'default' : 'pointer', opacity: isLast ? 0.35 : 1 }}
-             title="Verplaats omlaag"
+             title={t('moveDown')}
            >▼</button>
 
            {/* Snippet Manager Overlay */}
            {isManagingSnippets && (
              <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '1rem', zIndex: 100, minWidth: '250px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem' }}>
-                   <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '0.9rem' }}>Snippet Beheer</h4>
+                   <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '0.9rem' }}>{t('snippetManagement')}</h4>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                     <button onClick={handleExportSnippets} style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title="Exporteer snippets">⬇ Export</button>
-                     <label style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title="Importeer snippets">
-                       ⬆ Import
+                     <button onClick={handleExportSnippets} style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
+                     <label style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
+                       {t('importSnippets')}
                        <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />
                      </label>
                      <button onClick={() => setIsManagingSnippets(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
@@ -586,7 +588,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                             {savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName).map(snip => (
                                <div key={snip.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.3rem 0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '4px', marginBottom: '2px' }}>
                                   <span style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{snip.name} <span style={{ color: '#64748b', fontSize: '0.7rem' }}>({snip.trackId})</span></span>
-                                  <button onClick={() => handleDeleteSnippet(snip.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', fontSize: '0.9rem' }} title="Verwijderen">🗑️</button>
+                                  <button onClick={() => handleDeleteSnippet(snip.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', fontSize: '0.9rem' }} title={t('deleteSnippet')}>🗑️</button>
                                </div>
                             ))}
                          </div>
@@ -616,7 +618,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               >
                 {/* Drag handle */}
                 <div
-                  title="Verplaats"
+                  title={t('moveSnippet')}
                   style={{ cursor: 'grab', color: '#475569', padding: '0 4px 0 0', fontSize: '0.8rem', lineHeight: 1 }}
                   onMouseDown={(e) => { e.preventDefault(); startTransportDrag(e.clientX, e.clientY); }}
                   onTouchStart={(e) => { e.preventDefault(); startTransportDrag(e.touches[0].clientX, e.touches[0].clientY); }}
@@ -679,27 +681,27 @@ const [showBeheer, setShowBeheer] = useState(true);
                  <button
                    onClick={(e) => { e.stopPropagation(); stepBack(); }}
                    style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
-                   title="1 maat terug"
+                   title={t('rewindOneMeasure')}
                  >◀</button>
 
                  <button
                    onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                    onDoubleClick={(e) => { e.stopPropagation(); rewind(); }}
                    style={{ background: isPlaying ? '#22c55e' : 'transparent', color: isPlaying ? '#fff' : '#94a3b8', border: `1px solid ${isPlaying ? '#22c55e' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
-                   title="Play / Pause (Dubbelklik voor begin van de maat)"
+                   title={t('playPause')}
                  >{isPlaying ? '⏸' : '▶'}</button>
 
                  <button
                    onClick={(e) => { e.stopPropagation(); onLoopPattern(pattern.id); }}
                    style={{ background: loopingPatternId === pattern.id ? '#f97316' : 'transparent', color: loopingPatternId === pattern.id ? '#fff' : '#94a3b8', border: `1px solid ${loopingPatternId === pattern.id ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
-                   title="Loop deze regel"
+                   title={t('loopSection')}
                  >↺</button>
 
                  <button
                    onClick={(e) => { e.stopPropagation(); toggleRecord(); }}
                    className={isRecording ? 'recording-pulse' : ''}
                    style={{ background: isRecording ? '#ef4444' : 'transparent', color: isRecording ? '#fff' : '#94a3b8', border: `1px solid ${isRecording ? '#ef4444' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
-                   title={isRecording === 'precount' ? `Precount: ${precount}` : "Opnemen"}
+                   title={isRecording === 'precount' ? t('precount')(precount) : t('record')}
                  >
                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isRecording ? '#fff' : '#ef4444' }} />
                  </button>
@@ -712,7 +714,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                   <button
                     onClick={(e) => { e.stopPropagation(); setShowMetronomeMenu(v => !v); }}
                     style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#64748b', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
-                    title="Metronoom"
+                    title={t('metronome')}
                   >
                     <svg width="11" height="13" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
@@ -733,14 +735,14 @@ const [showBeheer, setShowBeheer] = useState(true);
                 <button
                   onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
                   style={{ background: inputEnabled ? 'rgba(22,163,74,0.2)' : 'transparent', color: inputEnabled ? '#4ade80' : '#64748b', border: `1px solid ${inputEnabled ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
-                  title={inputEnabled ? 'Invoer aan — klik om uit te zetten' : 'Invoer uit — klik om aan te zetten'}
+                  title={inputEnabled ? t('inputOn') : t('inputOff')}
                 >✏️</button>
                 <select
                   value={gridResolution}
                   onChange={(e) => { e.stopPropagation(); setGridResolution(Number(e.target.value)); }}
                   onClick={(e) => e.stopPropagation()}
                   style={{ background: '#1e293b', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', width: '4.5rem' }}
-                  title="Grid Resolutie"
+                  title={t('gridResolution')}
                 >
                   <option value="12">1/4</option>
                   <option value="16">1/4T</option>
@@ -752,12 +754,12 @@ const [showBeheer, setShowBeheer] = useState(true);
                 <button
                   onClick={(e) => { e.stopPropagation(); setMagneticInput(!magneticInput); }}
                   style={{ background: magneticInput ? 'rgba(59,130,246,0.2)' : 'transparent', color: magneticInput ? '#60a5fa' : '#64748b', border: `1px solid ${magneticInput ? '#3b82f6' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
-                  title="Magneet (Snap to Grid)"
+                  title={t('snapToGrid')}
                 >🧲</button>
                 <button
                   onClick={(e) => { e.stopPropagation(); setAutoQuantize(!autoQuantize); }}
                   style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
-                  title="Auto-quantize (snap live opname naar grid)"
+                  title={t('autoQuantize')}
                 >Q</button>
              </div>
            )}
@@ -767,7 +769,7 @@ const [showBeheer, setShowBeheer] = useState(true);
       {isActive && (
         <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)' }}>
           {/* Zoom controls */}
-          <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Zoom</span>
+          <span style={{ fontSize: '0.65rem', color: '#64748b' }}>{t('zoom')}</span>
           {zoomEditing ? (
             <input
               type="number"
@@ -789,7 +791,7 @@ const [showBeheer, setShowBeheer] = useState(true);
           ) : (
             <span
               style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#94a3b8', textAlign: 'center', touchAction: 'none', userSelect: 'none', cursor: 'ns-resize', padding: '0.2rem 0.5rem', display: 'inline-block', minWidth: '42px', background: '#1e293b', border: '1px solid #334155', borderRadius: '3px' }}
-              title="Veeg omhoog/omlaag om te zoomen, klik om te typen"
+              title={t('zoomTooltip')}
               onPointerDown={(e) => {
                 e.currentTarget.setPointerCapture(e.pointerId);
                 zoomDragRef.current = { startY: e.clientY, moved: false };
@@ -818,7 +820,7 @@ const [showBeheer, setShowBeheer] = useState(true);
           <button
             onClick={(e) => { e.stopPropagation(); handleClearPattern(); }}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-            title="Wis hele regel"
+            title={t('clearSection')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="2" x2="11" y2="11"/><line x1="11" y1="2" x2="2" y2="11"/></svg>
             Clear
@@ -828,7 +830,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             onClick={(e) => { e.stopPropagation(); handleUndo(); }}
             disabled={undoStack.length === 0}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: undoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: undoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px' }}
-            title="Ongedaan maken"
+            title={t('undo')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5A4.5 4.5 0 1 1 6.5 2"/><polyline points="2,2 2,6.5 6.5,6.5"/></svg>
             Undo
@@ -837,7 +839,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             onClick={(e) => { e.stopPropagation(); handleRedo(); }}
             disabled={redoStack.length === 0}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: redoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: redoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px' }}
-            title="Opnieuw uitvoeren"
+            title={t('redo')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 6.5A4.5 4.5 0 1 0 6.5 2"/><polyline points="11,2 11,6.5 6.5,6.5"/></svg>
             Redo
@@ -849,7 +851,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             onClick={(e) => { e.stopPropagation(); handleCopy(); }}
             disabled={!activeRangeObj}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
-            title="Kopiëren"
+            title={t('copy')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="5" y="1" width="8" height="9" rx="1"/><rect x="1" y="5" width="8" height="9" rx="1" fill="#1e293b"/>
@@ -859,7 +861,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             onClick={(e) => { e.stopPropagation(); handleCut(); }}
             disabled={!activeRangeObj}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
-            title="Knippen"
+            title={t('cut')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
               <circle cx="3.5" cy="3.5" r="2"/><circle cx="3.5" cy="11.5" r="2"/>
@@ -870,7 +872,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             onClick={(e) => { e.stopPropagation(); handlePaste(); }}
             disabled={!clipboard || !activeRangeObj}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: clipboard && activeRangeObj ? 'pointer' : 'default', opacity: clipboard && activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
-            title="Plakken"
+            title={t('paste')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="4" width="9" height="10" rx="1"/><path d="M5 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1"/>
@@ -881,7 +883,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             onClick={(e) => { e.stopPropagation(); handleClear(); }}
             disabled={!activeRangeObj}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
-            title="Wissen"
+            title={t('deleteSelection')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2 13L8.5 4L13 8.5L7 13Z"/><line x1="0.5" y1="13" x2="14.5" y2="13"/>
@@ -932,7 +934,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
-              title="Solo anak"
+              title={t('soloAnak')}
             >S</button>
             <div style={{ flex: 1 }}>
               <TrackRow
@@ -967,7 +969,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
-              title="Solo indung"
+              title={t('soloIndung')}
             >S</button>
             <div style={{ flex: 1 }}>
               <TrackRow

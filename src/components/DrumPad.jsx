@@ -3,6 +3,7 @@ import ensembleImg from '../assets/drums_ensemble.png';
 import gongImg from '../assets/Gong.png';
 import './DrumPad.css';
 import SoundSettingsContent from './SettingsPanel';
+import { useT } from '../i18n';
 
 // ── SVG pie helpers ──────────────────────────────────────────────────────────
 // Convention: 0° = top (12 o'clock), clockwise
@@ -143,7 +144,8 @@ const DrumZone = ({ drum, onTrigger }) => {
 
 // ── Main DrumPad ──────────────────────────────────────────────────────────────
 
-const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soundSettings, onSoundSettingsChange }) => {
+const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soundSettings, onSoundSettingsChange, cursorOffsetMs, onCursorOffsetChange }) => {
+  const t = useT();
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState('pad');
 
@@ -170,12 +172,13 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
     <section className="drum-module glass-panel">
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #334155', marginBottom: '0.25rem' }}>
-        {tabBtn('pad', '🥁 Pad')}
-        {tabBtn('geluid', '⚙️ Geluid')}
+        {tabBtn('pad', `🥁 ${t('padTab')}`)}
+        {tabBtn('geluid', t('soundTab'))}
       </div>
 
       {activeTab === 'geluid' && soundSettings && onSoundSettingsChange && (
-        <SoundSettingsContent settings={soundSettings} onChange={onSoundSettingsChange} />
+        <SoundSettingsContent settings={soundSettings} onChange={onSoundSettingsChange}
+          cursorOffsetMs={cursorOffsetMs} onCursorOffsetChange={onCursorOffsetChange} />
       )}
 
       {activeTab === 'pad' && <>
@@ -201,7 +204,7 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
           {/* Legenda toggle knop */}
           <button
             onClick={() => setShowLegend(v => !v)}
-            title={showLegend ? 'Verberg legenda' : 'Toon legenda'}
+            title={showLegend ? t('hideLegend') : t('showLegend')}
             style={{
               position: 'absolute', top: '-28px', right: '0',
               background: showLegend ? 'rgba(212,175,55,0.25)' : 'rgba(30,41,59,0.7)',
@@ -210,7 +213,7 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
               borderRadius: '4px', padding: '2px 7px', fontSize: '0.7rem',
               cursor: 'pointer', zIndex: 20, backdropFilter: 'blur(4px)',
             }}
-          >ℹ Legenda</button>
+          >{t('legendBtn')}</button>
           <img
             src={ensembleImg}
             alt="Kendang Ensemble"
@@ -270,7 +273,7 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
               zIndex: 20,
             }}
             onClick={() => onTrigger('.')}
-            title="Rust (.)"
+            title={t('restBtn')}
           >
             <span className="kendang-symbol" style={{ fontSize: '0.9rem', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>.</span>
           </button>

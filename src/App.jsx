@@ -9,8 +9,12 @@ import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
 import { FACTORY_PRESETS, FACTORY_CATEGORIES } from './factory/presets';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
+import { useT, useLanguage, LANGUAGES } from './i18n';
 
 function App() {
+  const t = useT();
+  const { language, setLanguage } = useLanguage();
+
   const [song, setSong] = useState(() => {
     try {
       const saved = localStorage.getItem('kendangCurrentSong');
@@ -297,9 +301,9 @@ function App() {
             id: existingIds.has(s.id) ? Date.now().toString() + Math.random() : s.id,
           }))];
         });
-        alert(`${valid.length} song(s) geïmporteerd.`);
+        alert(t('importedSongs')(valid.length));
       } catch {
-        alert('Ongeldig bestand — verwacht een .kendang bestand.');
+        alert(t('invalidFile'));
       }
     };
     reader.readAsText(file);
@@ -332,7 +336,7 @@ function App() {
           return [...prev, ...nieuwen];
         });
       } catch {
-        alert('Ongeldig bestand — verwacht een .kendang bibliotheek.');
+        alert(t('invalidLibrary'));
       }
     };
     reader.readAsText(file);
@@ -1163,7 +1167,7 @@ function App() {
           return [...prev, ...nieuwen];
         });
       } catch {
-        alert('Ongeldig bestand — verwacht een .kendang snippet bibliotheek.');
+        alert(t('invalidLibrary'));
       }
     };
     reader.readAsText(file);
@@ -1259,7 +1263,7 @@ function App() {
       <header className="app-header">
         <div className="branding">
           <h1>Kendang Pasunanda</h1>
-          <p>Sequencer & OCR Studio (v7.1)</p>
+          <p>{t('appSubtitle')} (v7.1)</p>
         </div>
 
         {/* ── Gecentreerd: volume knobs + schakelaar ───────────────────── */}
@@ -1336,7 +1340,7 @@ function App() {
           {/* Kendang / Vox ronde schakelaar */}
           <div
             onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
-            title={`Actief: ${sampleSet === 'kendang' ? 'Kendang' : 'Vox'} — klik om te wisselen`}
+            title={t('switchTooltip')(sampleSet === 'kendang' ? 'Kendang' : 'Vox')}
             style={{
               width: '68px', height: '68px', borderRadius: '50%', flexShrink: 0,
               background: 'radial-gradient(circle at 38% 32%, #4a4e58, #1c2030)',
@@ -1360,7 +1364,7 @@ function App() {
             <button
               onClick={() => setShowToolsMenu(v => !v)}
               style={{ background: showToolsMenu ? '#334155' : 'transparent', color: '#e2e8f0', padding: '0.6rem 0.9rem', borderRadius: '6px', border: '1px solid var(--border-focus)', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
-              title="Scan / PDF / Handleiding"
+              title={t('toolsMenu')}
             >⋯</button>
 
             {showToolsMenu && (
@@ -1374,7 +1378,7 @@ function App() {
                   display: 'flex', flexDirection: 'column', gap: '0.4rem',
                 }}>
                   {/* Scan */}
-                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Scan</div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('scanSection')}</div>
                   <OCRScanner onScanResult={(patterns) => {
                     setShowToolsMenu(false);
                     if (patterns.length === 0) return;
@@ -1394,28 +1398,30 @@ function App() {
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
 
                   {/* PDF */}
-                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>PDF</div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('pdfSection')}</div>
                   <button
                     onClick={() => { exportSequencerToPDF(song, songName, pdfSettings); setShowToolsMenu(false); }}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >📄 Exporteer als PDF</button>
+                  >{t('exportPdf')}</button>
                   <button
                     onClick={() => setShowPdfSettings(v => !v)}
                     style={{ background: '#0f172a', color: '#94a3b8', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >⚙️ PDF layout instellingen</button>
+                  >{t('pdfLayoutSettings')}</button>
 
                   {showPdfSettings && (
                     <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '0.7rem', fontSize: '0.8rem', color: '#e2e8f0' }}>
                       {[
-                        { key: 'beamTop1',        label: 'Beam boven (8e)' },
-                        { key: 'beamTop2',        label: 'Beam boven (16e)' },
-                        { key: 'beamBottom1',     label: 'Beam onder (8e)' },
-                        { key: 'beamBottom2',     label: 'Beam onder (16e)' },
-                        { key: 'symAbove',        label: 'Symbool afstand boven' },
-                        { key: 'symBelow',        label: 'Symbool afstand onder' },
-                        { key: 'dotTopOffset',    label: 'Stip boven (offset)' },
-                        { key: 'dotBottomOffset', label: 'Stip onder (offset)' },
-                      ].map(({ key, label }) => (
+                        { key: 'beamTop1',        labelKey: 'beamTop1' },
+                        { key: 'beamTop2',        labelKey: 'beamTop2' },
+                        { key: 'beamBottom1',     labelKey: 'beamBottom1' },
+                        { key: 'beamBottom2',     labelKey: 'beamBottom2' },
+                        { key: 'symAbove',        labelKey: 'symAbove' },
+                        { key: 'symBelow',        labelKey: 'symBelow' },
+                        { key: 'dotTopOffset',    labelKey: 'dotTopOffset' },
+                        { key: 'dotBottomOffset', labelKey: 'dotBottomOffset' },
+                      ].map(({ key, labelKey }) => {
+                        const label = t(labelKey);
+                        return (
                         <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', gap: '0.5rem' }}>
                           <span style={{ flex: 1 }}>{label}</span>
                           <input
@@ -1431,21 +1437,30 @@ function App() {
                             style={{ width: '60px', padding: '2px 4px', borderRadius: '4px', border: '1px solid #475569', background: '#1e293b', color: '#e2e8f0', textAlign: 'right' }}
                           />
                         </div>
-                      ))}
+                      );
+                      })}
                       <button
                         onClick={() => { setPdfSettings({ ...DEFAULT_PDF_SETTINGS }); localStorage.setItem('pdfSettings', JSON.stringify(DEFAULT_PDF_SETTINGS)); }}
                         style={{ marginTop: '0.3rem', width: '100%', padding: '0.3rem', background: '#334155', border: 'none', borderRadius: '4px', color: '#e2e8f0', cursor: 'pointer', fontSize: '0.75rem' }}
-                      >↺ Standaard herstellen</button>
+                      >{t('restoreDefaults')}</button>
                     </div>
                   )}
 
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
 
-                  {/* Handleiding */}
+                  {/* Manual */}
                   <button
                     onClick={() => { setShowManual(true); setShowToolsMenu(false); }}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >📖 Handleiding</button>
+                  >{t('manual')}</button>
+
+                  <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
+                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('languageLabel')}</div>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    {LANGUAGES.map(lang => (
+                      <button key={lang.code} onClick={() => setLanguage(lang.code)} style={{ flex: 1, background: language === lang.code ? '#3b82f6' : '#0f172a', color: language === lang.code ? '#fff' : '#94a3b8', border: '1px solid #334155', borderRadius: '5px', padding: '0.3rem 0.4rem', fontSize: '0.75rem', cursor: 'pointer' }}>{lang.label}</button>
+                    ))}
+                  </div>
                 </div>
               </>
             )}
@@ -1458,7 +1473,7 @@ function App() {
               <button
                 onClick={() => setCursorOffsetMs(0)}
                 disabled={cursorOffsetMs === 0}
-                title="Reset sync offset"
+                title={t('resetSyncOffset')}
                 style={{ background: 'transparent', border: 'none', color: cursorOffsetMs === 0 ? '#1e3a5f' : '#64748b', cursor: cursorOffsetMs === 0 ? 'default' : 'pointer', fontSize: '0.85rem', padding: 0, lineHeight: 1 }}
               >↺</button>
             </div>
@@ -1466,7 +1481,7 @@ function App() {
               type="range" min="-3000" max="500" step="25" value={cursorOffsetMs}
               onChange={e => setCursorOffsetMs(parseInt(e.target.value, 10))}
               style={{ width: '90px', accentColor: '#f59e0b' }}
-              title={`Cursor sync offset: ${cursorOffsetMs} ms`}
+              title={`${t('cursorSyncOffsetTitle')}: ${cursorOffsetMs} ms`}
             />
           </div>
 
@@ -1477,7 +1492,7 @@ function App() {
             <button
               onClick={() => setShowSongMenu(v => !v)}
               style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
-              title="Song beheren"
+              title={t('manageSong')}
             >🎵 {songName || 'Song'}</button>
 
             {showSongMenu && (
@@ -1494,37 +1509,37 @@ function App() {
                     value={songName}
                     onChange={(e) => setSongName(e.target.value)}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
-                    placeholder="Song naam..."
+                    placeholder={t('songNamePlaceholder')}
                   />
                   <input
                     type="text"
                     value={songFolder}
                     onChange={(e) => setSongFolder(e.target.value)}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
-                    placeholder="Map..."
+                    placeholder={t('folderPlaceholder')}
                   />
                   <div style={{ display: 'flex', gap: '0.4rem' }}>
                     <button
                       onClick={() => { handleSaveSong(); setShowSongMenu(false); }}
                       style={{ flex: 1, background: '#3b82f6', color: '#fff', padding: '0.5rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                      title={currentSongId ? 'Overschrijf opgeslagen song' : 'Sla huidige song op'}
-                    >💾 {currentSongId ? 'Bewaar' : 'Sla op'}</button>
+                      title={currentSongId ? 'Update saved song' : 'Save current song'}
+                    >💾 {currentSongId ? t('updateBtn') : t('saveBtn')}</button>
                     <button
                       onClick={() => { handleNewSong(); setShowSongMenu(false); }}
                       style={{ background: '#10b981', color: '#fff', padding: '0.5rem 0.8rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                    >+ Nieuw</button>
+                    >{t('newBtn')}</button>
                   </div>
                   <button
                     onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >📚 Bibliotheek</button>
+                  >{t('libraryBtn')}</button>
                   {FACTORY_PRESETS.length > 0 && (
                     <select
                       defaultValue=""
                       onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; setShowSongMenu(false); } }}
                       style={{ background: '#0f172a', color: '#cbd5e1', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.6rem', fontSize: '0.85rem', cursor: 'pointer' }}
                     >
-                      <option value="">🎓 Preset laden...</option>
+                      <option value="">{t('loadPreset')}</option>
                       {FACTORY_CATEGORIES.map(cat => {
                         const items = FACTORY_PRESETS.filter(p => p.category === cat.label);
                         if (items.length === 0) return null;
@@ -1554,26 +1569,26 @@ function App() {
                 style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '520px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '1rem' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>📚 Song Bibliotheek</span>
+                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <button
                       onClick={handleExportLibrary}
                       disabled={savedSongs.length === 0}
                       style={{ background: savedSongs.length > 0 ? '#1e293b' : 'transparent', color: savedSongs.length > 0 ? '#38bdf8' : '#475569', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: savedSongs.length > 0 ? 'pointer' : 'default' }}
                       title="Download bibliotheek als .json bestand"
-                    >⬇ Exporteer</button>
+                    >{t('exportLib')}</button>
                     <label
                       style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
-                      title="Importeer een gedeelde song (.kendang.json)"
+                      title={t('importSong')}
                     >
-                      ⬆ Song importeren
+                      {t('importSong')}
                       <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSong} />
                     </label>
                     <label
                       style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
-                      title="Importeer volledige bibliotheek"
+                      title={t('importLib')}
                     >
-                      ⬆ Bibliotheek
+                      {t('importLib')}
                       <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportLibrary} />
                     </label>
                     <button onClick={() => setShowSongLibrary(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
@@ -1583,7 +1598,7 @@ function App() {
                   type="text"
                   value={songSearchQuery}
                   onChange={(e) => setSongSearchQuery(e.target.value)}
-                  placeholder="Zoek op naam of map..."
+                  placeholder={t('searchPlaceholder')}
                   style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
                   autoFocus
                 />
@@ -1619,11 +1634,11 @@ function App() {
                             <button
                               onClick={() => handleLoadSong(s.id)}
                               style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                            >Laad</button>
+                            >{t('loadBtn')}</button>
                             <button
                               onClick={() => handleExportSong(s)}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                              title="Exporteer als .json"
+                              title={t('exportSongTitle')}
                             >↓</button>
                             <button
                               onClick={() => handleDeleteSong(s.id)}
@@ -1681,7 +1696,7 @@ function App() {
             }}
           >
             <span style={{ letterSpacing: '1px' }}>⠿</span>
-            <span style={{ color: '#86efac' }}>Instrument</span>
+            <span style={{ color: '#86efac' }}>{t('instrument')}</span>
             <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#4ade80' }}>{drumCollapsed ? '▸' : '▾'}</span>
           </div>
 
@@ -1848,8 +1863,8 @@ function App() {
             <button
               onClick={addSongBlock}
               style={{ background: 'transparent', color: '#10b981', border: '1px solid #10b981', borderRadius: '4px', padding: '0.25rem 0.8rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
-              title="Voeg nieuwe regel toe aan het einde"
-            >+ Voeg Regel Toe</button>
+              title={t('addBlockTooltip')}
+            >{t('addBlock')}</button>
             <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
           </div>
         </div>
@@ -1867,22 +1882,11 @@ function App() {
             style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.2rem', borderBottom: '1px solid #334155' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>📖 Handleiding</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('manualTitle')}</span>
               <button onClick={() => setShowManual(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.3rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ overflowY: 'auto', padding: '1.2rem', color: '#cbd5e1', fontSize: '0.85rem', lineHeight: 1.7 }}>
-              {[
-                { title: '1. Klanken invoeren', body: 'Klik op een zone in het Drum Pad, gebruik het toetsenbord (N, C, X, V, A, J, ;, :, L, G, F, S), of rechtsklik op een cel in het rooster voor een keuzelijst. Sleep noten tussen cellen om te verplaatsen. Backspace/Delete wist de selectie.' },
-                { title: '2. Afspelen & opnemen', body: 'Spatie = Play/Stop. Klik ● om opname te starten (4 tellen aftelling). BPM aanpassen: klik het getal of sleep omhoog/omlaag. Rewind ⏮ terug naar begin, ◀ één maat terug.' },
-                { title: '3. Het rooster', body: '1 maat = 4 tellen = 48 slots. Dikke lijnen = maatstrepen, dunne lijnen = telmomenten. Balken boven/onder noten = 8e/16e verdeling. Gele blokken = gong. Stippels (·) = impliciete rusten.' },
-                { title: '4. Songs & patronen', body: 'Een song bestaat uit meerdere regels (patronen). Voeg toe, verwijder of versleep ze in de linker zijbalk. Sla op via 💾, laad via 📚 Bibliotheek. Exporteer/importeer als .kendang bestand.' },
-                { title: '5. Snippets', body: 'Selecteer een reeks cellen en klik "Snippet opslaan". Gebruik "Snippet invoegen" om een opgeslagen fragment in te plakken. Snippets kunnen ook worden geëxporteerd/geïmporteerd.' },
-                { title: '6. Volume & geluid', body: 'Knoppen A (Anak) en I (Indung) in de header regelen het volume per spoor (sleep omhoog/omlaag, dubbelklik = reset). Geluidsdetails per klank (volume, toonhoogte) staan in het Instrument-venster onder ⚙️ Geluid.' },
-                { title: '7. Bluetooth & AirPlay vertraging', body: 'Bij Bluetooth- of AirPlay-luidsprekers klinkt het geluid later dan de cursor. Stel de "Cursor sync offset" in via ⚙️ Geluid in het Instrument-venster. Schuif naar links (negatief) als het geluid te laat klinkt.' },
-                { title: '8. Vox-modus', body: 'Klik op 🥁 Kendang om te wisselen naar 🎤 Vox. In Vox-modus worden klanken gezongen. Combinaties (bijv. Dong + Pak = "Bang") worden automatisch herkend. De V-knop regelt het Vox-volume.' },
-                { title: '9. PDF exporteren', body: 'Klik ⋯ → 📄 Exporteer als PDF. De notatie wordt als printbaar PDF geopend. Pas de layout aan via ⚙️ PDF layout instellingen.' },
-                { title: '10. Sneltoetsen', body: 'Spatie: Play/Stop | Cmd+Z: Ongedaan | Cmd+Shift+Z: Opnieuw | Backspace: Wis selectie | N C X V A J ; : L G F S: Klanken invoeren' },
-              ].map(({ title, body }) => (
+              {t('manualSections').map(({ title, body }) => (
                 <div key={title} style={{ marginBottom: '1rem' }}>
                   <div style={{ fontWeight: 'bold', color: '#f1f5f9', marginBottom: '0.3rem' }}>{title}</div>
                   <div style={{ color: '#94a3b8' }}>{body}</div>

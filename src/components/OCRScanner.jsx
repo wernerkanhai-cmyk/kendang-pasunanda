@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { getHandForSymbol } from '../engine/patternLogic';
+import { useT } from '../i18n';
 
 const API_KEY_STORAGE = 'anthropic_api_key';
 
@@ -177,6 +178,7 @@ const normalize4 = (arr) => {
 };
 
 const OCRScanner = ({ onScanResult }) => {
+  const t = useT();
   const fileInputRef   = useRef(null);
   const cameraInputRef = useRef(null);
   const [loading, setLoading]           = useState(false);
@@ -262,12 +264,12 @@ const OCRScanner = ({ onScanResult }) => {
       <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} ref={cameraInputRef}
         onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); resetInputs(); }} />
 
-      <button className="btn-secondary" title="Foto of PDF kiezen"
+      <button className="btn-secondary" title={t('chooseFile')}
         style={btnStyle({ borderRadius: '6px 0 0 6px' })} disabled={loading}
         onClick={() => fileInputRef.current?.click()}>
         {loading ? '⏳' : '📁'} Scan
       </button>
-      <button className="btn-secondary" title="Camera gebruiken"
+      <button className="btn-secondary" title={t('useCamera')}
         style={btnStyle({ borderRadius: '0 6px 6px 0', borderLeft: 'none' })} disabled={loading}
         onClick={() => cameraInputRef.current?.click()}>
         📷
@@ -279,7 +281,7 @@ const OCRScanner = ({ onScanResult }) => {
           {(error.includes('401') || error.includes('API')) && (
             <button onClick={() => setShowKeyInput(true)}
               style={{ marginLeft: '0.5rem', color: '#90cdf4', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>
-              API-sleutel wijzigen
+              {t('changeApiKey')}
             </button>
           )}
         </div>
@@ -290,11 +292,11 @@ const OCRScanner = ({ onScanResult }) => {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '8px',
             border: '1px solid var(--border-focus)', width: '360px' }}>
-            <h3 style={{ color: '#e2e8f0', marginBottom: '0.75rem' }}>Anthropic API-sleutel</h3>
+            <h3 style={{ color: '#e2e8f0', marginBottom: '0.75rem' }}>{t('apiKeyTitle')}</h3>
             <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '1rem' }}>
-              Vereist voor OCR. Sleutel wordt lokaal opgeslagen en nooit verstuurd naar andere servers.
+              {t('apiKeyDesc')}
             </p>
-            <input type="password" placeholder="sk-ant-..." value={keyInput}
+            <input type="password" placeholder={t('apiKeyPlaceholder')} value={keyInput}
               onChange={(e) => setKeyInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveKey()}
               style={{ width: '100%', padding: '0.5rem', borderRadius: '4px',
@@ -305,12 +307,12 @@ const OCRScanner = ({ onScanResult }) => {
               <button onClick={() => { setShowKeyInput(false); setKeyInput(''); }}
                 style={{ padding: '0.4rem 1rem', borderRadius: '4px', background: 'transparent',
                   color: '#94a3b8', border: '1px solid #475569', cursor: 'pointer' }}>
-                Annuleren
+                {t('cancel')}
               </button>
               <button onClick={saveKey}
                 style={{ padding: '0.4rem 1rem', borderRadius: '4px', background: '#3b82f6',
                   color: '#fff', border: 'none', cursor: 'pointer' }}>
-                Opslaan
+                {t('saveApiKey')}
               </button>
             </div>
           </div>

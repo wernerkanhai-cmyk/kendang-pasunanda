@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { useT } from '../i18n';
 
 const BPM_MIN = 20;
 const BPM_MAX = 100;
@@ -45,6 +46,7 @@ export const interpolateBpm = (tempoTrack, localSlot) => {
 };
 
 const TempoTrack = ({ pattern, defaultBpm, onUpdate, slotWidth }) => {
+  const t = useT();
   const [open, setOpen] = useState(true);
   const svgRef = useRef(null);
   const dragRef = useRef(null);
@@ -239,7 +241,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, slotWidth }) => {
         onClick={() => setOpen(o => !o)}
       >
         <span style={{ fontSize: '0.7rem', color: open ? '#d4af37' : '#94a3b8', flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
-        <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: isActive ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>♩ Tempo</span>
+        <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: isActive ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>{t('tempoLabel')}</span>
         <span style={{ fontSize: '0.65rem', color: isActive ? '#d4af37' : '#64748b', marginLeft: '2px', flexShrink: 0 }}>{summaryLabel}</span>
 
         {open && (
@@ -252,7 +254,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, slotWidth }) => {
               title="Geleidelijke versnelling">Geleidelijk</button>
             {isActive && (
               <button onClick={clearTrack}
-                style={{ padding: '1px 6px', fontSize: '0.62rem', background: '#1e293b', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '3px', cursor: 'pointer' }}>Wis</button>
+                style={{ padding: '1px 6px', fontSize: '0.62rem', background: '#1e293b', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '3px', cursor: 'pointer' }}>{t('clearTempo')}</button>
             )}
             <span style={{ fontSize: '0.58rem', color: '#334155', marginLeft: '2px', lineHeight: '16px', whiteSpace: 'nowrap' }}>
               2× klik = +node · klik node = zoom · sleep = verplaatsen · rechtsklik = verwijderen
