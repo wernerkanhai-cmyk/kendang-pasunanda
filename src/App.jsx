@@ -1156,7 +1156,7 @@ function App() {
 
   // Start/stop voice recognition based on sampleSet + recording state
   useEffect(() => {
-    const shouldListen = sampleSet === 'vox' && isRecording && precount === 0;
+    const shouldListen = sampleSet === 'vox' && precount === 0;
     if (shouldListen) {
       if (!voiceInputRef.current) {
         voiceInputRef.current = new VoiceInput({
@@ -1177,11 +1177,11 @@ function App() {
       setVoiceListening(false);
     }
     return () => {
-      if (!isRecording || sampleSet !== 'vox') {
+      if (sampleSet !== 'vox') {
         voiceInputRef.current?.stop();
       }
     };
-  }, [sampleSet, isRecording, precount]);
+  }, [sampleSet, precount]);
 
   // ---- MY PATTERNS / SNIPPET LIBRARY FLOWS ----
   const handleSaveSnippet = (name, folder, data, replaceId = null) => {
