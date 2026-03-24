@@ -54,8 +54,8 @@ export class VoiceInput {
     const rec = new SR();
 
     rec.continuous      = true;
-    rec.interimResults  = false; // Alleen finale resultaten — voorkomt dubbele writes
-    rec.maxAlternatives = 5;
+    rec.interimResults  = true;  // Real-time herkenning per klank (Safari accumuleert anders alles)
+    rec.maxAlternatives = 3;
     rec.lang            = lang;
 
     // Optioneel: hint de grammar als browser het ondersteunt
@@ -69,33 +69,39 @@ export class VoiceInput {
       }
     } catch (_) { /* grammar niet ondersteund, werkt zonder */ }
 
+    // Cooldown per symbool: voorkomt dubbele writes bij interim → final
+    const lastFired = {}; // symbol → timestamp
+    const COOLDOWN_MS = 300;
+
     rec.onstart = () => this.onStateChange?.('listening');
 
     rec.onresult = (event) => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
-        if (!result.isFinal) continue; // Alleen finale resultaten verwerken
 
-        // Log alle alternatieven zodat we kunnen zien wat de herkenner teruggeeft
-        const alts = [];
-        for (let a = 0; a < result.length; a++) {
-          alts.push(`[${a}] "${result[a].transcript}" (${result[a].confidence?.toFixed(2)})`);
+        // Log voor debugging (alleen finals voor leesbaarheid)
+        if (result.isFinal) {
+          const alts = [];
+          for (let a = 0; a < result.length; a++) {
+            alts.push(`[${a}] "${result[a].transcript}" (${result[a].confidence?.toFixed(2)})`);
+          }
+          console.log('VoiceInput final:', alts.join(' | '));
         }
-        console.log('VoiceInput recognized:', alts.join(' | '));
 
-        // Verwerk ALLE woorden in alle alternatieven — transcript kan meerdere
-        // klanken bevatten (bijv. "tongue dong pling"), elk woord apart mappen.
-        // Gebruik een Set om dubbele symbolen per result te voorkomen.
-        const seen = new Set();
-        for (let a = 0; a < result.length; a++) {
-          const words = result[a].transcript.toLowerCase().trim().split(/\s+/);
-          for (const word of words) {
-            const cleaned = word.replace(/[^a-z]/g, '');
-            const symbol  = WORD_TO_SYMBOL[cleaned];
-            if (symbol && !seen.has(symbol)) {
-              seen.add(symbol);
+        // Verwerk het beste alternatief (index 0) — zoek eerste herkenbare woord
+        // Zowel interim als final, met cooldown om dubbele writes te voorkomen
+        const now = Date.now();
+        const words = result[0].transcript.toLowerCase().trim().split(/\s+/);
+        // Neem het LAATSTE woord: bij interim groeit het transcript, het nieuwste woord staat achteraan
+        for (let w = words.length - 1; w >= 0; w--) {
+          const cleaned = words[w].replace(/[^a-z]/g, '');
+          const symbol  = WORD_TO_SYMBOL[cleaned];
+          if (symbol) {
+            if (!lastFired[symbol] || now - lastFired[symbol] > COOLDOWN_MS) {
+              lastFired[symbol] = now;
               this.onSymbol(symbol);
             }
+            break; // Eerste (laatste) match per result
           }
         }
       }
