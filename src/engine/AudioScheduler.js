@@ -111,6 +111,14 @@ export class AudioScheduler {
   }
 
   scheduler = () => {
+    // Safari kan de AudioContext suspenderen bij microfoon-activering — direct hervatten
+    if (this.audioCtx?.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+    // Als nextNoteTime ver in het verleden ligt (bijv. na een suspend), resync naar nu
+    if (this.nextNoteTime < this.audioCtx.currentTime - 0.5) {
+      this.nextNoteTime = this.audioCtx.currentTime + 0.02;
+    }
     while (this.nextNoteTime < this.audioCtx.currentTime + this.scheduleAheadTime) {
       this.scheduleNote(this.currentSlot, this.nextNoteTime);
       this.nextNote();
