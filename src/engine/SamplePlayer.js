@@ -37,25 +37,25 @@ export const SYMBOL_TO_SOUND = {
 
 // Combislagen: gesorteerd paar van sounds → combo naam
 // Sleutel = twee sound-namen alfabetisch gesorteerd, samengevoegd met '+'
+// Alleen combinaties waarvoor ook daadwerkelijk sample-bestanden bestaan
 const COMBO_MAP = {
   'dong+pak':   'bang',   // Pak + Dong
   'dong+pang':  'blang',  // Pang + Dong
   'det+plak':   'blap',   // Plak + Det
   'pang+tung':  'plang',  // Pang + Tung
   'peung+tung': 'tleung', // Peung + Tung
-  'peung+ting': 'pleung', // Peung + Ting
+  // 'peung+ting': 'pleung' — sample-bestanden bestaan niet, weggelaten
 };
 
-// Bestandsnaam-kapitalisatie voor VOX samples
-const VOX_SOUND_FILE = {
-  tung: 'Tung', dong: 'Dong', ting: 'Ting', det: 'Det',
-  dededet: 'Dedet', pling: 'Pling', pang: 'Pang', ping: 'Ping',
-  pong: 'Pong', plak: 'Plak', pak: 'Pak', peung: 'Peung',
-};
+// Bestandsnaam-kapitalisatie voor VOX samples per track
+// Pling bestaat alleen voor ANAK — niet voor INDUNG
+const VOX_SOUND_FILE_ANAK   = { tung: 'Tung', dong: 'Dong', ting: 'Ting', det: 'Det', dededet: 'Dedet', pling: 'Pling', pang: 'Pang', ping: 'Ping', pong: 'Pong', plak: 'Plak', pak: 'Pak', peung: 'Peung' };
+const VOX_SOUND_FILE_INDUNG = { tung: 'Tung', dong: 'Dong', ting: 'Ting', det: 'Det', dededet: 'Dedet',               pang: 'Pang', ping: 'Ping', pong: 'Pong', plak: 'Plak', pak: 'Pak', peung: 'Peung' };
 
 const VOX_COMBO_FILE = {
   bang: 'Bang', blang: 'Blang', blap: 'Blap',
-  plang: 'Plang', tleung: 'Tleung', pleung: 'Pleung',
+  plang: 'Plang', tleung: 'Tleung',
+  // pleung: 'Pleung' — sample-bestanden bestaan niet
 };
 
 const TRACKS = ['anak', 'indung'];
@@ -101,8 +101,13 @@ export class SamplePlayer {
     this._initCtx();
     const promises = [];
 
+    // Sounds per track — pling bestaat alleen voor anak
+    const ANAK_SOUNDS   = SOUNDS;
+    const INDUNG_SOUNDS = SOUNDS.filter(s => s !== 'pling');
+
     for (const track of TRACKS) {
-      for (const sound of SOUNDS) {
+      const trackSounds = track === 'anak' ? ANAK_SOUNDS : INDUNG_SOUNDS;
+      for (const sound of trackSounds) {
         for (let i = 1; i <= VARIANTS; i++) {
           const n = String(i).padStart(2, '0');
           const key = `${track}_${sound}_${n}`;
@@ -126,8 +131,9 @@ export class SamplePlayer {
       const trackFolder = track === 'anak' ? 'ANAK' : 'INDUNG';
       const trackUpper  = track === 'anak' ? 'ANAK' : 'INDUNG';
 
-      // Reguliere samples
-      for (const [sound, fileName] of Object.entries(VOX_SOUND_FILE)) {
+      // Reguliere samples — pling bestaat alleen voor anak
+      const soundFile = track === 'anak' ? VOX_SOUND_FILE_ANAK : VOX_SOUND_FILE_INDUNG;
+      for (const [sound, fileName] of Object.entries(soundFile)) {
         for (let i = 1; i <= VARIANTS; i++) {
           const n = String(i).padStart(2, '0');
           const key = `vox_${track}_${sound}_${n}`;

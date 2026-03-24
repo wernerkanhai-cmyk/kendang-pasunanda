@@ -592,8 +592,20 @@ function App() {
     schedulerRef.current.setAudioContext(sharedCtx);
     schedulerRef.current.setBpm(bpm);
 
+    // Safari: resume AudioContext op elke gebruikersinteractie (click/touch/keydown)
+    const resumeCtx = () => {
+      const ctx = samplerRef.current?.audioCtx;
+      if (ctx?.state === 'suspended') ctx.resume();
+    };
+    window.addEventListener('click',   resumeCtx);
+    window.addEventListener('touchend', resumeCtx);
+    window.addEventListener('keydown',  resumeCtx);
+
     return () => {
       schedulerRef.current.stop();
+      window.removeEventListener('click',   resumeCtx);
+      window.removeEventListener('touchend', resumeCtx);
+      window.removeEventListener('keydown',  resumeCtx);
     };
   }, []); // Run once on mount
 
