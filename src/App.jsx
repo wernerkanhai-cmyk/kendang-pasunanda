@@ -1143,7 +1143,7 @@ function App() {
           onStateChange: (state) => setVoiceListening(state === 'listening'),
         });
       }
-      voiceInputRef.current.start('id-ID');
+      voiceInputRef.current.start('en-US');
     } else {
       voiceInputRef.current?.stop();
       setVoiceListening(false);

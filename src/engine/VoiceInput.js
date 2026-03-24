@@ -6,25 +6,33 @@
  */
 
 const WORD_TO_SYMBOL = {
-  // Ketipung
-  'tung':  'N', 'tong':  'N', 'tong':  'N',
-  // Gedug
-  'dong':  'C', 'dung':  'C',
-  'ting':  'X', 'thing': 'X', 'teen':  'X',
-  'det':   'V', 'dat':   'V', 'debt':  'V',
-  // Kumpyang
-  'pling': 'A', 'pling': 'A', 'pling':'A',
-  'pang':  'J',
-  'ping':  ';',
-  'pong':  ':',
-  'plak':  'L', 'plaque':'L', 'plac':  'L', 'plack': 'L',
-  // Kutiplak
-  'pak':   'G', 'pack':  'G', 'puck':  'G',
-  'peung': 'F', 'pung':  'F', 'poeng': 'F', 'pöng':  'F',
+  // Ketipung — tung
+  'tung': 'N', 'tong': 'N', 'tongue': 'N', 'tun': 'N', 'ton': 'N', 'tum': 'N',
+  // Gedug — dong
+  'dong': 'C', 'dung': 'C', 'dung': 'C', 'doong': 'C', 'dooong': 'C',
+  // Gedug — ting
+  'ting': 'X', 'thing': 'X', 'teen': 'X', 'ding': 'X', 'tink': 'X', 'think': 'X',
+  // Gedug — det
+  'det':  'V', 'dat':  'V', 'debt': 'V', 'dut': 'V', 'dit': 'V', 'dead': 'V',
+  // Kumpyang — pling
+  'pling': 'A', 'pling': 'A', 'plink': 'A', 'fling': 'A', 'bling': 'A',
+  // Kumpyang — pang
+  'pang': 'J', 'bang': 'J', 'fang': 'J',
+  // Kumpyang — ping
+  'ping': ';', 'bing': ';', 'pink': ';',
+  // Kumpyang — pong
+  'pong': ':', 'bong': ':',
+  // Kumpyang — plak
+  'plak': 'L', 'plaque': 'L', 'plac': 'L', 'plack': 'L', 'pluck': 'L', 'black': 'L',
+  // Kutiplak — pak
+  'pak':  'G', 'pack': 'G', 'puck': 'G', 'back': 'G', 'bak': 'G', 'puck': 'G',
+  // Kutiplak — peung
+  'peung': 'F', 'pung': 'F', 'poeng': 'F', 'pung': 'F', 'poeung': 'F', 'pung': 'F',
+  'fung': 'F', 'phung': 'F', 'young': 'F', 'lung': 'F',
   // Gong
-  'gong':  'S', 'kong':  'S',
+  'gong': 'S', 'kong': 'S', 'song': 'S', 'gone': 'S',
   // Rust
-  'rest':  '.', 'rust':  '.', 'pause': '.', 'stop':  '.',
+  'rest': '.', 'rust': '.', 'pause': '.', 'stop': '.', 'space': '.',
 };
 
 // Alle herkende woorden als Set voor snelle lookup
@@ -39,15 +47,15 @@ export class VoiceInput {
     this.supported     = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   }
 
-  start(lang = 'id-ID') {
+  start(lang = 'en-US') {
     if (!this.supported || this.running) return;
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const rec = new SR();
 
     rec.continuous      = true;
-    rec.interimResults  = true;
-    rec.maxAlternatives = 3;
+    rec.interimResults  = false; // Alleen finale resultaten — voorkomt dubbele writes
+    rec.maxAlternatives = 5;
     rec.lang            = lang;
 
     // Optioneel: hint de grammar als browser het ondersteunt
@@ -65,19 +73,22 @@ export class VoiceInput {
 
     rec.onresult = (event) => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        // Check alle alternatieven per resultaat
         const result = event.results[i];
-        for (let a = 0; a < result.length; a++) {
+        if (!result.isFinal) continue; // Alleen finale resultaten verwerken
+
+        // Doorzoek alle alternatieven op eerste herkenbare klank
+        let matched = false;
+        for (let a = 0; a < result.length && !matched; a++) {
           const words = result[a].transcript.toLowerCase().trim().split(/\s+/);
           for (const word of words) {
             const cleaned = word.replace(/[^a-z]/g, '');
             const symbol  = WORD_TO_SYMBOL[cleaned];
             if (symbol) {
               this.onSymbol(symbol);
-              break; // Eerste match per alternatief
+              matched = true;
+              break;
             }
           }
-          if (result.isFinal) break; // Stop bij final resultaat
         }
       }
     };
