@@ -8,27 +8,33 @@
 const WORD_TO_SYMBOL = {
   // Ketipung — tung
   'tung': 'N', 'tong': 'N', 'tongue': 'N', 'tun': 'N', 'ton': 'N', 'tum': 'N',
+  'tune': 'N', 'town': 'N', 'tone': 'N',
   // Gedug — dong
-  'dong': 'C', 'dung': 'C', 'dung': 'C', 'doong': 'C', 'dooong': 'C',
+  'dong': 'C', 'dung': 'C', 'doong': 'C', 'done': 'C', 'don': 'C', 'dun': 'C',
+  'down': 'C', 'dawn': 'C', 'dom': 'C',
   // Gedug — ting
   'ting': 'X', 'thing': 'X', 'teen': 'X', 'ding': 'X', 'tink': 'X', 'think': 'X',
+  'ring': 'X', 'sing': 'X', 'king': 'X',
   // Gedug — det
   'det':  'V', 'dat':  'V', 'debt': 'V', 'dut': 'V', 'dit': 'V', 'dead': 'V',
   // Kumpyang — pling
-  'pling': 'A', 'pling': 'A', 'plink': 'A', 'fling': 'A', 'bling': 'A',
+  'pling': 'A', 'plink': 'A', 'fling': 'A', 'bling': 'A', 'cling': 'A', 'sling': 'A',
   // Kumpyang — pang
-  'pang': 'J', 'bang': 'J', 'fang': 'J',
+  'pang': 'J', 'bang': 'J', 'fang': 'J', 'pan': 'J', 'ban': 'J', 'van': 'J',
   // Kumpyang — ping
-  'ping': ';', 'bing': ';', 'pink': ';',
+  'ping': ';', 'bing': ';', 'pink': ';', 'bin': ';', 'pin': ';',
   // Kumpyang — pong
   'pong': ':', 'bong': ':',
   // Kumpyang — plak
-  'plak': 'L', 'plaque': 'L', 'plac': 'L', 'plack': 'L', 'pluck': 'L', 'black': 'L',
+  'plak': 'L', 'plaque': 'L', 'plack': 'L', 'pluck': 'L', 'black': 'L', 'blank': 'L',
+  'clack': 'L', 'slack': 'L', 'lack': 'L',
   // Kutiplak — pak
-  'pak':  'G', 'pack': 'G', 'puck': 'G', 'back': 'G', 'bak': 'G', 'puck': 'G',
+  'pak':  'G', 'pack': 'G', 'puck': 'G', 'back': 'G', 'bak': 'G', 'fuck': 'G',
+  'buck': 'G', 'duck': 'G', 'luck': 'G', 'muck': 'G', 'tuck': 'G',
   // Kutiplak — peung
-  'peung': 'F', 'pung': 'F', 'poeng': 'F', 'pung': 'F', 'poeung': 'F', 'pung': 'F',
-  'fung': 'F', 'phung': 'F', 'young': 'F', 'lung': 'F',
+  'peung': 'F', 'pung': 'F', 'poeng': 'F', 'poeung': 'F',
+  'fung': 'F', 'phung': 'F', 'young': 'F', 'lung': 'F', 'fun': 'F', 'bun': 'F',
+  'hung': 'F', 'sung': 'F', 'rung': 'F',
   // Gong
   'gong': 'S', 'kong': 'S', 'song': 'S', 'gone': 'S',
   // Rust
