@@ -253,6 +253,7 @@ export class SamplePlayer {
 
   _trigger(key, when, gainValue = 1.0, pitchValue = 1.0, buffers) {
     const buf = (buffers || this.buffers)[key];
+    console.log('[Audio] _trigger', key, 'buf?', !!buf, 'ctx:', this.audioCtx?.state);
     if (!buf || !this.audioCtx) return;
 
     const schedule = () => {
