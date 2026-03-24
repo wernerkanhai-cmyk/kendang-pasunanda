@@ -1140,7 +1140,14 @@ function App() {
       if (!voiceInputRef.current) {
         voiceInputRef.current = new VoiceInput({
           onSymbol: (symbol) => handleDrumTriggerRef.current?.(symbol),
-          onStateChange: (state) => setVoiceListening(state === 'listening'),
+          onStateChange: (state) => {
+            setVoiceListening(state === 'listening');
+            // Microfoonactivering kan AudioContext suspenderen — direct hervatten
+            if (state === 'listening') {
+              const ctx = schedulerRef.current?.audioCtx;
+              if (ctx?.state === 'suspended') ctx.resume();
+            }
+          },
         });
       }
       voiceInputRef.current.start('en-US');

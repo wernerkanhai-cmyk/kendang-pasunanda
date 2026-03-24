@@ -97,10 +97,10 @@ export class AudioScheduler {
       osc.connect(gain);
       gain.connect(this.audioCtx.destination);
       osc.frequency.value = (slotNumber % 48 === 0) ? 880 : 440;
-      gain.gain.setValueAtTime(0.1, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+      gain.gain.setValueAtTime(0.35, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
       osc.start(time);
-      osc.stop(time + 0.05);
+      osc.stop(time + 0.1);
     }
 
     // Samples schedulen op exact audio-tijdstip
