@@ -162,13 +162,20 @@ export class SamplePlayer {
 
   _warmup() {
     if (!this.audioCtx) return;
-    try {
-      const silent = this.audioCtx.createBuffer(1, 1, this.audioCtx.sampleRate);
-      const src = this.audioCtx.createBufferSource();
-      src.buffer = silent;
-      src.connect(this.audioCtx.destination);
-      src.start(this.audioCtx.currentTime);
-    } catch {}
+    const doWarmup = () => {
+      try {
+        const silent = this.audioCtx.createBuffer(1, 1, this.audioCtx.sampleRate);
+        const src = this.audioCtx.createBufferSource();
+        src.buffer = silent;
+        src.connect(this.audioCtx.destination);
+        src.start(0);
+      } catch (_) {}
+    };
+    if (this.audioCtx.state === 'running') {
+      doWarmup();
+    } else {
+      this.audioCtx.resume().then(doWarmup);
+    }
   }
 
   async _load(key, url, target) {

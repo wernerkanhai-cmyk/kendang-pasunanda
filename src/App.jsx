@@ -592,20 +592,30 @@ function App() {
     schedulerRef.current.setAudioContext(sharedCtx);
     schedulerRef.current.setBpm(bpm);
 
-    // Safari: resume AudioContext op elke gebruikersinteractie (click/touch/keydown)
-    const resumeCtx = () => {
+    // Safari vereist een stil buffer-afspeel binnen een user-gesture om audio te ontgrendelen.
+    // Alleen resume() aanroepen is niet genoeg — speel ook een stil sample af.
+    const unlockAudio = () => {
       const ctx = samplerRef.current?.audioCtx;
-      if (ctx?.state === 'suspended') ctx.resume();
+      if (!ctx || ctx.state === 'running') return;
+      ctx.resume().then(() => {
+        try {
+          const silent = ctx.createBuffer(1, 1, ctx.sampleRate);
+          const src = ctx.createBufferSource();
+          src.buffer = silent;
+          src.connect(ctx.destination);
+          src.start(0);
+        } catch (_) {}
+      });
     };
-    window.addEventListener('click',   resumeCtx);
-    window.addEventListener('touchend', resumeCtx);
-    window.addEventListener('keydown',  resumeCtx);
+    window.addEventListener('click',    unlockAudio);
+    window.addEventListener('touchend', unlockAudio);
+    window.addEventListener('keydown',  unlockAudio);
 
     return () => {
       schedulerRef.current.stop();
-      window.removeEventListener('click',   resumeCtx);
-      window.removeEventListener('touchend', resumeCtx);
-      window.removeEventListener('keydown',  resumeCtx);
+      window.removeEventListener('click',    unlockAudio);
+      window.removeEventListener('touchend', unlockAudio);
+      window.removeEventListener('keydown',  unlockAudio);
     };
   }, []); // Run once on mount
 
