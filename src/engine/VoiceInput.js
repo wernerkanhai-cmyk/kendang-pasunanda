@@ -76,17 +76,25 @@ export class VoiceInput {
         const result = event.results[i];
         if (!result.isFinal) continue; // Alleen finale resultaten verwerken
 
-        // Doorzoek alle alternatieven op eerste herkenbare klank
-        let matched = false;
-        for (let a = 0; a < result.length && !matched; a++) {
+        // Log alle alternatieven zodat we kunnen zien wat de herkenner teruggeeft
+        const alts = [];
+        for (let a = 0; a < result.length; a++) {
+          alts.push(`[${a}] "${result[a].transcript}" (${result[a].confidence?.toFixed(2)})`);
+        }
+        console.log('VoiceInput recognized:', alts.join(' | '));
+
+        // Verwerk ALLE woorden in alle alternatieven — transcript kan meerdere
+        // klanken bevatten (bijv. "tongue dong pling"), elk woord apart mappen.
+        // Gebruik een Set om dubbele symbolen per result te voorkomen.
+        const seen = new Set();
+        for (let a = 0; a < result.length; a++) {
           const words = result[a].transcript.toLowerCase().trim().split(/\s+/);
           for (const word of words) {
             const cleaned = word.replace(/[^a-z]/g, '');
             const symbol  = WORD_TO_SYMBOL[cleaned];
-            if (symbol) {
+            if (symbol && !seen.has(symbol)) {
+              seen.add(symbol);
               this.onSymbol(symbol);
-              matched = true;
-              break;
             }
           }
         }
