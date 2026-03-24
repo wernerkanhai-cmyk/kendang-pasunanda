@@ -39,9 +39,10 @@ const WORD_TO_SYMBOL = {
 const KNOWN_WORDS = new Set(Object.keys(WORD_TO_SYMBOL));
 
 export class VoiceInput {
-  constructor({ onSymbol, onStateChange }) {
+  constructor({ onSymbol, onStateChange, onTranscript }) {
     this.onSymbol      = onSymbol;       // (symbol: string) => void
     this.onStateChange = onStateChange;  // ('listening'|'off') => void
+    this.onTranscript  = onTranscript;   // (text: string) => void
     this.recognition   = null;
     this.running       = false;
     this.supported     = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -79,32 +80,29 @@ export class VoiceInput {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
 
-        // Log voor debugging (alleen finals voor leesbaarheid)
-        if (result.isFinal) {
-          const alts = [];
-          for (let a = 0; a < result.length; a++) {
-            alts.push(`[${a}] "${result[a].transcript}" (${result[a].confidence?.toFixed(2)})`);
-          }
-          console.log('VoiceInput final:', alts.join(' | '));
-        }
+        // Toon transcript in UI voor debug + zoek in alle alternatieven
+        const transcript0 = result[0].transcript.toLowerCase().trim();
+        this.onTranscript?.(transcript0);
 
-        // Verwerk het beste alternatief (index 0) — zoek eerste herkenbare woord
-        // Zowel interim als final, met cooldown om dubbele writes te voorkomen
+        // Verwerk alle alternatieven — zoek eerste match
         const now = Date.now();
-        const words = result[0].transcript.toLowerCase().trim().split(/\s+/);
-        // Neem het LAATSTE woord: bij interim groeit het transcript, het nieuwste woord staat achteraan
-        for (let w = words.length - 1; w >= 0; w--) {
-          const cleaned = words[w].replace(/[^a-z]/g, '');
-          const symbol  = WORD_TO_SYMBOL[cleaned];
-          if (symbol) {
-            if (!lastFired[symbol] || now - lastFired[symbol] > COOLDOWN_MS) {
-              lastFired[symbol] = now;
-              this.onSymbol(symbol);
+        let matched = false;
+        for (let a = 0; a < result.length && !matched; a++) {
+          const words = result[a].transcript.toLowerCase().trim().split(/\s+/);
+          // Neem het LAATSTE woord: bij interim groeit het transcript, het nieuwste woord staat achteraan
+          for (let w = words.length - 1; w >= 0; w--) {
+            const cleaned = words[w].replace(/[^a-z]/g, '');
+            const symbol  = WORD_TO_SYMBOL[cleaned];
+            if (symbol) {
+              if (!lastFired[symbol] || now - lastFired[symbol] > COOLDOWN_MS) {
+                lastFired[symbol] = now;
+                this.onSymbol(symbol);
+              }
+              matched = true;
+              break;
             }
-            break; // Eerste (laatste) match per result
           }
         }
-      }
     };
 
     rec.onerror = (e) => {

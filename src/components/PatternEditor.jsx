@@ -62,6 +62,7 @@ const PatternEditor = ({
   trackVolumes = { anak: 1.0, indung: 1.0 },
   onTrackVolumeChange,
   voiceListening = false,
+  voiceTranscript = '',
 }) => {
   const t = useT();
   const [isNamingSnippet, setIsNamingSnippet] = useState(false);
@@ -707,11 +708,19 @@ const [showBeheer, setShowBeheer] = useState(true);
                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isRecording ? '#fff' : '#ef4444' }} />
                  </button>
                  {voiceListening && (
-                   <div
-                     className="voice-listening-pulse"
-                     title="Voice listening…"
-                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2rem', height: '2rem', borderRadius: '50%', background: 'rgba(167,139,250,0.15)', border: '1px solid #a78bfa', fontSize: '0.9rem', cursor: 'default', flexShrink: 0 }}
-                   >🎤</div>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                     <div
+                       className="voice-listening-pulse"
+                       title="Voice listening…"
+                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2rem', height: '2rem', borderRadius: '50%', background: 'rgba(167,139,250,0.15)', border: '1px solid #a78bfa', fontSize: '0.9rem', cursor: 'default', flexShrink: 0 }}
+                     >🎤</div>
+                     {voiceTranscript && (
+                       <span style={{ fontSize: '0.7rem', color: '#a78bfa', maxWidth: '8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.85 }}
+                         title={voiceTranscript}>
+                         {voiceTranscript}
+                       </span>
+                     )}
+                   </div>
                  )}
               </div>
            )}

@@ -62,6 +62,7 @@ function App() {
   // Voice Input (only active in vox mode during recording)
   const voiceInputRef = useRef(null);
   const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
 
   // Sound settings (volume + pitch per geluid)
   const [soundSettings, setSoundSettings] = useState(() => {
@@ -1161,6 +1162,7 @@ function App() {
       if (!voiceInputRef.current) {
         voiceInputRef.current = new VoiceInput({
           onSymbol: (symbol) => handleDrumTriggerRef.current?.(symbol),
+          onTranscript: (text) => setVoiceTranscript(text),
           onStateChange: (state) => {
             setVoiceListening(state === 'listening');
             // Microfoonactivering kan AudioContext suspenderen — direct hervatten
@@ -1900,6 +1902,7 @@ function App() {
                       isFirst={idx === 0}
                       isLast={idx === song.length - 1}
                       voiceListening={voiceListening}
+                      voiceTranscript={voiceTranscript}
                     />
                   </div>
                 </React.Fragment>
