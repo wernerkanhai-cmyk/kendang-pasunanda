@@ -437,8 +437,44 @@ function App() {
     // Basic history management for pattern updates (Clear, Paste, Typing)
     setUndoStack(prev => [...prev.slice(-49), song]);
     setRedoStack([]);
-    
+
     setSong(song.map(p => p.id === id ? updatedPattern : p));
+  };
+
+  const snapSelectionToGrid = () => {
+    if (!activeSlot) return;
+    const { patternId, trackId } = activeSlot;
+    const start = Math.min(activeSlot.startIndex, activeSlot.endIndex ?? activeSlot.startIndex);
+    const end   = Math.max(activeSlot.startIndex, activeSlot.endIndex ?? activeSlot.startIndex);
+
+    const pattern = song.find(p => p.id === patternId);
+    if (!pattern) return;
+
+    const track = pattern[trackId].map(s => ({ ...s }));
+
+    // Verzamel alle noten in de selectie die niet op het grid staan
+    const notes = [];
+    for (let i = start; i <= end; i++) {
+      const slot = track[i];
+      if (!slot) continue;
+      if (slot.top    && slot.top    !== '') notes.push({ from: i, hand: 'top',    symbol: slot.top });
+      if (slot.bottom && slot.bottom !== '') notes.push({ from: i, hand: 'bottom', symbol: slot.bottom });
+    }
+    if (notes.every(n => n.from % gridResolution === 0)) return; // al op grid
+
+    // Wis originele posities in selectie
+    for (let i = start; i <= end; i++) {
+      track[i] = { ...track[i], top: '', bottom: '' };
+    }
+
+    // Zet noten op dichtstbijzijnde gridpunt
+    for (const note of notes) {
+      const snapped  = Math.round(note.from / gridResolution) * gridResolution;
+      const clamped  = Math.max(0, Math.min(track.length - 1, snapped));
+      track[clamped] = { ...track[clamped], [note.hand]: note.symbol };
+    }
+
+    updatePattern(patternId, { ...pattern, [trackId]: track });
   };
 
   const insertMeasure = (patternId, atSlotIndex) => {
@@ -1837,6 +1873,7 @@ function App() {
                       setMagneticInput={setMagneticInput}
                       autoQuantize={autoQuantize}
                       setAutoQuantize={setAutoQuantize}
+                      onSnapToGrid={snapSelectionToGrid}
                       inputEnabled={inputEnabled}
                       setInputEnabled={setInputEnabled}
                       savedSnippets={savedSnippets}
