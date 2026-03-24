@@ -1023,9 +1023,6 @@ function App() {
     // Speel altijd het geluid af, ook zonder actieve slot
     if (symbol !== '.') {
       const trackForSound = activeSlot ? activeSlot.trackId : (naturalTrack || 'anak');
-      const ctx = samplerRef.current?.audioCtx;
-      const bufCount = Object.keys(samplerRef.current?.buffers || {}).length;
-      console.log('[Audio] trigger', symbol, 'track:', trackForSound, 'ctx:', ctx?.state, 'bufs:', bufCount, 'sampler:', !!samplerRef.current);
       samplerRef.current?.play(symbol, trackForSound);
     }
     if (!inputEnabled) return;

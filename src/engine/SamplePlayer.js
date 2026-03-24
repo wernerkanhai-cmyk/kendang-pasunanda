@@ -253,30 +253,24 @@ export class SamplePlayer {
 
   _trigger(key, when, gainValue = 1.0, pitchValue = 1.0, buffers) {
     const buf = (buffers || this.buffers)[key];
-    console.log('[Audio] _trigger', key, 'buf?', !!buf, 'ctx:', this.audioCtx?.state, 'gain:', gainValue, 'when:', when);
     if (!buf || !this.audioCtx) return;
 
     const schedule = () => {
-      try {
-        const src = this.audioCtx.createBufferSource();
-        src.buffer = buf;
-        if (pitchValue !== 1.0) src.playbackRate.value = pitchValue;
+      const src = this.audioCtx.createBufferSource();
+      src.buffer = buf;
+      if (pitchValue !== 1.0) src.playbackRate.value = pitchValue;
 
-        if (gainValue !== 1.0) {
-          const gain = this.audioCtx.createGain();
-          gain.gain.value = gainValue;
-          src.connect(gain);
-          gain.connect(this.audioCtx.destination);
-        } else {
-          src.connect(this.audioCtx.destination);
-        }
-
-        const t = when > 0 ? when : this.audioCtx.currentTime + 0.003;
-        console.log('[Audio] src.start', key, 't:', t.toFixed(3), 'now:', this.audioCtx.currentTime.toFixed(3));
-        src.start(t);
-      } catch (e) {
-        console.error('[Audio] schedule error', key, e);
+      if (gainValue !== 1.0) {
+        const gain = this.audioCtx.createGain();
+        gain.gain.value = gainValue;
+        src.connect(gain);
+        gain.connect(this.audioCtx.destination);
+      } else {
+        src.connect(this.audioCtx.destination);
       }
+
+      const t = when > 0 ? when : this.audioCtx.currentTime + 0.003;
+      src.start(t);
     };
 
     if (this.audioCtx.state === 'suspended') {
