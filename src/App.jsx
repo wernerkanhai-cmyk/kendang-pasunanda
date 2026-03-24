@@ -20,7 +20,7 @@ function App() {
       const saved = localStorage.getItem('kendangCurrentSong');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return [createEmptyPattern('Regel 1')];
+    return [createEmptyPattern(t('defaultSectionName'))];
   });
   const [activePatternId, setActivePatternId] = useState(() => {
     try {
@@ -242,7 +242,7 @@ function App() {
 
   const handleNewSong = () => {
     const newSongName = `Song ${savedSongs.length + 2}`;
-    const fresh = createEmptyPattern('Regel 1');
+    const fresh = createEmptyPattern(t('defaultSectionName'));
     setSong([fresh]);
     setActivePatternId(fresh.id);
     setActiveSlot({ patternId: fresh.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
@@ -1431,9 +1431,11 @@ function App() {
                 {/* overlay to close on outside click */}
                 <div onClick={() => setShowToolsMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
                 <div style={{
-                  position: 'absolute', top: '110%', left: 0, zIndex: 200,
+                  position: 'fixed', top: 'auto', right: '0.5rem', zIndex: 200,
                   background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
-                  padding: '0.75rem', minWidth: '220px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  padding: '0.75rem', minWidth: '220px', maxWidth: '92vw',
+                  maxHeight: 'calc(100vh - 80px)', overflowY: 'auto',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                   display: 'flex', flexDirection: 'column', gap: '0.4rem',
                 }}>
                   {/* Scan */}
@@ -1445,7 +1447,7 @@ function App() {
                     setRedoStack([]);
                     setSong(prev => {
                       const isDefault = prev.length === 1 &&
-                        prev[0].name === 'Regel 1' &&
+                        ['Regel 1', 'Section 1', 'Bagian 1'].includes(prev[0].name) &&
                         prev[0].anak.every(s => s.top === '.' || s.top === '') &&
                         prev[0].indung.every(s => s.top === '.' || s.top === '');
                       return isDefault ? patterns : [...prev, ...patterns];
@@ -1590,7 +1592,7 @@ function App() {
                 />
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {savedSongs.length === 0 ? (
-                    <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>Geen songs opgeslagen.</p>
+                    <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>{t('noSongsStored')}</p>
                   ) : (() => {
                     const q = songSearchQuery.toLowerCase();
                     const filtered = savedSongs.filter(s =>

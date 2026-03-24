@@ -124,6 +124,16 @@ const T = {
     // Tempo
     tempoLabel: '♩ Tempo',
     clearTempo: 'Clear',
+    staticTempo: 'Static',
+    gradualTempo: 'Gradual',
+    staticTempoTooltip: 'One fixed tempo for the entire section',
+    gradualTempoTooltip: 'Gradual acceleration',
+    tempoHint: 'dbl-click = +node · click node = zoom · drag = move · right-click = delete',
+    // Empty states
+    noSongsStored: 'No songs saved.',
+    noPatternsStored: 'No patterns saved.',
+    placedAtCursor: '-- Place at cursor --',
+    defaultSectionName: 'Section 1',
     // Manual content
     manualTitle: '📖 Manual',
     manualSections: [
@@ -240,6 +250,15 @@ const T = {
     saveApiKey: 'Opslaan',
     tempoLabel: '♩ Tempo',
     clearTempo: 'Wis',
+    staticTempo: 'Statisch',
+    gradualTempo: 'Geleidelijk',
+    staticTempoTooltip: 'Één enkel tempo voor de hele regel',
+    gradualTempoTooltip: 'Geleidelijke versnelling',
+    tempoHint: '2× klik = +node · klik node = zoom · sleep = verplaatsen · rechtsklik = verwijderen',
+    noSongsStored: 'Geen songs opgeslagen.',
+    noPatternsStored: 'Geen patronen opgeslagen.',
+    placedAtCursor: '-- Plaatst op cursor --',
+    defaultSectionName: 'Regel 1',
     manualTitle: '📖 Handleiding',
     manualSections: [
       { title: '1. Klanken invoeren', body: 'Klik op een zone in het Drum Pad, gebruik het toetsenbord (N, C, X, V, A, J, ;, :, L, G, F, S), of rechtsklik op een cel in het rooster voor een keuzelijst. Sleep noten tussen cellen om te verplaatsen. Backspace/Delete wist de selectie.' },
@@ -355,6 +374,15 @@ const T = {
     saveApiKey: 'Simpan',
     tempoLabel: '♩ Tempo',
     clearTempo: 'Hapus',
+    staticTempo: 'Statis',
+    gradualTempo: 'Bertahap',
+    staticTempoTooltip: 'Satu tempo tetap untuk seluruh bagian',
+    gradualTempoTooltip: 'Percepatan bertahap',
+    tempoHint: 'klik 2× = +node · klik node = zoom · seret = pindah · klik kanan = hapus',
+    noSongsStored: 'Tidak ada lagu tersimpan.',
+    noPatternsStored: 'Tidak ada pola tersimpan.',
+    placedAtCursor: '-- Tempatkan di kursor --',
+    defaultSectionName: 'Bagian 1',
     manualTitle: '📖 Panduan',
     manualSections: [
       { title: '1. Memasukkan nada', body: 'Klik zona di Drum Pad, gunakan keyboard (N, C, X, V, A, J, ;, :, L, G, F, S), atau klik kanan sel di grid untuk menu. Seret nada antar sel untuk memindahkannya. Backspace/Delete menghapus pilihan.' },

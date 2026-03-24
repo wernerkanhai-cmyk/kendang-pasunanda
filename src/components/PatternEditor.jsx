@@ -525,7 +525,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               }}
               style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.3rem', fontSize: '0.8rem', cursor: 'pointer', minWidth: '150px' }}
            >
-              <option value="">-- Plaatst op cursor --</option>
+              <option value="">{t('placedAtCursor')}</option>
               {Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort().map(folderName => (
                  <optgroup key={folderName} label={folderName}>
                     {savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName).map(snip => (
@@ -579,7 +579,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 </div>
                 
                 {savedSnippets.length === 0 ? (
-                   <div style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>Geen patronen opgeslagen.</div>
+                   <div style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>{t('noPatternsStored')}</div>
                 ) : (
                    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
                       {Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort().map(folderName => (
