@@ -10,6 +10,7 @@ import { FACTORY_PRESETS, FACTORY_CATEGORIES } from './factory/presets';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
+import { VoiceInput } from './engine/VoiceInput';
 
 function App() {
   const t = useT();
@@ -57,6 +58,10 @@ function App() {
     localStorage.setItem('kendangSampleSet', sampleSet);
     samplerRef.current?.setSampleSet(sampleSet);
   }, [sampleSet]);
+
+  // Voice Input (only active in vox mode during recording)
+  const voiceInputRef = useRef(null);
+  const [voiceListening, setVoiceListening] = useState(false);
 
   // Sound settings (volume + pitch per geluid)
   const [soundSettings, setSoundSettings] = useState(() => {
@@ -198,6 +203,9 @@ function App() {
 
   // The global switch dictating which track we are writing to from the DrumPad
   const [inputMode, setInputMode] = useState('anak'); // 'anak' or 'indung'
+
+  // Ref to expose handleDrumTrigger to VoiceInput without stale closures
+  const handleDrumTriggerRef = useRef(null);
 
   // Ref to track tapping speed without stale closures for smart resolution
   const drumTapRef = useRef({ time: 0, slotIndex: 0, trackId: '' });
@@ -1122,6 +1130,31 @@ function App() {
     }
   };
 
+  // Keep handleDrumTrigger ref up to date for VoiceInput callback
+  handleDrumTriggerRef.current = handleDrumTrigger;
+
+  // Start/stop voice recognition based on sampleSet + recording state
+  useEffect(() => {
+    const shouldListen = sampleSet === 'vox' && isRecording && precount === 0;
+    if (shouldListen) {
+      if (!voiceInputRef.current) {
+        voiceInputRef.current = new VoiceInput({
+          onSymbol: (symbol) => handleDrumTriggerRef.current?.(symbol),
+          onStateChange: (state) => setVoiceListening(state === 'listening'),
+        });
+      }
+      voiceInputRef.current.start('id-ID');
+    } else {
+      voiceInputRef.current?.stop();
+      setVoiceListening(false);
+    }
+    return () => {
+      if (!isRecording || sampleSet !== 'vox') {
+        voiceInputRef.current?.stop();
+      }
+    };
+  }, [sampleSet, isRecording, precount]);
+
   // ---- MY PATTERNS / SNIPPET LIBRARY FLOWS ----
   const handleSaveSnippet = (name, folder, data, replaceId = null) => {
      const newSnippet = {
@@ -1838,6 +1871,7 @@ function App() {
                       onMoveDown={() => movePatternDown(pattern.id)}
                       isFirst={idx === 0}
                       isLast={idx === song.length - 1}
+                      voiceListening={voiceListening}
                     />
                   </div>
                 </React.Fragment>
