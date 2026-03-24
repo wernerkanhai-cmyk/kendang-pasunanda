@@ -592,20 +592,19 @@ function App() {
     schedulerRef.current.setAudioContext(sharedCtx);
     schedulerRef.current.setBpm(bpm);
 
-    // Safari vereist een stil buffer-afspeel binnen een user-gesture om audio te ontgrendelen.
-    // Alleen resume() aanroepen is niet genoeg — speel ook een stil sample af.
+    // Safari vereist dat het eerste audio-node synchroon binnen de gesture handler wordt gestart.
+    // resume().then(...) is niet voldoende — start de silent buffer VOOR de await/then.
     const unlockAudio = () => {
       const ctx = samplerRef.current?.audioCtx;
       if (!ctx || ctx.state === 'running') return;
-      ctx.resume().then(() => {
-        try {
-          const silent = ctx.createBuffer(1, 1, ctx.sampleRate);
-          const src = ctx.createBufferSource();
-          src.buffer = silent;
-          src.connect(ctx.destination);
-          src.start(0);
-        } catch (_) {}
-      });
+      try {
+        const silent = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const src = ctx.createBufferSource();
+        src.buffer = silent;
+        src.connect(ctx.destination);
+        src.start(0); // synchroon binnen gesture — ontgrendelt Safari
+      } catch (_) {}
+      ctx.resume();
     };
     window.addEventListener('click',    unlockAudio);
     window.addEventListener('touchend', unlockAudio);
