@@ -96,91 +96,98 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     return found;
   }, [slots]);
 
-  // Implied rests: empty 8th-note downbeat positions (0 and 6 within a beat) that
-  // should show a rest dot when the beat contains at least one actual note.
+  // ─── Rest Display Engine (per Master Prompt) ───────────────────────────────
+  //
+  // Hierarchy:
+  //   1/4 Rust  – entire beat empty, not in trailing silence → data rest at pos 0
+  //   1/8 Rust  – first half empty, note in second half     → beam only, no dot
+  //   1/16 rule – pos 6 (plek 3) empty, pos 9 (plek 4) has note → dot at pos 6
+  //
+  // Trailing Silence: empty beats AFTER the last note in a bar → no dots, no beams.
+  //
+  // Helper: last note index (relative to bar start) in a 48-slot bar.
+  const lastNoteInBar = useMemo(() => {
+    const result = new Array(Math.ceil(slots.length / 48)).fill(-1);
+    for (let b = 0; b < result.length; b++) {
+      for (let i = 47; i >= 0; i--) {
+        const s = slots[b * 48 + i];
+        if (!s) continue;
+        if ((s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)) {
+          result[b] = i;
+          break;
+        }
+      }
+    }
+    return result;
+  }, [slots]);
+
+  // impliedRests: only pos 6 when pos 9 has a note (plek 3 → plek 4 lead-in).
+  // Quarter rests (empty beat) are displayed via the data rest at pos 0 — no entry here.
   const impliedRests = useMemo(() => {
     const result = new Set();
-    for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
-      const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
-        (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
-      );
-      if (!beatHasNote) continue;
-      const beatSlices = slots.slice(beatStart, beatStart + 12);
-      for (const pos of [0, 3]) {
-        const slot = slots[beatStart + pos];
-        if (!slot) continue;
-        if (pos === 3) {
-          // Show rest at 2nd sixteenth (pos 3) only when pos 0 has no note for that hand
-          // (a note at pos 0 fills the 1/8 slot — no rest needed at pos 3)
-          // AND there are actual notes later in the beat for that hand.
-          const slot0 = slots[beatStart];
-          const top0IsNote    = slot0.top    !== '' && slot0.top    !== SYMBOL_REST;
-          const bottom0IsNote = slot0.bottom !== '' && slot0.bottom !== SYMBOL_REST;
-          // At 1/8 grid (gridResolution >= 6): never imply a 16th rest at pos 3
-          const topHasLater    = gridResolution <= 3
-            ? beatSlices.some((s, i) => i > 3 && s.top    !== '' && s.top    !== SYMBOL_REST)
-            : false;
-          const bottomHasLater = gridResolution <= 3
-            ? beatSlices.some((s, i) => i > 3 && s.bottom !== '' && s.bottom !== SYMBOL_REST)
-            : false;
-          if ((slot.top    === '' || slot.top    === SYMBOL_REST) && topHasLater    && !top0IsNote)    result.add(`${beatStart + pos}-top`);
-          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasLater && !bottom0IsNote) result.add(`${beatStart + pos}-bottom`);
-        } else {
-          // pos === 0: show beat-start implied rest per hand, only when THAT hand has
-          // actual notes somewhere in the beat. This prevents spurious top/bottom
-          // implied rests that would trigger the render suppression and hide the dot.
-          const topHasNoteInBeat    = beatSlices.some(s => s.top    !== '' && s.top    !== SYMBOL_REST);
-          const bottomHasNoteInBeat = beatSlices.some(s => s.bottom !== '' && s.bottom !== SYMBOL_REST);
-          if ((slot.top    === '' || slot.top    === SYMBOL_REST) && topHasNoteInBeat)    result.add(`${beatStart + pos}-top`);
-          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasNoteInBeat) result.add(`${beatStart + pos}-bottom`);
+    for (let barIdx = 0; barIdx < lastNoteInBar.length; barIdx++) {
+      const barStart = barIdx * 48;
+      const lastNote = lastNoteInBar[barIdx]; // -1 if bar is empty
+      for (let beatOff = 0; beatOff < 48; beatOff += 12) {
+        // Trailing silence: beats starting beyond the last note in a non-empty bar
+        if (lastNote >= 0 && beatOff > lastNote) continue;
+        const beatStart = barStart + beatOff;
+        const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
+          (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
+        );
+        if (!beatHasNote) continue; // Empty beat: quarter rest via data rest, no implied rest
+        const slot6 = slots[beatStart + 6];
+        const slot9 = slots[beatStart + 9];
+        if (!slot6 || !slot9) continue;
+        for (const hand of ['top', 'bottom']) {
+          if ((slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
+               slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST) {
+            result.add(`${beatStart + 6}-${hand}`);
+          }
         }
       }
     }
     return result;
-  }, [slots, gridResolution]);
+  }, [slots, lastNoteInBar]);
 
-  // Collapsed rests: within each beat, 8th-note pairs (slots 0+3 and 6+9) where
-  // neither position has an actual note (only rests or empty) are visually suppressed
-  // — rest symbols hidden, excluded from level-2 beam. Level-1 beam still spans all.
+  // collapsedRests: suppress SYMBOL_REST dots per the hierarchy above.
+  //   • Beat has notes → collapse ALL SYMBOL_REST in that beat (beam shows; no dots at
+  //     pos 0/3 per spec). pos 6 is re-shown via impliedRests when pos 9 has a note.
+  //   • Empty beat in trailing silence → collapse the quarter rest at pos 0.
+  //   • Empty beat not in trailing silence → keep pos 0 data rest (quarter rest ✓).
   const collapsedRests = useMemo(() => {
     const result = new Set();
-    for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
-      // Only collapse rests if the beat has at least one actual note
-      const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
-        (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
-      );
-      if (!beatHasNote) continue;
-
-      for (const [ai, bi] of [[0, 3], [6, 9]]) {
-        const sa = slots[beatStart + ai];
-        const sb = slots[beatStart + bi];
-        if (!sa || !sb) continue;
-        for (const hand of ['top', 'bottom']) {
-          const aVal = sa[hand];
-          const bVal = sb[hand];
-          const aIsNote = aVal !== '' && aVal !== SYMBOL_REST;
-          const bIsNote = bVal !== '' && bVal !== SYMBOL_REST;
-
-          if (!aIsNote && !bIsNote) {
-            // Neither position is a note: collapse any rests in this pair
-            if (aVal === SYMBOL_REST) result.add(`${beatStart + ai}-${hand}`);
-            if (bVal === SYMBOL_REST) result.add(`${beatStart + bi}-${hand}`);
-          } else if (aIsNote && bVal === SYMBOL_REST) {
-            // Note followed by rest: trailing rest — collapse b
-            result.add(`${beatStart + bi}-${hand}`);
-          } else if (!aIsNote && bIsNote && aVal === SYMBOL_REST && ai === 6 && gridResolution >= 6) {
-            // [6,9] pair: rest at pos 6 before note at pos 9, but at 1/8 grid pos 9 is
-            // not displayable — the rest at pos 6 is spurious, collapse it
-            result.add(`${beatStart + ai}-${hand}`);
+    for (let barIdx = 0; barIdx < lastNoteInBar.length; barIdx++) {
+      const barStart = barIdx * 48;
+      const lastNote = lastNoteInBar[barIdx];
+      for (let beatOff = 0; beatOff < 48; beatOff += 12) {
+        const beatStart = barStart + beatOff;
+        const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
+          (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
+        );
+        if (beatHasNote) {
+          // Collapse every SYMBOL_REST in the beat — beats with notes use beams, not dots
+          for (let i = 0; i < 12; i++) {
+            const s = slots[beatStart + i];
+            if (!s) continue;
+            if (s.top    === SYMBOL_REST) result.add(`${beatStart + i}-top`);
+            if (s.bottom === SYMBOL_REST) result.add(`${beatStart + i}-bottom`);
           }
-          // [0,3] leading rest before note: always keep (beat-start rest is meaningful)
-          // [6,9] leading rest before note at 1/16 grid: keep (pos 9 is displayable)
-          // Both notes: nothing to collapse
+        } else {
+          // Empty beat in trailing silence → collapse quarter rest
+          if (lastNote >= 0 && beatOff > lastNote) {
+            const s = slots[beatStart];
+            if (s) {
+              if (s.top    === SYMBOL_REST) result.add(`${beatStart}-top`);
+              if (s.bottom === SYMBOL_REST) result.add(`${beatStart}-bottom`);
+            }
+          }
+          // else: keep quarter rest (not in trailing silence)
         }
       }
     }
     return result;
-  }, [slots, gridResolution]);
+  }, [slots, lastNoteInBar]);
 
   // Beam Rendering Logic for 8ths (1 line) and 16ths (2 lines)
   const beams = useMemo(() => {
@@ -340,7 +347,8 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 </div>
               )}
 
-              {slot.top !== '' && (!collapsedRests.has(`${index}-top`) || impliedRests.has(`${index}-top`)) && !(isRestTop && isRestBottom && trackId === 'indung') && (
+              {/* Data symbols (notes and data rests) */}
+              {slot.top !== '' && !collapsedRests.has(`${index}-top`) && !(isRestTop && isRestBottom && trackId === 'indung') && (
                 <span
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'top', slot.top)}
@@ -350,7 +358,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.top}
                 </span>
               )}
-              {slot.bottom !== '' && (!collapsedRests.has(`${index}-bottom`) || impliedRests.has(`${index}-bottom`)) && !(isRestBottom && isRestTop && trackId === 'anak') && (
+              {slot.bottom !== '' && !collapsedRests.has(`${index}-bottom`) && !(isRestBottom && isRestTop && trackId === 'anak') && (
                 <span
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'bottom', slot.bottom)}
@@ -360,10 +368,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.bottom}
                 </span>
               )}
-              {slot.top === '' && impliedRests.has(`${index}-top`) && (trackId !== 'indung' || index % 12 === 0) && (
+              {/* Implied rests: pos 6 lead-in dot when pos 9 has a note (plek 3→4 rule) */}
+              {(slot.top === '' || collapsedRests.has(`${index}-top`)) && impliedRests.has(`${index}-top`) && (
                 <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
               )}
-              {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && !(slot.top === '' && impliedRests.has(`${index}-top`) && trackId === 'anak') && (
+              {(slot.bottom === '' || collapsedRests.has(`${index}-bottom`)) && impliedRests.has(`${index}-bottom`) && (
                 <span className={`kendang-font slot-rest pos-below color-${trackId}`}>{SYMBOL_REST}</span>
               )}
             </div>
