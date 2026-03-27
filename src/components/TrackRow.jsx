@@ -348,7 +348,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
               )}
 
               {/* Data symbols (notes and data rests) */}
-              {slot.top !== '' && !collapsedRests.has(`${index}-top`) && !(isRestTop && isRestBottom && trackId === 'indung') && (
+              {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
                 <span
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'top', slot.top)}
@@ -358,7 +358,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.top}
                 </span>
               )}
-              {slot.bottom !== '' && !collapsedRests.has(`${index}-bottom`) && !(isRestBottom && isRestTop && trackId === 'anak') && (
+              {slot.bottom !== '' && !collapsedRests.has(`${index}-bottom`) && (
                 <span
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'bottom', slot.bottom)}
