@@ -136,11 +136,13 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           if ((slot.top    === '' || slot.top    === SYMBOL_REST) && topHasLater    && !top0IsNote)    result.add(`${beatStart + pos}-top`);
           if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasLater && !bottom0IsNote) result.add(`${beatStart + pos}-bottom`);
         } else {
-          // pos === 0: always show beat-start implied rest when the beat has any note
-          // and slot 0 is empty or a rest. This ensures Indung and Anak align on the
-          // beat-start dot regardless of where in the beat each track's note falls.
-          if (slot.top    === '' || slot.top    === SYMBOL_REST) result.add(`${beatStart + pos}-top`);
-          if (slot.bottom === '' || slot.bottom === SYMBOL_REST) result.add(`${beatStart + pos}-bottom`);
+          // pos === 0: show beat-start implied rest per hand, only when THAT hand has
+          // actual notes somewhere in the beat. This prevents spurious top/bottom
+          // implied rests that would trigger the render suppression and hide the dot.
+          const topHasNoteInBeat    = beatSlices.some(s => s.top    !== '' && s.top    !== SYMBOL_REST);
+          const bottomHasNoteInBeat = beatSlices.some(s => s.bottom !== '' && s.bottom !== SYMBOL_REST);
+          if ((slot.top    === '' || slot.top    === SYMBOL_REST) && topHasNoteInBeat)    result.add(`${beatStart + pos}-top`);
+          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasNoteInBeat) result.add(`${beatStart + pos}-bottom`);
         }
       }
     }
@@ -205,31 +207,22 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
            }
          }
 
-         if (activeIndices.length < 2) {
-           // Special case: lone rest at beat start — draw level-1 beam so the rest shows its rhythmic value.
-           if (activeIndices.length === 1 && activeIndices[0] === 0) {
-             const thisSlot = slots[beatStart];
-             const isRest = position === 'top' ? thisSlot.top === SYMBOL_REST : thisSlot.bottom === SYMBOL_REST;
-             if (isRest) {
-               let lastNoteIdx = 0;
-               for (let i = 1; i < 12; i++) {
-                 const s = slots[beatStart + i];
-                 const val = position === 'top' ? s.top : s.bottom;
-                if (val !== '' && val !== SYMBOL_REST) lastNoteIdx = i;
-               }
-               if (lastNoteIdx > 0) {
-                 handResults.push({ startIdx: beatStart, span: lastNoteIdx, level: 1, position });
-               }
-             }
-           }
-           continue;
-         }
+         if (activeIndices.length === 0) continue;
          if (activeIndices.length === 3 && activeIndices[0] === 0 && activeIndices[1] === 4 && activeIndices[2] === 8) continue; // Triplet overrides this
 
-         // Level 1 Beam spans all active positions in the beat
-         const first = activeIndices[0];
-         const last = activeIndices[activeIndices.length - 1];
-         handResults.push({ startIdx: beatStart + first, span: last - first, level: 1, position });
+         const firstNote = activeIndices[0];
+         const lastNote  = activeIndices[activeIndices.length - 1];
+
+         // If there is a data rest at beat position 0 and the first actual note is
+         // later, extend the level-1 beam back to beat start so the rest shows its
+         // rhythmic value (and single notes at offset 6 still get a beam).
+         const beatStartVal = position === 'top' ? slots[beatStart].top : slots[beatStart].bottom;
+         const hasBeatStartRest = beatStartVal === SYMBOL_REST;
+         const l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
+         const l1Span  = lastNote - l1Start;
+         if (l1Span > 0) {
+           handResults.push({ startIdx: beatStart + l1Start, span: l1Span, level: 1, position });
+         }
 
          // Level 2 Beams (16th note spacing) — only for non-collapsed positions
          let l2Start = -1;
