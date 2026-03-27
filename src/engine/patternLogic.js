@@ -43,13 +43,15 @@ export const createEmptyPattern = (name = 'Song 1') => {
  * @param {number} slotIndex - 0 to 191
  * @param {string} symbol - The Kendang.ttf character (e.g. 'P', 'D', '.')
  */
+// Rechterhand (Boven/Top) — single source of truth for all symbol routing
+export const TOP_HAND_SYMBOLS    = ['A', 'J', ';', ':', 'L', 'G', 'F'];
+// Linkerhand (Onder/Bottom)
+export const BOTTOM_HAND_SYMBOLS = ['C', '?', 'V', 'S', 'N'];
+
 export const getHandForSymbol = (symbol) => {
   if (symbol === SYMBOL_REST) return 'both';
-  // Rechterhand (Boven/Top)
-  if (['A', 'J', ';', ':', 'L', 'G', 'F'].includes(symbol)) return 'top';
-  // Linkerhand (Onder/Bottom)
-  if (['C', '?', 'V', 'S', 'N'].includes(symbol)) return 'bottom';
-  
+  if (TOP_HAND_SYMBOLS.includes(symbol))    return 'top';
+  if (BOTTOM_HAND_SYMBOLS.includes(symbol)) return 'bottom';
   return 'top';
 };
 

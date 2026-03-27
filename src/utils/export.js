@@ -32,17 +32,10 @@ const SLOTS_PER_ROW   = BARS_PER_ROW * SLOTS_PER_BAR; // 192
 const SLOT_W          = USABLE_W / SLOTS_PER_ROW;      // ~12.1 px
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
-function isEmptyTopBeat(slots, beatStart) {
+function isEmptyBeat(slots, beatStart, hand) {
   for (let i = 0; i < 12; i++) {
     const s = slots[beatStart + i];
-    if (s && s.top !== '') return false;
-  }
-  return true;
-}
-function isEmptyBottomBeat(slots, beatStart) {
-  for (let i = 0; i < 12; i++) {
-    const s = slots[beatStart + i];
-    if (s && s.bottom !== '') return false;
+    if (s && s[hand] !== '') return false;
   }
   return true;
 }
@@ -216,8 +209,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     const bottomDotY = nullY + cfg.dotBottomOffset;
     for (let beat = 0; beat < SLOTS_PER_ROW / 12; beat++) {
       const cx = rowX + (beat * 12 + 6) * SLOT_W;
-      if (isEmptyTopBeat(slots, beat * 12))    ctx.fillText('.', cx, topDotY);
-      if (isEmptyBottomBeat(slots, beat * 12)) ctx.fillText('.', cx, bottomDotY);
+      if (isEmptyBeat(slots, beat * 12, 'top'))    ctx.fillText('.', cx, topDotY);
+      if (isEmptyBeat(slots, beat * 12, 'bottom')) ctx.fillText('.', cx, bottomDotY);
     }
     ctx.globalAlpha = 1.0;
     ctx.textAlign = 'left';

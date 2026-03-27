@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import './TrackRow.css';
-import { SYMBOL_REST } from '../engine/patternLogic';
+import { SYMBOL_REST, TOP_HAND_SYMBOLS, BOTTOM_HAND_SYMBOLS } from '../engine/patternLogic';
 
 const DRUM_MENU = [
   { label: 'Ketipung', sounds: [{ symbol: 'N', name: 'Tung' }] },
@@ -13,8 +13,8 @@ const getVerticalPositionClass = (symbol, hand) => {
   if (symbol === SYMBOL_REST) {
       return hand === 'top' ? 'pos-above' : 'pos-below';
   }
-  if (['A', 'J', ';', ':', 'L', 'G', 'F'].includes(symbol)) return 'pos-above';
-  if (['C', '?', 'V', 'S', 'N'].includes(symbol)) return 'pos-below';
+  if (TOP_HAND_SYMBOLS.includes(symbol))    return 'pos-above';
+  if (BOTTOM_HAND_SYMBOLS.includes(symbol)) return 'pos-below';
   return 'pos-line';
 };
 

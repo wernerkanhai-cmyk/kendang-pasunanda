@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 
 // Web Audio API context for stable timing
 let audioCtx = null;
@@ -18,12 +18,6 @@ export const usePlayback = (bpm = 100) => {
 
   const lookahead = 25.0; // ms
   const scheduleAheadTime = 0.1; // s
-
-  // Assuming 48 slots per bar, 12 slots per beat (quarter note), 4 beats per bar.
-  // We advance the playhead every 1 slot (1/48th of a bar).
-  // Time per beat = 60 / BPM
-  // Time per slot = (60 / BPM) / 12
-  const getSecondsPerSlot = () => (60.0 / currentBpm) / 12.0;
 
   const initAudio = () => {
     if (!audioCtx) {
@@ -56,8 +50,7 @@ export const usePlayback = (bpm = 100) => {
   };
 
   const nextNote = () => {
-    const secondsPerSlot = getSecondsPerSlot();
-    nextNoteTimeRef.current += secondsPerSlot;
+    nextNoteTimeRef.current += (60.0 / currentBpm) / 12.0;
     
     // Advance slot
     currentSlotRef.current++;
