@@ -105,15 +105,12 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
         (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
       );
       if (!beatHasNote) continue;
-      const slot0 = slots[beatStart];
-      for (const pos of [0, 6]) {
+      const beatSlices = slots.slice(beatStart, beatStart + 12);
+      for (const pos of [0, 3, 6]) {
         const slot = slots[beatStart + pos];
         if (!slot) continue;
         if (pos === 6) {
           // Only show rest at position 6 if the beat has 8th/16th subdivision for that hand
-          // (notes at positions 1–5 or 7–11). A lone note at position 0 is a quarter note
-          // and needs no rest at position 6.
-          const beatSlices = slots.slice(beatStart, beatStart + 12);
           const topHasSubdivision = beatSlices.some((s, i) =>
             i !== 0 && i !== 6 && s.top !== '' && s.top !== SYMBOL_REST
           );
@@ -122,14 +119,31 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           );
           if ((slot.top === '' || slot.top === SYMBOL_REST) && topHasSubdivision)    result.add(`${beatStart + pos}-top`);
           if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasSubdivision) result.add(`${beatStart + pos}-bottom`);
+        } else if (pos === 3) {
+          // Show rest at 2nd sixteenth (pos 3) only when pos 0 has no note for that hand
+          // (a note at pos 0 fills the 1/8 slot — no rest needed at pos 3)
+          // AND there are actual notes later in the beat for that hand.
+          const slot0 = slots[beatStart];
+          const top0IsNote    = slot0.top    !== '' && slot0.top    !== SYMBOL_REST;
+          const bottom0IsNote = slot0.bottom !== '' && slot0.bottom !== SYMBOL_REST;
+          // At 1/8 grid (gridResolution >= 6): no 16th-rest implied at pos 3 — prevents "2 achter elkaar"
+          const topHasLater    = gridResolution <= 3
+            ? beatSlices.some((s, i) => i > 3 && s.top    !== '' && s.top    !== SYMBOL_REST)
+            : beatSlices.some((s, i) => i > 3 && i % 6 !== 0 && s.top    !== '' && s.top    !== SYMBOL_REST);
+          const bottomHasLater = gridResolution <= 3
+            ? beatSlices.some((s, i) => i > 3 && s.bottom !== '' && s.bottom !== SYMBOL_REST)
+            : beatSlices.some((s, i) => i > 3 && i % 6 !== 0 && s.bottom !== '' && s.bottom !== SYMBOL_REST);
+          if ((slot.top    === '' || slot.top    === SYMBOL_REST) && topHasLater    && !top0IsNote)    result.add(`${beatStart + pos}-top`);
+          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasLater && !bottom0IsNote) result.add(`${beatStart + pos}-bottom`);
         } else {
+          // pos === 0
           if (slot.top === '' || slot.top === SYMBOL_REST)    result.add(`${beatStart + pos}-top`);
           if (slot.bottom === '' || slot.bottom === SYMBOL_REST) result.add(`${beatStart + pos}-bottom`);
         }
       }
     }
     return result;
-  }, [slots]);
+  }, [slots, gridResolution]);
 
   // Collapsed rests: within each beat, 8th-note pairs (slots 0+3 and 6+9) where
   // neither position has an actual note (only rests or empty) are visually suppressed
