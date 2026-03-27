@@ -1152,13 +1152,15 @@ function App() {
       } else {
          modifiedPattern = writeSymbolToPattern(prevSong[currentPatternIdx], targetTrack, targetSlotIndex, symbol);
 
-         // Auto-fill preceding empty grid positions in this beat with rests
+         // Auto-fill: place rest only at the single preceding grid position.
+         // Starting from beatStart caused multiple consecutive dots — now we only
+         // fill the one slot immediately before the new note.
          if (symbol !== SYMBOL_REST) {
            const hand = getHandForSymbol(symbol);
-           const beatStart = Math.floor(targetSlotIndex / 12) * 12;
            const step = gridResolution;
-           for (let g = beatStart; g < targetSlotIndex; g += step) {
-             const slot = modifiedPattern[targetTrack][g];
+           const prevPos = Math.floor((targetSlotIndex - 1) / step) * step;
+           if (prevPos >= 0 && prevPos < targetSlotIndex) {
+             const slot = modifiedPattern[targetTrack][prevPos];
              if (hand === 'top' || hand === 'both') {
                if (!slot.top) slot.top = SYMBOL_REST;
              }
