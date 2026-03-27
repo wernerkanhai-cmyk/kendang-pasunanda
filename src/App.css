@@ -116,6 +116,13 @@
   overflow-x: auto;
   padding: 1rem;
   background: rgba(0,0,0,0.2);
+  -webkit-overflow-scrolling: touch; /* momentum scroll on iOS */
+  overscroll-behavior-x: contain;   /* prevent pull-to-refresh while scrolling */
+}
+
+.sequencer-section {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .bar-separator {

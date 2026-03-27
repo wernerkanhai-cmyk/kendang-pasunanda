@@ -41,8 +41,9 @@ function isEmptyBeat(slots, beatStart, hand) {
 }
 
 // Returns beam descriptors: { startIdx, span, level, position }
-// Ported from TrackRow.jsx calculateBeamsForHand
+// Synced with TrackRow.jsx beam logic
 function calculateBeams(slots) {
+  const SYMBOL_REST = '.';
   const results = [];
   for (const position of ['top', 'bottom']) {
     for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
@@ -50,38 +51,31 @@ function calculateBeams(slots) {
       for (let i = 0; i < 12; i++) {
         const s = slots[beatStart + i];
         if (!s) continue;
-        const hasNote = position === 'top' ? s.top !== '' : s.bottom !== '';
-        if (hasNote) activeIndices.push(i);
+        const val = position === 'top' ? s.top : s.bottom;
+        if (val !== '' && val !== SYMBOL_REST) activeIndices.push(i);
       }
 
-      if (activeIndices.length < 2) continue;
-      // Skip if triplet pattern (0, 4, 8)
-      if (
-        activeIndices.length === 3 &&
-        activeIndices[0] === 0 && activeIndices[1] === 4 && activeIndices[2] === 8
-      ) continue;
+      if (activeIndices.length === 0) continue;
+      if (activeIndices.length === 3 &&
+          activeIndices[0] === 0 && activeIndices[1] === 4 && activeIndices[2] === 8) continue;
 
-      const first = activeIndices[0];
-      const last  = activeIndices[activeIndices.length - 1];
+      const firstNote = activeIndices[0];
+      const lastNote  = activeIndices[activeIndices.length - 1];
 
-      // Level 1: 8th-note umbrella beam spanning all notes in beat
-      results.push({ startIdx: beatStart + first, span: last - first, level: 1, position });
-
-      // Level 2: 16th-note beams for adjacent notes ≤ 3 slots apart
-      let l2Start = -1, prev = -1;
-      for (let i = 0; i < activeIndices.length; i++) {
-        const curr = activeIndices[i];
-        if (l2Start === -1) {
-          l2Start = curr;
-        } else if (curr - prev > 3) {
-          if (prev > l2Start)
-            results.push({ startIdx: beatStart + l2Start, span: prev - l2Start, level: 2, position });
-          l2Start = curr;
-        }
-        prev = curr;
+      // Extend beam back to beat start when pos 0 has a data rest
+      const beatStartVal = position === 'top' ? slots[beatStart]?.top : slots[beatStart]?.bottom;
+      const hasBeatStartRest = beatStartVal === SYMBOL_REST;
+      const l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
+      const l1Span  = lastNote - l1Start;
+      if (l1Span > 0) {
+        results.push({ startIdx: beatStart + l1Start, span: l1Span, level: 1, position });
       }
-      if (l2Start !== -1 && prev > l2Start)
-        results.push({ startIdx: beatStart + l2Start, span: prev - l2Start, level: 2, position });
+
+      // Level 2: draw when any note is at a 16th-note position (offset % 6 ≠ 0)
+      const has16th = activeIndices.some(i => i % 6 !== 0);
+      if (has16th && l1Span > 0) {
+        results.push({ startIdx: beatStart + l1Start, span: l1Span, level: 2, position });
+      }
     }
   }
   return results;
@@ -263,7 +257,9 @@ export const DEFAULT_PDF_SETTINGS = {
 
 // ─── Main export function ──────────────────────────────────────────────────────
 export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) => {
-  if (!song || song.length === 0) return;
+  if (!song || song.length === 0) {
+    throw new Error('PDF-export mislukt: geen patronen beschikbaar.');
+  }
 
   const cfg = { ...DEFAULT_PDF_SETTINGS, ...settings };
 
@@ -370,8 +366,15 @@ export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) 
     isFirstPage = false;
   }
 
-  const blob = pdf.output('blob');
-  const url  = URL.createObjectURL(blob);
+  let blob;
+  try {
+    blob = pdf.output('blob');
+  } catch (err) {
+    if (previewWindow) previewWindow.close();
+    throw new Error(`PDF-generatie mislukt: ${err.message}`);
+  }
+
+  const url = URL.createObjectURL(blob);
   if (previewWindow) {
     previewWindow.location.href = url;
   } else {

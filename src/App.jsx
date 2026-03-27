@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
-import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots, SYMBOL_REST } from './engine/patternLogic';
+import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots, SYMBOL_REST, sanitizePattern } from './engine/patternLogic';
 import PatternEditor from './components/PatternEditor';
 import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
@@ -19,7 +19,10 @@ function App() {
   const [song, setSong] = useState(() => {
     try {
       const saved = localStorage.getItem('kendangCurrentSong');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed.map(sanitizePattern);
+      }
     } catch {}
     return [createEmptyPattern(t('defaultSectionName'))];
   });

@@ -55,6 +55,33 @@ export const getHandForSymbol = (symbol) => {
   return 'top';
 };
 
+/**
+ * Sanity-check a pattern loaded from localStorage or external source.
+ * Truncates to 192 slots, ensures slot shape { top, bottom }, fills missing slots.
+ */
+export const sanitizePattern = (pattern) => {
+  const SLOTS = 192;
+  const sanitizeTrack = (track) => {
+    if (!Array.isArray(track) || track.length === 0) return generateEmptySlots(SLOTS);
+    const safe = track.slice(0, SLOTS).map(s => ({
+      top:    typeof s?.top    === 'string' ? s.top    : '',
+      bottom: typeof s?.bottom === 'string' ? s.bottom : '',
+    }));
+    // Pad to full length if shorter than expected
+    while (safe.length < SLOTS) safe.push({ top: '', bottom: '' });
+    return safe;
+  };
+  return {
+    ...pattern,
+    id:         typeof pattern?.id   === 'string' ? pattern.id   : crypto.randomUUID(),
+    name:       typeof pattern?.name === 'string' ? pattern.name : 'Pattern',
+    anak:       sanitizeTrack(pattern?.anak),
+    indung:     sanitizeTrack(pattern?.indung),
+    gong:       Array.isArray(pattern?.gong)       ? pattern.gong.filter(n => typeof n === 'number' && n >= 0) : [],
+    tempoTrack: Array.isArray(pattern?.tempoTrack) ? pattern.tempoTrack : [],
+  };
+};
+
 export const writeSymbolToPattern = (pattern, trackId, slotIndex, symbol) => {
   const newPattern = JSON.parse(JSON.stringify(pattern));
   const hand = getHandForSymbol(symbol);

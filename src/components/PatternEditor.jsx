@@ -681,27 +681,27 @@ const [showBeheer, setShowBeheer] = useState(true);
 
                  <button
                    onClick={(e) => { e.stopPropagation(); stepBack(); }}
-                   style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+                   style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                    title={t('rewindOneMeasure')}
                  >◀</button>
 
                  <button
                    onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                    onDoubleClick={(e) => { e.stopPropagation(); rewind(); }}
-                   style={{ background: isPlaying ? '#22c55e' : 'transparent', color: isPlaying ? '#fff' : '#94a3b8', border: `1px solid ${isPlaying ? '#22c55e' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+                   style={{ background: isPlaying ? '#22c55e' : 'transparent', color: isPlaying ? '#fff' : '#94a3b8', border: `1px solid ${isPlaying ? '#22c55e' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                    title={t('playPause')}
                  >{isPlaying ? '⏸' : '▶'}</button>
 
                  <button
                    onClick={(e) => { e.stopPropagation(); onLoopPattern(pattern.id); }}
-                   style={{ background: loopingPatternId === pattern.id ? '#f97316' : 'transparent', color: loopingPatternId === pattern.id ? '#fff' : '#94a3b8', border: `1px solid ${loopingPatternId === pattern.id ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+                   style={{ background: loopingPatternId === pattern.id ? '#f97316' : 'transparent', color: loopingPatternId === pattern.id ? '#fff' : '#94a3b8', border: `1px solid ${loopingPatternId === pattern.id ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                    title={t('loopSection')}
                  >↺</button>
 
                  <button
                    onClick={(e) => { e.stopPropagation(); toggleRecord(); }}
                    className={isRecording ? 'recording-pulse' : ''}
-                   style={{ background: isRecording ? '#ef4444' : 'transparent', color: isRecording ? '#fff' : '#94a3b8', border: `1px solid ${isRecording ? '#ef4444' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
+                   style={{ background: isRecording ? '#ef4444' : 'transparent', color: isRecording ? '#fff' : '#94a3b8', border: `1px solid ${isRecording ? '#ef4444' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                    title={isRecording === 'precount' ? t('precount')(precount) : t('record')}
                  >
                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isRecording ? '#fff' : '#ef4444' }} />

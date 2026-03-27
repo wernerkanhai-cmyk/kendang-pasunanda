@@ -32,6 +32,11 @@
   display: flex;
   height: 80px; /* Increased to allow more room for above/below */
   position: relative;
+  contain: layout style; /* limit repaint scope per row */
+}
+
+.rhythmic-beam {
+  transform: translateZ(0); /* promote beam layer to GPU composite */
 }
 
 /* The horizontal Staff Line */
