@@ -156,6 +156,14 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
     { key: 'G', name: 'Pak' },  { key: 'F', name: 'Peung' },{ key: 'S', name: 'Dededet' },
   ];
 
+  const COMBO_LEGEND = [
+    { keys: ['G', 'C'], name: 'Bang'   },  // Pak + Dong
+    { keys: ['J', 'C'], name: 'Blang'  },  // Pang + Dong
+    { keys: ['L', 'V'], name: 'Blap'   },  // Plak + Det
+    { keys: ['J', 'N'], name: 'Plang'  },  // Pang + Tung
+    { keys: ['F', 'N'], name: 'Tleung' },  // Peung + Tung
+  ];
+
   const tabBtn = (id, label) => (
     <button
       onClick={() => setActiveTab(id)}
@@ -184,14 +192,29 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
       {activeTab === 'pad' && <>
       <div className="drum-module-header">
         {showLegend && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px 6px', marginBottom: '0.4rem' }}>
-            {LEGEND.map(({ key, name }) => (
-              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem' }}>
-                <kbd style={{ fontSize: '0.6rem', background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '3px', padding: '0 3px', lineHeight: '1.4', fontFamily: 'monospace' }}>{key}</kbd>
-                <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{key}</span>
-                <span style={{ color: '#94a3b8' }}>{name}</span>
+          <div style={{ marginBottom: '0.4rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px 6px', marginBottom: '0.4rem' }}>
+              {LEGEND.map(({ key, name }) => (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem' }}>
+                  <kbd style={{ fontSize: '0.6rem', background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '3px', padding: '0 3px', lineHeight: '1.4', fontFamily: 'monospace' }}>{key}</kbd>
+                  <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{key}</span>
+                  <span style={{ color: '#94a3b8' }}>{name}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ borderTop: '1px solid #334155', paddingTop: '0.3rem' }}>
+              <div style={{ fontSize: '0.6rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 'bold', marginBottom: '3px' }}>Combinatieslagen</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px 6px' }}>
+                {COMBO_LEGEND.map(({ keys, name }) => (
+                  <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.65rem' }}>
+                    <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{keys[0]}</span>
+                    <span style={{ color: '#475569', fontSize: '0.6rem' }}>+</span>
+                    <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{keys[1]}</span>
+                    <span style={{ color: '#94a3b8' }}>{name}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         )}
       </div>
