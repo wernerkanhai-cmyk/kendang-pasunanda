@@ -201,7 +201,9 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
          const l2Indices = []; // Non-collapsed only
          for (let i = 0; i < 12; i++) {
            const slot = slots[beatStart + i];
-           const hasNote = (position === 'top') ? (slot.top !== '') : (slot.bottom !== '');
+           const hasNote = (position === 'top')
+            ? (slot.top !== '' && slot.top !== SYMBOL_REST)
+            : (slot.bottom !== '' && slot.bottom !== SYMBOL_REST);
            if (hasNote) {
              activeIndices.push(i);
              if (!collapsedRests.has(`${beatStart + i}-${position}`)) {
@@ -219,7 +221,8 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                let lastNoteIdx = 0;
                for (let i = 1; i < 12; i++) {
                  const s = slots[beatStart + i];
-                 if ((position === 'top' ? s.top : s.bottom) !== '') lastNoteIdx = i;
+                 const val = position === 'top' ? s.top : s.bottom;
+                if (val !== '' && val !== SYMBOL_REST) lastNoteIdx = i;
                }
                if (lastNoteIdx > 0) {
                  handResults.push({ startIdx: beatStart, span: lastNoteIdx, level: 1, position });
