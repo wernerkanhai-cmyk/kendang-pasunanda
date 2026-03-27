@@ -224,7 +224,7 @@ const [showBeheer, setShowBeheer] = useState(true);
     const fromBeatEnd = Math.floor(fromSlot / 12) * 12 + 12;
     const fromTrack = getTrack(fromTrackId);
     const hasNotesAfterFrom = fromTrack.slice(fromSlot + 1, fromBeatEnd)
-      .some(s => { const v = s[fromHand]; return v && v !== ''; });
+      .some(s => { const v = s[fromHand]; return v !== '' && v !== SYMBOL_REST; });
     if (hasNotesAfterFrom) {
       fromTrack[fromSlot] = { ...fromTrack[fromSlot], [fromHand]: SYMBOL_REST };
     }

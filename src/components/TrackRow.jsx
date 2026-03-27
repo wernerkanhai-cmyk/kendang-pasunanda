@@ -174,15 +174,16 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
             if (s.bottom === SYMBOL_REST) result.add(`${beatStart + i}-bottom`);
           }
         } else {
-          // Empty beat in trailing silence → collapse quarter rest
-          if (lastNote >= 0 && beatOff > lastNote) {
-            const s = slots[beatStart];
-            if (s) {
-              if (s.top    === SYMBOL_REST) result.add(`${beatStart}-top`);
-              if (s.bottom === SYMBOL_REST) result.add(`${beatStart}-bottom`);
-            }
+          // Empty beat: collapse every SYMBOL_REST except pos 0.
+          // Trailing silence → also collapse pos 0 (no quarter rest shown).
+          const inTrailingSilence = lastNote >= 0 && beatOff > lastNote;
+          for (let i = 0; i < 12; i++) {
+            if (i === 0 && !inTrailingSilence) continue; // keep quarter rest at pos 0
+            const s = slots[beatStart + i];
+            if (!s) continue;
+            if (s.top    === SYMBOL_REST) result.add(`${beatStart + i}-top`);
+            if (s.bottom === SYMBOL_REST) result.add(`${beatStart + i}-bottom`);
           }
-          // else: keep quarter rest (not in trailing silence)
         }
       }
     }
