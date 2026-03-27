@@ -106,27 +106,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
       );
       if (!beatHasNote) continue;
       const beatSlices = slots.slice(beatStart, beatStart + 12);
-      for (const pos of [0, 3, 6]) {
+      for (const pos of [0, 3]) {
         const slot = slots[beatStart + pos];
         if (!slot) continue;
-        if (pos === 6) {
-          // Only show rest at position 6 if:
-          // - grid is 1/8 or finer (gridResolution <= 6)
-          // - the beat has 8th/16th subdivision for that hand (notes after pos 6)
-          // - AND pos 0 has no note for that hand (a note at pos 0 fills the 1st 8th — no rest needed at pos 6)
-          if (gridResolution > 6) break;
-          const slot0 = slots[beatStart];
-          const top0IsNote    = slot0.top    !== '' && slot0.top    !== SYMBOL_REST;
-          const bottom0IsNote = slot0.bottom !== '' && slot0.bottom !== SYMBOL_REST;
-          const topHasSubdivision = beatSlices.some((s, i) =>
-            i > 6 && s.top !== '' && s.top !== SYMBOL_REST
-          );
-          const bottomHasSubdivision = beatSlices.some((s, i) =>
-            i > 6 && s.bottom !== '' && s.bottom !== SYMBOL_REST
-          );
-          if ((slot.top === '' || slot.top === SYMBOL_REST) && topHasSubdivision && !top0IsNote)       result.add(`${beatStart + pos}-top`);
-          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasSubdivision && !bottom0IsNote) result.add(`${beatStart + pos}-bottom`);
-        } else if (pos === 3) {
+        if (pos === 3) {
           // Show rest at 2nd sixteenth (pos 3) only when pos 0 has no note for that hand
           // (a note at pos 0 fills the 1/8 slot — no rest needed at pos 3)
           // AND there are actual notes later in the beat for that hand.
