@@ -111,8 +111,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
         if (!slot) continue;
         if (pos === 6) {
           // Only show rest at position 6 if:
+          // - grid is 1/8 or finer (gridResolution <= 6)
           // - the beat has 8th/16th subdivision for that hand (notes after pos 6)
           // - AND pos 0 has no note for that hand (a note at pos 0 fills the 1st 8th — no rest needed at pos 6)
+          if (gridResolution > 6) break;
           const slot0 = slots[beatStart];
           const top0IsNote    = slot0.top    !== '' && slot0.top    !== SYMBOL_REST;
           const bottom0IsNote = slot0.bottom !== '' && slot0.bottom !== SYMBOL_REST;
@@ -373,7 +375,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
               {slot.top === '' && impliedRests.has(`${index}-top`) && (
                 <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
               )}
-              {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && (
+              {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && !(slot.top === '' && impliedRests.has(`${index}-top`) && trackId === 'anak') && (
                 <span className={`kendang-font slot-rest pos-below color-${trackId}`}>{SYMBOL_REST}</span>
               )}
             </div>
