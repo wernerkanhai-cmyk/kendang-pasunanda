@@ -140,7 +140,9 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     return result;
   }, [slots, lastNoteInBar]);
 
-  // impliedRests: pos 6 dot when pos 9 has a note (plek 3 → plek 4 lead-in).
+  // impliedRests:
+  //   1. Beat-start dot: beat has a note for a hand but pos 0 for that hand is empty.
+  //   2. Pos 6 dot: pos 6 empty, pos 9 has a note (plek 3 → plek 4 lead-in).
   const impliedRests = useMemo(() => {
     const result = new Set();
     for (let barIdx = 0; barIdx < lastNoteInBar.length; barIdx++) {
@@ -149,15 +151,22 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
       for (let beatOff = 0; beatOff < 48; beatOff += 12) {
         if (lastNote >= 0 && beatOff > lastNote) continue;
         const beatStart = barStart + beatOff;
-        const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
-          (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
-        );
-        if (!beatHasNote) continue;
+        const beatSlots = slots.slice(beatStart, beatStart + 12);
+        const slot0 = slots[beatStart];
         const slot6 = slots[beatStart + 6];
         const slot9 = slots[beatStart + 9];
-        if (!slot6 || !slot9) continue;
         for (const hand of ['top', 'bottom']) {
-          if ((slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
+          const beatHasNoteForHand = beatSlots.some(s =>
+            s[hand] !== '' && s[hand] !== SYMBOL_REST
+          );
+          if (!beatHasNoteForHand) continue;
+          // Rule 1: dot at beat-start when pos 0 is empty for this hand
+          if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
+            result.add(`${beatStart}-${hand}`);
+          }
+          // Rule 2: dot at pos 6 when pos 9 has a note (plek 3→4 lead-in)
+          if (slot6 && slot9 &&
+              (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
                slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST) {
             result.add(`${beatStart + 6}-${hand}`);
           }
@@ -205,11 +214,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
          const firstNote = activeIndices[0];
          const lastNote  = activeIndices[activeIndices.length - 1];
 
-         // If there is a data rest at beat position 0 and the first actual note is
-         // later, extend the level-1 beam back to beat start so the rest shows its
-         // rhythmic value (and single notes at offset 6 still get a beam).
+         // If there is a rest at beat position 0 (data or implied) and the first
+         // actual note is later, extend the level-1 beam back to beat start so the
+         // rest shows its rhythmic value (and single notes at offset 6 still get a beam).
          const beatStartVal = position === 'top' ? slots[beatStart].top : slots[beatStart].bottom;
-         const hasBeatStartRest = beatStartVal === SYMBOL_REST;
+         const hasBeatStartRest = beatStartVal === SYMBOL_REST || impliedRests.has(`${beatStart}-${position}`);
          const l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
          const l1Span  = lastNote - l1Start;
          if (l1Span > 0) {
@@ -243,7 +252,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     const topBeams = calculateBeamsForHand('top');
     const bottomBeams = calculateBeamsForHand('bottom');
     return [...topBeams, ...bottomBeams];
-  }, [slots, collapsedRests]);
+  }, [slots, collapsedRests, impliedRests]);
 
   return (
     <div className={`track-row theme-${theme}`}>
