@@ -139,24 +139,6 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     return result;
   }, [slots, gridResolution]);
 
-  // For indung top suppression: beats where the top hand's first note is on an 8th-note
-  // boundary (pos 0 or pos 6 within the beat). When true, apply the single-dot convention
-  // (suppress indung top implied rest). When the first note is at a 16th position (pos 3/9),
-  // bypass suppression so the rest shows — and disappears automatically after quantizing to 1/8.
-  const indungTopSuppressBeats = useMemo(() => {
-    const result = new Set();
-    for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
-      for (let i = 0; i < 12; i++) {
-        const s = slots[beatStart + i];
-        if (s?.top !== '' && s?.top !== SYMBOL_REST) {
-          if (i === 0 || i === 6) result.add(beatStart); // first note on 8th position
-          break;
-        }
-      }
-    }
-    return result;
-  }, [slots]);
-
   // Collapsed rests: within each beat, 8th-note pairs (slots 0+3 and 6+9) where
   // neither position has an actual note (only rests or empty) are visually suppressed
   // — rest symbols hidden, excluded from level-2 beam. Level-1 beam still spans all.
@@ -373,8 +355,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.bottom}
                 </span>
               )}
-              {slot.top === '' && impliedRests.has(`${index}-top`) &&
-                !(trackId === 'indung' && indungTopSuppressBeats.has(Math.floor(index / 12) * 12)) && (
+              {slot.top === '' && impliedRests.has(`${index}-top`) && trackId !== 'indung' && (
                 <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
               )}
               {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && !(slot.top === '' && impliedRests.has(`${index}-top`) && trackId === 'anak') && (
