@@ -153,18 +153,25 @@ function App() {
     try { return JSON.parse(localStorage.getItem('drumPos')) || { x: 16, y: 80 }; } catch { return { x: 16, y: 80 }; }
   });
   const [drumSize, setDrumSize] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('drumSize')) || { w: 300, h: 520 }; } catch { return { w: 300, h: 520 }; }
+    try {
+      const s = JSON.parse(localStorage.getItem('drumSize'));
+      // Reset legacy fixed height (520) to auto
+      if (s?.h === 520) return { w: s.w ?? 300, h: null };
+      return s || { w: 300, h: null };
+    } catch { return { w: 300, h: null }; }
   });
+  const drumPanelRef = useRef(null);
   const [drumCollapsed, setDrumCollapsed] = useState(false);
   useEffect(() => { localStorage.setItem('drumPos', JSON.stringify(drumPos)); }, [drumPos]);
   useEffect(() => { localStorage.setItem('drumSize', JSON.stringify(drumSize)); }, [drumSize]);
 
   const drumInteractRef = useRef(null);
   const startDrumInteract = (type, clientX, clientY) => {
+    const currentH = drumSize.h ?? (drumPanelRef.current?.offsetHeight ?? 300);
     drumInteractRef.current = {
       type, startX: clientX, startY: clientY,
       origX: drumPos.x, origY: drumPos.y,
-      startW: drumSize.w, startH: drumSize.h,
+      startW: drumSize.w, startH: currentH,
     };
     const onMove = (ev) => {
       const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
@@ -1720,13 +1727,14 @@ function App() {
 
         {/* Floating drum panel */}
         <div
+          ref={drumPanelRef}
           className="drum-section-float glass-panel"
           style={{
             position: 'fixed',
             left: drumPos.x,
             top: drumPos.y,
             width: drumCollapsed ? 'auto' : drumSize.w,
-            height: drumCollapsed ? 'auto' : drumSize.h,
+            height: drumCollapsed ? 'auto' : (drumSize.h ?? 'auto'),
             minWidth: drumCollapsed ? 0 : '180px',
             minHeight: drumCollapsed ? 0 : '160px',
             zIndex: 100,
