@@ -121,21 +121,38 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     return result;
   }, [slots]);
 
-  // impliedRests: only pos 6 when pos 9 has a note (plek 3 → plek 4 lead-in).
-  // Quarter rests (empty beat) are displayed via the data rest at pos 0 — no entry here.
+  // quarterRests: beat-start slots where the beat is empty and not in trailing silence.
+  // Rendered as explicit top+bottom dots — independent of SYMBOL_REST data state.
+  const quarterRests = useMemo(() => {
+    const result = new Set();
+    for (let barIdx = 0; barIdx < lastNoteInBar.length; barIdx++) {
+      const barStart = barIdx * 48;
+      const lastNote = lastNoteInBar[barIdx];
+      for (let beatOff = 0; beatOff < 48; beatOff += 12) {
+        if (lastNote >= 0 && beatOff > lastNote) continue; // trailing silence
+        const beatStart = barStart + beatOff;
+        const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
+          (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
+        );
+        if (!beatHasNote) result.add(beatStart);
+      }
+    }
+    return result;
+  }, [slots, lastNoteInBar]);
+
+  // impliedRests: pos 6 dot when pos 9 has a note (plek 3 → plek 4 lead-in).
   const impliedRests = useMemo(() => {
     const result = new Set();
     for (let barIdx = 0; barIdx < lastNoteInBar.length; barIdx++) {
       const barStart = barIdx * 48;
-      const lastNote = lastNoteInBar[barIdx]; // -1 if bar is empty
+      const lastNote = lastNoteInBar[barIdx];
       for (let beatOff = 0; beatOff < 48; beatOff += 12) {
-        // Trailing silence: beats starting beyond the last note in a non-empty bar
         if (lastNote >= 0 && beatOff > lastNote) continue;
         const beatStart = barStart + beatOff;
         const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
           (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
         );
-        if (!beatHasNote) continue; // Empty beat: quarter rest via data rest, no implied rest
+        if (!beatHasNote) continue;
         const slot6 = slots[beatStart + 6];
         const slot9 = slots[beatStart + 9];
         if (!slot6 || !slot9) continue;
@@ -150,45 +167,17 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     return result;
   }, [slots, lastNoteInBar]);
 
-  // collapsedRests: suppress SYMBOL_REST dots per the hierarchy above.
-  //   • Beat has notes → collapse ALL SYMBOL_REST in that beat (beam shows; no dots at
-  //     pos 0/3 per spec). pos 6 is re-shown via impliedRests when pos 9 has a note.
-  //   • Empty beat in trailing silence → collapse the quarter rest at pos 0.
-  //   • Empty beat not in trailing silence → keep pos 0 data rest (quarter rest ✓).
+  // collapsedRests: collapse ALL SYMBOL_REST everywhere.
+  // Quarter rests are rendered via quarterRests (independent of data state).
+  // Implied rests (pos 6) are rendered via impliedRests.
   const collapsedRests = useMemo(() => {
     const result = new Set();
-    for (let barIdx = 0; barIdx < lastNoteInBar.length; barIdx++) {
-      const barStart = barIdx * 48;
-      const lastNote = lastNoteInBar[barIdx];
-      for (let beatOff = 0; beatOff < 48; beatOff += 12) {
-        const beatStart = barStart + beatOff;
-        const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
-          (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
-        );
-        if (beatHasNote) {
-          // Collapse every SYMBOL_REST in the beat — beats with notes use beams, not dots
-          for (let i = 0; i < 12; i++) {
-            const s = slots[beatStart + i];
-            if (!s) continue;
-            if (s.top    === SYMBOL_REST) result.add(`${beatStart + i}-top`);
-            if (s.bottom === SYMBOL_REST) result.add(`${beatStart + i}-bottom`);
-          }
-        } else {
-          // Empty beat: collapse every SYMBOL_REST except pos 0.
-          // Trailing silence → also collapse pos 0 (no quarter rest shown).
-          const inTrailingSilence = lastNote >= 0 && beatOff > lastNote;
-          for (let i = 0; i < 12; i++) {
-            if (i === 0 && !inTrailingSilence) continue; // keep quarter rest at pos 0
-            const s = slots[beatStart + i];
-            if (!s) continue;
-            if (s.top    === SYMBOL_REST) result.add(`${beatStart + i}-top`);
-            if (s.bottom === SYMBOL_REST) result.add(`${beatStart + i}-bottom`);
-          }
-        }
-      }
-    }
+    slots.forEach((s, i) => {
+      if (s.top    === SYMBOL_REST) result.add(`${i}-top`);
+      if (s.bottom === SYMBOL_REST) result.add(`${i}-bottom`);
+    });
     return result;
-  }, [slots, lastNoteInBar]);
+  }, [slots]);
 
   // Beam Rendering Logic for 8ths (1 line) and 16ths (2 lines)
   const beams = useMemo(() => {
@@ -368,6 +357,13 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 >
                   {slot.bottom}
                 </span>
+              )}
+              {/* Quarter rest: empty beat, not trailing silence → dot on both lines */}
+              {index % 12 === 0 && quarterRests.has(index) && (
+                <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
+              )}
+              {index % 12 === 0 && quarterRests.has(index) && (
+                <span className={`kendang-font slot-rest pos-below color-${trackId}`}>{SYMBOL_REST}</span>
               )}
               {/* Implied rests: pos 6 lead-in dot when pos 9 has a note (plek 3→4 rule) */}
               {(slot.top === '' || collapsedRests.has(`${index}-top`)) && impliedRests.has(`${index}-top`) && (
