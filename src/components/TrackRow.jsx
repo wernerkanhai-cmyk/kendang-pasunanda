@@ -225,25 +225,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
            handResults.push({ startIdx: beatStart + l1Start, span: l1Span, level: 1, position });
          }
 
-         // Level 2 Beams (16th note spacing) — only for non-collapsed positions
-         let l2Start = -1;
-         let prev = -1;
-         for (let i = 0; i < l2Indices.length; i++) {
-           const curr = l2Indices[i];
-           if (l2Start === -1) {
-             l2Start = curr;
-           } else {
-             if (curr - prev > 3) {
-                if (prev > l2Start) {
-                   handResults.push({ startIdx: beatStart + l2Start, span: prev - l2Start, level: 2, position });
-                }
-                l2Start = curr;
-             }
-           }
-           prev = curr;
-         }
-         if (l2Start !== -1 && prev > l2Start) {
-            handResults.push({ startIdx: beatStart + l2Start, span: prev - l2Start, level: 2, position });
+         // Level 2 Beams: draw when any note is at a 16th-note position (offset % 6 ≠ 0).
+         // Same span as the level-1 beam so single 16th notes also get a double beam.
+         const has16th = activeIndices.some(i => i % 6 !== 0);
+         if (has16th && l1Span > 0) {
+           handResults.push({ startIdx: beatStart + l1Start, span: l1Span, level: 2, position });
          }
        }
        return handResults;
