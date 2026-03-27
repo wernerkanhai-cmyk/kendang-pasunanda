@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import './TrackRow.css';
 import { SYMBOL_REST, TOP_HAND_SYMBOLS, BOTTOM_HAND_SYMBOLS } from '../engine/patternLogic';
 
@@ -373,11 +373,8 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.bottom}
                 </span>
               )}
-              {slot.top === '' && impliedRests.has(`${index}-top`) && !(
-                slot.bottom === '' && impliedRests.has(`${index}-bottom`) &&
-                trackId === 'indung' &&
-                indungTopSuppressBeats.has(Math.floor(index / 12) * 12)
-              ) && (
+              {slot.top === '' && impliedRests.has(`${index}-top`) &&
+                !(trackId === 'indung' && indungTopSuppressBeats.has(Math.floor(index / 12) * 12)) && (
                 <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
               )}
               {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && !(slot.top === '' && impliedRests.has(`${index}-top`) && trackId === 'anak') && (
