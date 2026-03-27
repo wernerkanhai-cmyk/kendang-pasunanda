@@ -168,14 +168,19 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           } else if (aIsNote && bVal === SYMBOL_REST) {
             // Note followed by rest: trailing rest — collapse b
             result.add(`${beatStart + bi}-${hand}`);
+          } else if (!aIsNote && bIsNote && aVal === SYMBOL_REST && ai === 6 && gridResolution >= 6) {
+            // [6,9] pair: rest at pos 6 before note at pos 9, but at 1/8 grid pos 9 is
+            // not displayable — the rest at pos 6 is spurious, collapse it
+            result.add(`${beatStart + ai}-${hand}`);
           }
-          // aVal === SYMBOL_REST && bIsNote: leading rest before note — keep it
+          // [0,3] leading rest before note: always keep (beat-start rest is meaningful)
+          // [6,9] leading rest before note at 1/16 grid: keep (pos 9 is displayable)
           // Both notes: nothing to collapse
         }
       }
     }
     return result;
-  }, [slots]);
+  }, [slots, gridResolution]);
 
   // Beam Rendering Logic for 8ths (1 line) and 16ths (2 lines)
   const beams = useMemo(() => {
@@ -355,7 +360,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.bottom}
                 </span>
               )}
-              {slot.top === '' && impliedRests.has(`${index}-top`) && trackId !== 'indung' && (
+              {slot.top === '' && impliedRests.has(`${index}-top`) && (trackId !== 'indung' || index % 12 === 0) && (
                 <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
               )}
               {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && !(slot.top === '' && impliedRests.has(`${index}-top`) && trackId === 'anak') && (
