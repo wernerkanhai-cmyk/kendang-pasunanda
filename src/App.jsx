@@ -467,11 +467,19 @@ function App() {
       track[i] = { ...track[i], top: '', bottom: '' };
     }
 
-    // Zet noten op dichtstbijzijnde gridpunt
+    // Zet noten op dichtstbijzijnde gridpunt + auto-fill één voorgaand ruspunt
     for (const note of notes) {
       const snapped  = Math.round(note.from / gridResolution) * gridResolution;
       const clamped  = Math.max(0, Math.min(track.length - 1, snapped));
       track[clamped] = { ...track[clamped], [note.hand]: note.symbol };
+      // Auto-fill: place rest at the single preceding grid position if empty
+      const prevPos = Math.floor((clamped - 1) / gridResolution) * gridResolution;
+      if (prevPos >= 0 && prevPos < clamped) {
+        const prevSlot = track[prevPos];
+        if (!prevSlot[note.hand]) {
+          track[prevPos] = { ...prevSlot, [note.hand]: SYMBOL_REST };
+        }
+      }
     }
 
     updatePattern(patternId, { ...pattern, [trackId]: track });

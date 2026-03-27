@@ -112,10 +112,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
         if (pos === 6) {
           // Only show rest at position 6 if the beat has 8th/16th subdivision for that hand
           const topHasSubdivision = beatSlices.some((s, i) =>
-            i !== 0 && i !== 6 && s.top !== '' && s.top !== SYMBOL_REST
+            i > 6 && s.top !== '' && s.top !== SYMBOL_REST
           );
           const bottomHasSubdivision = beatSlices.some((s, i) =>
-            i !== 0 && i !== 6 && s.bottom !== '' && s.bottom !== SYMBOL_REST
+            i > 6 && s.bottom !== '' && s.bottom !== SYMBOL_REST
           );
           if ((slot.top === '' || slot.top === SYMBOL_REST) && topHasSubdivision)    result.add(`${beatStart + pos}-top`);
           if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasSubdivision) result.add(`${beatStart + pos}-bottom`);
@@ -136,18 +136,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           if ((slot.top    === '' || slot.top    === SYMBOL_REST) && topHasLater    && !top0IsNote)    result.add(`${beatStart + pos}-top`);
           if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasLater && !bottom0IsNote) result.add(`${beatStart + pos}-bottom`);
         } else {
-          // pos === 0: omit the beat-start implied rest when slot 6 already covers
-          // the rest (data or will get implied rest from notes after slot 6),
-          // UNLESS there's a note between pos 0 and 6 that needs a leading rest.
-          const slot6 = slots[beatStart + 6];
-          const topAfter6    = beatSlices.some((s, i) => i > 6 && s.top    !== '' && s.top    !== SYMBOL_REST);
-          const bottomAfter6 = beatSlices.some((s, i) => i > 6 && s.bottom !== '' && s.bottom !== SYMBOL_REST);
-          const top6Rest    = slot6 && (slot6.top    === SYMBOL_REST || (slot6.top    === '' && topAfter6));
-          const bottom6Rest = slot6 && (slot6.bottom === SYMBOL_REST || (slot6.bottom === '' && bottomAfter6));
-          const topIn1to5    = beatSlices.slice(1, 6).some(s => s.top    !== '' && s.top    !== SYMBOL_REST);
-          const bottomIn1to5 = beatSlices.slice(1, 6).some(s => s.bottom !== '' && s.bottom !== SYMBOL_REST);
-          if ((slot.top    === '' || slot.top    === SYMBOL_REST) && !(top6Rest    && !topIn1to5))    result.add(`${beatStart + pos}-top`);
-          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && !(bottom6Rest && !bottomIn1to5)) result.add(`${beatStart + pos}-bottom`);
+          // pos === 0: always show beat-start implied rest when the beat has any note
+          // and slot 0 is empty or a rest. This ensures Indung and Anak align on the
+          // beat-start dot regardless of where in the beat each track's note falls.
+          if (slot.top    === '' || slot.top    === SYMBOL_REST) result.add(`${beatStart + pos}-top`);
+          if (slot.bottom === '' || slot.bottom === SYMBOL_REST) result.add(`${beatStart + pos}-bottom`);
         }
       }
     }
