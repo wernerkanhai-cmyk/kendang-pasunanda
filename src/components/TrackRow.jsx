@@ -126,19 +126,22 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           const slot0 = slots[beatStart];
           const top0IsNote    = slot0.top    !== '' && slot0.top    !== SYMBOL_REST;
           const bottom0IsNote = slot0.bottom !== '' && slot0.bottom !== SYMBOL_REST;
-          // At 1/8 grid (gridResolution >= 6): no 16th-rest implied at pos 3 — prevents "2 achter elkaar"
+          // At 1/8 grid (gridResolution >= 6): never imply a 16th rest at pos 3
           const topHasLater    = gridResolution <= 3
             ? beatSlices.some((s, i) => i > 3 && s.top    !== '' && s.top    !== SYMBOL_REST)
-            : beatSlices.some((s, i) => i > 3 && i % 6 !== 0 && s.top    !== '' && s.top    !== SYMBOL_REST);
+            : false;
           const bottomHasLater = gridResolution <= 3
             ? beatSlices.some((s, i) => i > 3 && s.bottom !== '' && s.bottom !== SYMBOL_REST)
-            : beatSlices.some((s, i) => i > 3 && i % 6 !== 0 && s.bottom !== '' && s.bottom !== SYMBOL_REST);
+            : false;
           if ((slot.top    === '' || slot.top    === SYMBOL_REST) && topHasLater    && !top0IsNote)    result.add(`${beatStart + pos}-top`);
           if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasLater && !bottom0IsNote) result.add(`${beatStart + pos}-bottom`);
         } else {
-          // pos === 0
-          if (slot.top === '' || slot.top === SYMBOL_REST)    result.add(`${beatStart + pos}-top`);
-          if (slot.bottom === '' || slot.bottom === SYMBOL_REST) result.add(`${beatStart + pos}-bottom`);
+          // pos === 0: skip if slot 6 already has a data rest (prevents double dot when auto-fill filled both 0 and 6)
+          const slot6 = slots[beatStart + 6];
+          const top6IsRest    = slot6 && slot6.top    === SYMBOL_REST;
+          const bottom6IsRest = slot6 && slot6.bottom === SYMBOL_REST;
+          if ((slot.top    === '' || slot.top    === SYMBOL_REST) && !top6IsRest)    result.add(`${beatStart + pos}-top`);
+          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && !bottom6IsRest) result.add(`${beatStart + pos}-bottom`);
         }
       }
     }
