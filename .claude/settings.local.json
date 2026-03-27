@@ -14,7 +14,20 @@
       "Bash(git branch:*)",
       "Bash(git remote:*)",
       "Bash(git push:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(cat /Users/wernerkanhai/Documents/KendangPasunanda/.github/workflows/*.yml)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(git checkout:*)",
+      "Bash(npx vercel:*)",
+      "Bash(git merge:*)",
+      "Bash(git -C /Users/wernerkanhai/Documents/KendangPasunanda/.claude/worktrees/agent-a9caa01a log --oneline)",
+      "Bash(git -C /Users/wernerkanhai/Documents/KendangPasunanda/.claude/worktrees/agent-a9caa01a status)",
+      "Bash(ls /Users/wernerkanhai/Documents/KendangPasunanda/src/i18n*)",
+      "Bash(git -C /Users/wernerkanhai/Documents/KendangPasunanda ls-files --others --exclude-standard public/audio/)",
+      "Bash(git -C /Users/wernerkanhai/Documents/KendangPasunanda ls-files public/audio/)",
+      "Bash(git rm:*)",
+      "Bash(gh browse:*)",
+      "Bash(git worktree:*)"
     ]
   }
 }
