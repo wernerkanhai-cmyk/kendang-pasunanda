@@ -110,15 +110,20 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
         const slot = slots[beatStart + pos];
         if (!slot) continue;
         if (pos === 6) {
-          // Only show rest at position 6 if the beat has 8th/16th subdivision for that hand
+          // Only show rest at position 6 if:
+          // - the beat has 8th/16th subdivision for that hand (notes after pos 6)
+          // - AND pos 0 has no note for that hand (a note at pos 0 fills the 1st 8th — no rest needed at pos 6)
+          const slot0 = slots[beatStart];
+          const top0IsNote    = slot0.top    !== '' && slot0.top    !== SYMBOL_REST;
+          const bottom0IsNote = slot0.bottom !== '' && slot0.bottom !== SYMBOL_REST;
           const topHasSubdivision = beatSlices.some((s, i) =>
             i > 6 && s.top !== '' && s.top !== SYMBOL_REST
           );
           const bottomHasSubdivision = beatSlices.some((s, i) =>
             i > 6 && s.bottom !== '' && s.bottom !== SYMBOL_REST
           );
-          if ((slot.top === '' || slot.top === SYMBOL_REST) && topHasSubdivision)    result.add(`${beatStart + pos}-top`);
-          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasSubdivision) result.add(`${beatStart + pos}-bottom`);
+          if ((slot.top === '' || slot.top === SYMBOL_REST) && topHasSubdivision && !top0IsNote)       result.add(`${beatStart + pos}-top`);
+          if ((slot.bottom === '' || slot.bottom === SYMBOL_REST) && bottomHasSubdivision && !bottom0IsNote) result.add(`${beatStart + pos}-bottom`);
         } else if (pos === 3) {
           // Show rest at 2nd sixteenth (pos 3) only when pos 0 has no note for that hand
           // (a note at pos 0 fills the 1/8 slot — no rest needed at pos 3)
@@ -365,10 +370,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.bottom}
                 </span>
               )}
-              {slot.top === '' && impliedRests.has(`${index}-top`) && !(slot.bottom === '' && impliedRests.has(`${index}-bottom`) && trackId === 'indung') && (
+              {slot.top === '' && impliedRests.has(`${index}-top`) && (
                 <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
               )}
-              {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && !(slot.top === '' && impliedRests.has(`${index}-top`) && trackId === 'anak') && (
+              {slot.bottom === '' && impliedRests.has(`${index}-bottom`) && (
                 <span className={`kendang-font slot-rest pos-below color-${trackId}`}>{SYMBOL_REST}</span>
               )}
             </div>
