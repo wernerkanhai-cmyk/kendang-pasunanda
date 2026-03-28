@@ -336,18 +336,18 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           );
         })}
 
-        {/* Gong block overlays — 4px naar links verschoven t.o.v. het grid */}
-        {gong.map(blockStart => {
+        {/* Gong block overlays — 1 beat (12 slots) breed, uitgelijnd op beatgrens, 4px naar links */}
+        {[...new Set(gong.map(g => Math.floor(g / 12) * 12))].map(beatStart => {
           const gongColor = trackId === 'anak' ? 'rgba(0,0,0,0.9)' : 'rgba(204,0,0,0.9)';
           return (
             <div
-              key={`gong-${blockStart}`}
+              key={`gong-${beatStart}`}
               style={{
                 position: 'absolute',
                 top: 0,
                 height: '100%',
-                left: blockStart * slotWidth - 4,
-                width: 6 * slotWidth,
+                left: beatStart * slotWidth - 4,
+                width: 12 * slotWidth,
                 border: `2px solid ${gongColor}`,
                 pointerEvents: 'none',
                 zIndex: 5,

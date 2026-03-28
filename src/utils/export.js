@@ -253,10 +253,11 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   drawTrack(slots_indung, nullY_indung, '#cc0000');
 
   // ── 6. Gong boxes (transparent rect + center line, anak=black, indung=red) ───
-  for (const blockStart of (gong || [])) {
-    if (blockStart < 0 || blockStart >= SLOTS_PER_ROW) continue;
-    const gx = rowX + blockStart * SLOT_W;
-    const gw = 6 * SLOT_W;
+  const deduplicatedGong = [...new Set((gong || []).map(g => Math.floor(g / 12) * 12))];
+  for (const beatStart of deduplicatedGong) {
+    if (beatStart < 0 || beatStart >= SLOTS_PER_ROW) continue;
+    const gx = rowX + beatStart * SLOT_W;
+    const gw = 12 * SLOT_W;
 
     // Anak box
     ctx.strokeStyle = 'rgba(0,0,0,0.8)';
