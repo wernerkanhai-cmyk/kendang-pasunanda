@@ -396,18 +396,23 @@ const [showBeheer, setShowBeheer] = useState(true);
     updatePattern({ ...pattern, [range.trackId]: newTrack });
   };
 
+  const snapSlot = (slot) => magneticInput
+    ? Math.round(slot / gridResolution) * gridResolution
+    : slot;
+
   const handleSlotClick = (trackId, slotIndex, isShift) => {
     onFocus();
     if (setInputMode) setInputMode(trackId);
+    const snapped = snapSlot(slotIndex);
     if (isPlaying && onSeek) {
-      onSeek(pattern.id, slotIndex);
+      onSeek(pattern.id, snapped);
       return;
     }
     if (setActiveSlot) {
       if (isShift && activeSlot && activeSlot.patternId === pattern.id && activeSlot.trackId === trackId) {
-        setActiveSlot({ ...activeSlot, endIndex: slotIndex });
+        setActiveSlot({ ...activeSlot, endIndex: snapped });
       } else {
-        setActiveSlot({ patternId: pattern.id, trackId, startIndex: slotIndex, endIndex: slotIndex });
+        setActiveSlot({ patternId: pattern.id, trackId, startIndex: snapped, endIndex: snapped });
       }
     }
   };
@@ -425,7 +430,8 @@ const [showBeheer, setShowBeheer] = useState(true);
       if (!tracksContainerRef.current) return;
       const rect = tracksContainerRef.current.getBoundingClientRect();
       const x = ev.clientX - rect.left - SOLO_BTN_W;
-      const slot = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
+      const raw  = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
+      const slot = snapSlot(raw);
       if (isPlaying) {
         onSeek?.(pattern.id, slot);
       } else {
