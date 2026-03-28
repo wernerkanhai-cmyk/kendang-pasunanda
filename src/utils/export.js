@@ -208,8 +208,9 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       const barStart = barIdx * BAR_SLOTS;
       const lastNote = lastNoteInBar[barIdx];
 
+      if (lastNote < 0) continue; // volledig lege maat → geen stippen
       for (let beatOff = 0; beatOff < BAR_SLOTS; beatOff += 12) {
-        if (lastNote >= 0 && beatOff > lastNote) continue; // trailing silence
+        if (beatOff > lastNote) continue; // trailing silence
         const beatStart = barStart + beatOff;
 
         const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>

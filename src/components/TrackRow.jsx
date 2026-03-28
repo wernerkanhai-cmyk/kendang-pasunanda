@@ -203,8 +203,9 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     for (let barIdx = 0; barIdx < lastNoteInBar.length; barIdx++) {
       const barStart = barIdx * 48;
       const lastNote = lastNoteInBar[barIdx];
+      if (lastNote < 0) continue; // volledig lege maat → geen stippen
       for (let beatOff = 0; beatOff < 48; beatOff += 12) {
-        if (lastNote >= 0 && beatOff > lastNote) continue; // trailing silence
+        if (beatOff > lastNote) continue; // trailing silence
         const beatStart = barStart + beatOff;
         const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
           (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
