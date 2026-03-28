@@ -162,9 +162,9 @@
 }
 
 .slot-rest.pos-below {
-  top: auto;   /* cancel .pos-below's top: 50% — anders worden beide tegelijk toegepast en samengeperst */
-  bottom: 25%; /* halverwege nullijn en onderkant, symetrisch met pos-above */
-  margin-top: 0;
+  top: 50%;
+  margin-top: 10px; /* Zelfde als .pos-below noot-symbolen */
+  bottom: auto;
 }
 
 /* Rhythmic Beams (8ths / 16ths) */
