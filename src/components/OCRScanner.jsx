@@ -188,6 +188,27 @@ const OCRScanner = ({ onScanResult }) => {
 
   const savedKey = () => localStorage.getItem(API_KEY_STORAGE) || '';
 
+  // Resize/convert image to JPEG, max 2000px wide, quality 0.85
+  const prepareImage = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not decode image'));
+      img.onload = () => {
+        const MAX = 2000;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
   const handleFile = async (file) => {
     const key = savedKey();
     if (!key) { setShowKeyInput(true); return; }
@@ -196,15 +217,22 @@ const OCRScanner = ({ onScanResult }) => {
     setError(null);
 
     try {
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload  = (e) => resolve(e.target.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const isPdf = file.type === 'application/pdf';
+      let base64, mimeType;
 
-      const isPdf    = file.type === 'application/pdf';
-      const mimeType = file.type || 'image/jpeg';
+      if (isPdf) {
+        base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload  = (e) => resolve(e.target.result.split(',')[1]);
+          reader.onerror = () => reject(new Error('Could not read PDF'));
+          reader.readAsDataURL(file);
+        });
+        mimeType = 'application/pdf';
+      } else {
+        base64   = await prepareImage(file);
+        mimeType = 'image/jpeg';
+      }
+
       const mediaBlock = isPdf
         ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
         : { type: 'image',    source: { type: 'base64', media_type: mimeType,           data: base64 } };
