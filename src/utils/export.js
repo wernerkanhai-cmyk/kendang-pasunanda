@@ -199,7 +199,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     // Top hand: textBaseline='bottom', y = nullY - symAbove  (same as note symbols)
     // Bottom hand: textBaseline='top',  y = nullY + symBelow  (same as note symbols)
     ctx.font      = `${SYM_SIZE}px Kendang, monospace`;
-    ctx.fillStyle = '#888888';
+    ctx.fillStyle = baseColor;
     ctx.textAlign = 'center';
     const dotY    = { top: nullY - cfg.symAbove, bottom: nullY + cfg.symBelow };
     const dotBase = { top: 'bottom',             bottom: 'top' };
