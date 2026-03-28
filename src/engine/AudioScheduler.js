@@ -103,8 +103,8 @@ export class AudioScheduler {
       osc.stop(time + 0.1);
     }
 
-    // Samples schedulen op exact audio-tijdstip
-    if (this.onScheduleAudio && !this.isRecording) {
+    // Samples schedulen op exact audio-tijdstip (ook tijdens opname: bestaande noten meehoren)
+    if (this.onScheduleAudio) {
       this.onScheduleAudio(slotNumber, time);
     }
 
