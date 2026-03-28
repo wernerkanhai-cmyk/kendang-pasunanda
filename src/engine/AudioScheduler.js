@@ -88,6 +88,7 @@ export class AudioScheduler {
   }
 
   clickWhilePlaying = false;
+  clickVolume = 0.7; // 0–1, instelbaar via UI
 
   scheduleNote(slotNumber, time) {
     // Metronoomklik tijdens opname of bij clickWhilePlaying
@@ -97,7 +98,7 @@ export class AudioScheduler {
       osc.connect(gain);
       gain.connect(this.audioCtx.destination);
       osc.frequency.value = (slotNumber % 48 === 0) ? 880 : 440;
-      gain.gain.setValueAtTime(0.35, time);
+      gain.gain.setValueAtTime(Math.max(0.001, this.clickVolume), time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
       osc.start(time);
       osc.stop(time + 0.1);

@@ -50,6 +50,7 @@ function App() {
   const [soloTrack, setSoloTrack] = useState(null); // null | 'anak' | 'indung'
   const soloTrackRef = useRef(null);
   const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
+  const [metronomeVolume, setMetronomeVolume] = useState(0.7);
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
 
@@ -777,6 +778,11 @@ function App() {
     soloTrackRef.current = next;
     setSoloTrack(next);
   };
+
+  // Sync metronoomvolume live naar de scheduler
+  useEffect(() => {
+    if (schedulerRef.current) schedulerRef.current.clickVolume = metronomeVolume;
+  }, [metronomeVolume]);
 
   // ── Tempo automation ──────────────────────────────────────────────────────
 
@@ -1913,6 +1919,8 @@ function App() {
                       onToggleSolo={toggleSolo}
                       metronomeMode={metronomeMode}
                       setMetronomeMode={setMetronomeMode}
+                      metronomeVolume={metronomeVolume}
+                      setMetronomeVolume={setMetronomeVolume}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
                       onSeek={handleSeek}
                       trackVolumes={trackVolumes}

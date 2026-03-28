@@ -53,6 +53,8 @@ const PatternEditor = ({
   onToggleSolo,
   metronomeMode,
   setMetronomeMode,
+  metronomeVolume = 0.7,
+  setMetronomeVolume,
   onUpdateTempoTrack,
   onSeek,
   onDuplicate,
@@ -730,6 +732,15 @@ const [showBeheer, setShowBeheer] = useState(true);
                           {label}
                         </div>
                       ))}
+                      <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
+                        <input
+                          type="range" min="0" max="1" step="0.05"
+                          value={metronomeVolume}
+                          onChange={(e) => setMetronomeVolume?.(parseFloat(e.target.value))}
+                          style={{ width: '100%', accentColor: '#fb923c', cursor: 'pointer' }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
