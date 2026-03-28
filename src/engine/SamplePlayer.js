@@ -5,19 +5,19 @@
  */
 
 export const DEFAULT_SOUND_SETTINGS = {
-  tung:    { gain: 1.0, pitch: 1.0 },
-  dong:    { gain: 1.0, pitch: 1.0 },
-  ting:    { gain: 1.0, pitch: 1.0 },
+  tung:    { gain: 3.0, pitch: 1.0 },
+  dong:    { gain: 3.0, pitch: 1.0 },
+  ting:    { gain: 3.0, pitch: 1.0 },
   det:     { gain: 3.0, pitch: 1.0 },
-  dededet: { gain: 1.0, pitch: 1.0 },
-  pling:   { gain: 1.0, pitch: 1.0 },
-  pang:    { gain: 1.0, pitch: 1.0 },
-  ping:    { gain: 1.0, pitch: 1.0 },
-  pong:    { gain: 1.0, pitch: 1.0 },
-  plak:    { gain: 1.0, pitch: 1.0 },
-  pak:     { gain: 1.0, pitch: 1.0 },
-  peung:   { gain: 1.0, pitch: 1.0 },
-  gong:    { gain: 1.0, pitch: 1.0 },
+  dededet: { gain: 3.0, pitch: 1.0 },
+  pling:   { gain: 3.0, pitch: 1.0 },
+  pang:    { gain: 3.0, pitch: 1.0 },
+  ping:    { gain: 3.0, pitch: 1.0 },
+  pong:    { gain: 3.0, pitch: 1.0 },
+  plak:    { gain: 3.0, pitch: 1.0 },
+  pak:     { gain: 3.0, pitch: 1.0 },
+  peung:   { gain: 3.0, pitch: 1.0 },
+  gong:    { gain: 3.0, pitch: 1.0 },
 };
 
 export const SYMBOL_TO_SOUND = {
