@@ -770,15 +770,17 @@ const [showBeheer, setShowBeheer] = useState(true);
                   title={t('snapToGrid')}
                 >🧲</button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); setAutoQuantize(!autoQuantize); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isPlaying || isRecording) {
+                      setAutoQuantize(!autoQuantize);
+                    } else {
+                      onSnapToGrid?.();
+                    }
+                  }}
                   style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
-                  title={t('autoQuantize')}
+                  title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selectie naar grid'}
                 >Q</button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onSnapToGrid?.(); }}
-                  style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
-                  title="Snap selectie naar grid"
-                >⤵</button>
              </div>
            )}
         </div>
