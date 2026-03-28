@@ -647,25 +647,30 @@ function App() {
     // resume().then(...) is niet voldoende — start de silent buffer VOOR de await/then.
     const unlockAudio = () => {
       const ctx = samplerRef.current?.audioCtx;
-      if (!ctx || ctx.state === 'running') return;
+      if (!ctx) return;
+      // Altijd proberen: iOS kan de context ook mid-playback suspenderen
       try {
         const silent = ctx.createBuffer(1, 1, ctx.sampleRate);
         const src = ctx.createBufferSource();
         src.buffer = silent;
         src.connect(ctx.destination);
-        src.start(0); // synchroon binnen gesture — ontgrendelt Safari
+        src.start(0); // synchroon binnen gesture — ontgrendelt Safari/iOS
       } catch (_) {}
-      ctx.resume();
+      if (ctx.state !== 'running') ctx.resume();
     };
-    window.addEventListener('click',    unlockAudio);
-    window.addEventListener('touchend', unlockAudio);
-    window.addEventListener('keydown',  unlockAudio);
+    window.addEventListener('click',      unlockAudio);
+    window.addEventListener('touchstart', unlockAudio, { passive: true });
+    window.addEventListener('touchend',   unlockAudio);
+    window.addEventListener('keydown',    unlockAudio);
+    window.addEventListener('pointerdown', unlockAudio);
 
     return () => {
       schedulerRef.current.stop();
-      window.removeEventListener('click',    unlockAudio);
-      window.removeEventListener('touchend', unlockAudio);
-      window.removeEventListener('keydown',  unlockAudio);
+      window.removeEventListener('click',       unlockAudio);
+      window.removeEventListener('touchstart',  unlockAudio);
+      window.removeEventListener('touchend',    unlockAudio);
+      window.removeEventListener('keydown',     unlockAudio);
+      window.removeEventListener('pointerdown', unlockAudio);
     };
   }, []); // Run once on mount
 
