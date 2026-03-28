@@ -766,7 +766,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 </select>
                 <button
                   onClick={(e) => { e.stopPropagation(); setMagneticInput(!magneticInput); }}
-                  style={{ background: magneticInput ? 'rgba(59,130,246,0.2)' : 'transparent', color: magneticInput ? '#60a5fa' : '#64748b', border: `1px solid ${magneticInput ? '#3b82f6' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+                  style={{ background: magneticInput ? 'rgba(239,68,68,0.2)' : 'transparent', color: magneticInput ? '#f87171' : '#64748b', border: `1px solid ${magneticInput ? '#ef4444' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
                   title={t('snapToGrid')}
                 >🧲</button>
                 <button
