@@ -718,77 +718,6 @@ const [showBeheer, setShowBeheer] = useState(true);
               </div>
            )}
 
-           {isActive && (
-             <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '3px', marginRight: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.3rem 0.4rem', borderRadius: '4px', alignItems: 'center' }}>
-                <div style={{ position: 'relative' }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setShowMetronomeMenu(v => !v); }}
-                    style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#64748b', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
-                    title={t('metronome')}
-                  >
-                    <svg width="11" height="13" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
-                      <line x1="5.5" y1="2.5" x2="8.5" y2="10"/>
-                      <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
-                    </svg>
-                  </button>
-                  {showMetronomeMenu && (
-                    <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-                      {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
-                        <div key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                          {label}
-                        </div>
-                      ))}
-                      <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
-                        <input
-                          type="range" min="0" max="1" step="0.05"
-                          value={metronomeVolume}
-                          onChange={(e) => setMetronomeVolume?.(parseFloat(e.target.value))}
-                          style={{ width: '100%', accentColor: '#fb923c', cursor: 'pointer' }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
-                  style={{ background: inputEnabled ? 'rgba(22,163,74,0.2)' : 'transparent', color: inputEnabled ? '#4ade80' : '#64748b', border: `1px solid ${inputEnabled ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
-                  title={inputEnabled ? t('inputOn') : t('inputOff')}
-                >✏️</button>
-                <select
-                  value={gridResolution}
-                  onChange={(e) => { e.stopPropagation(); setGridResolution(Number(e.target.value)); }}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ background: '#1e293b', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', width: '4.5rem' }}
-                  title={t('gridResolution')}
-                >
-                  <option value="12">1/4</option>
-                  <option value="16">1/4T</option>
-                  <option value="6">1/8</option>
-                  <option value="4">1/8T</option>
-                  <option value="3">1/16</option>
-                  <option value="2">1/16T</option>
-                </select>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setMagneticInput(!magneticInput); }}
-                  style={{ background: magneticInput ? 'rgba(239,68,68,0.2)' : 'transparent', color: magneticInput ? '#f87171' : '#64748b', border: `1px solid ${magneticInput ? '#ef4444' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
-                  title={t('snapToGrid')}
-                >🧲</button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (isPlaying || isRecording) {
-                      setAutoQuantize(!autoQuantize);
-                    } else {
-                      onSnapToGrid?.();
-                    }
-                  }}
-                  style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
-                  title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selectie naar grid'}
-                >Q</button>
-             </div>
-           )}
         </div>
       </div>
 
@@ -924,6 +853,74 @@ const [showBeheer, setShowBeheer] = useState(true);
               <path d="M2 13L8.5 4L13 8.5L7 13Z"/><line x1="0.5" y1="13" x2="14.5" y2="13"/>
             </svg>
           </button>
+          <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowMetronomeMenu(v => !v); }}
+              style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#64748b', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
+              title={t('metronome')}
+            >
+              <svg width="11" height="13" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
+                <line x1="5.5" y1="2.5" x2="8.5" y2="10"/>
+                <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
+              </svg>
+            </button>
+            {showMetronomeMenu && (
+              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+                {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
+                  <div key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    {label}
+                  </div>
+                ))}
+                <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onClick={(e) => e.stopPropagation()}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
+                  <input
+                    type="range" min="0" max="1" step="0.05"
+                    value={metronomeVolume}
+                    onChange={(e) => setMetronomeVolume?.(parseFloat(e.target.value))}
+                    style={{ width: '100%', accentColor: '#fb923c', cursor: 'pointer' }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
+            style={{ background: inputEnabled ? 'rgba(22,163,74,0.2)' : 'transparent', color: inputEnabled ? '#4ade80' : '#64748b', border: `1px solid ${inputEnabled ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+            title={inputEnabled ? t('inputOn') : t('inputOff')}
+          >✏️</button>
+          <select
+            value={gridResolution}
+            onChange={(e) => { e.stopPropagation(); setGridResolution(Number(e.target.value)); }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: '#1e293b', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', width: '4.5rem' }}
+            title={t('gridResolution')}
+          >
+            <option value="12">1/4</option>
+            <option value="16">1/4T</option>
+            <option value="6">1/8</option>
+            <option value="4">1/8T</option>
+            <option value="3">1/16</option>
+            <option value="2">1/16T</option>
+          </select>
+          <button
+            onClick={(e) => { e.stopPropagation(); setMagneticInput(!magneticInput); }}
+            style={{ background: magneticInput ? 'rgba(239,68,68,0.2)' : 'transparent', color: magneticInput ? '#f87171' : '#64748b', border: `1px solid ${magneticInput ? '#ef4444' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+            title={t('snapToGrid')}
+          >🧲</button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isPlaying || isRecording) {
+                setAutoQuantize(!autoQuantize);
+              } else {
+                onSnapToGrid?.();
+              }
+            }}
+            style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
+            title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selectie naar grid'}
+          >Q</button>
         </div>
       )}
 
