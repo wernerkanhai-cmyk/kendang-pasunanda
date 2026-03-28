@@ -289,7 +289,7 @@ const OCRScanner = ({ onScanResult }) => {
     <div style={{ display: 'inline-flex', gap: '2px', marginRight: '1rem' }}>
       <input type="file" accept="image/*,application/pdf" style={{ display: 'none' }} ref={fileInputRef}
         onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); resetInputs(); }} />
-      <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} ref={cameraInputRef}
+      <input type="file" accept="image/*" capture style={{ display: 'none' }} ref={cameraInputRef}
         onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); resetInputs(); }} />
 
       <button className="btn-secondary" title={t('chooseFile')}
