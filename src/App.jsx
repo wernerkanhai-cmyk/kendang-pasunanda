@@ -84,8 +84,8 @@ function App() {
   useEffect(() => { trackVolumesRef.current = trackVolumes; }, [trackVolumes]);
 
   // Vox volume (afzonderlijk van track volumes)
-  const [voxVolume, setVoxVolume] = useState(1.0);
-  const voxVolumeRef = useRef(1.0);
+  const [voxVolume, setVoxVolume] = useState(0.5);
+  const voxVolumeRef = useRef(0.5);
   useEffect(() => { voxVolumeRef.current = voxVolume; }, [voxVolume]);
 
   // Grid & Quantize State
