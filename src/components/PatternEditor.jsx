@@ -722,7 +722,7 @@ const [showBeheer, setShowBeheer] = useState(true);
       </div>
 
       {isActive && (
-        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)' }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)', overflowX: 'auto', flexWrap: 'nowrap' }}>
           {/* Zoom controls */}
           <span style={{ fontSize: '0.65rem', color: '#64748b' }}>{t('zoom')}</span>
           {zoomEditing ? (
