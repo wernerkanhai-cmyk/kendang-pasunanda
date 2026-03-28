@@ -350,7 +350,18 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 zIndex: 5,
                 boxSizing: 'border-box',
               }}
-            />
+            >
+              {/* Horizontale middenlijn op de nullijn */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: 0,
+                right: 0,
+                height: 2,
+                background: gongColor,
+                transform: 'translateY(-50%)',
+              }} />
+            </div>
           );
         })}
 
