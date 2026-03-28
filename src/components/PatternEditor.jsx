@@ -876,22 +876,25 @@ const [showBeheer, setShowBeheer] = useState(true);
               </svg>
             </button>
             {showMetronomeMenu && (
-              <div style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-                {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
-                  <div key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                    {label}
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setShowMetronomeMenu(false)} />
+                <div style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+                  {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
+                    <button key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', border: 'none', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                      {label}
+                    </button>
+                  ))}
+                  <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
+                    <input
+                      type="range" min="0" max="1" step="0.05"
+                      value={metronomeVolume}
+                      onChange={(e) => setMetronomeVolume?.(parseFloat(e.target.value))}
+                      style={{ width: '100%', accentColor: '#fb923c', cursor: 'pointer' }}
+                    />
                   </div>
-                ))}
-                <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onClick={(e) => e.stopPropagation()}>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
-                  <input
-                    type="range" min="0" max="1" step="0.05"
-                    value={metronomeVolume}
-                    onChange={(e) => setMetronomeVolume?.(parseFloat(e.target.value))}
-                    style={{ width: '100%', accentColor: '#fb923c', cursor: 'pointer' }}
-                  />
-                </div>
               </div>
+              </>
             )}
           </div>
           <button
