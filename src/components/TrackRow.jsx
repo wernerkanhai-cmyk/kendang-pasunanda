@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import './TrackRow.css';
-import { SYMBOL_REST, TOP_HAND_SYMBOLS, BOTTOM_HAND_SYMBOLS } from '../engine/patternLogic';
+import { SYMBOL_REST, TOP_HAND_SYMBOLS, BOTTOM_HAND_SYMBOLS, deduplicateGongByBeat } from '../engine/patternLogic';
 
 const DRUM_MENU = [
   { label: 'Ketipung', sounds: [{ symbol: 'N', name: 'Tung' }] },
@@ -144,6 +144,8 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
     };
   }, [onNoteMove, trackId]);
   // A standard bar is 48 slots. A beat is 12 slots. A 16th note step is 3 slots.
+
+  const gongBeats = useMemo(() => deduplicateGongByBeat(gong), [gong]);
 
   // Triplet Detection Logic
   // A beat has 12 slots (indices 0 to 11).
@@ -337,7 +339,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
         })}
 
         {/* Gong block overlays — 1 beat (12 slots) breed, uitgelijnd op beatgrens, 1px naar links */}
-        {[...new Set(gong.map(g => Math.floor(g / 12) * 12))].map(beatStart => {
+        {gongBeats.map(beatStart => {
           const gongColor = trackId === 'anak' ? 'rgba(0,0,0,0.9)' : 'rgba(204,0,0,0.9)';
           return (
             <div

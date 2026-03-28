@@ -643,12 +643,11 @@ function App() {
     schedulerRef.current.setAudioContext(sharedCtx);
     schedulerRef.current.setBpm(bpm);
 
-    // Safari vereist dat het eerste audio-node synchroon binnen de gesture handler wordt gestart.
+    // Safari/iOS vereist dat het eerste audio-node synchroon binnen de gesture handler wordt gestart.
     // resume().then(...) is niet voldoende — start de silent buffer VOOR de await/then.
     const unlockAudio = () => {
       const ctx = samplerRef.current?.audioCtx;
-      if (!ctx) return;
-      // Altijd proberen: iOS kan de context ook mid-playback suspenderen
+      if (!ctx || ctx.state === 'running') return;
       try {
         const silent = ctx.createBuffer(1, 1, ctx.sampleRate);
         const src = ctx.createBufferSource();
@@ -656,21 +655,19 @@ function App() {
         src.connect(ctx.destination);
         src.start(0); // synchroon binnen gesture — ontgrendelt Safari/iOS
       } catch (_) {}
-      if (ctx.state !== 'running') ctx.resume();
+      ctx.resume();
     };
-    window.addEventListener('click',      unlockAudio);
-    window.addEventListener('touchstart', unlockAudio, { passive: true });
-    window.addEventListener('touchend',   unlockAudio);
-    window.addEventListener('keydown',    unlockAudio);
-    window.addEventListener('pointerdown', unlockAudio);
+    // touchstart vuurt vroeg in het gebaar (iOS); pointerdown dekt muis + stylus; keydown dekt toetsenbord
+    const UNLOCK_EVENTS = [
+      ['touchstart', { passive: true }],
+      ['pointerdown', undefined],
+      ['keydown',    undefined],
+    ];
+    UNLOCK_EVENTS.forEach(([type, opts]) => window.addEventListener(type, unlockAudio, opts));
 
     return () => {
       schedulerRef.current.stop();
-      window.removeEventListener('click',       unlockAudio);
-      window.removeEventListener('touchstart',  unlockAudio);
-      window.removeEventListener('touchend',    unlockAudio);
-      window.removeEventListener('keydown',     unlockAudio);
-      window.removeEventListener('pointerdown', unlockAudio);
+      UNLOCK_EVENTS.forEach(([type]) => window.removeEventListener(type, unlockAudio));
     };
   }, []); // Run once on mount
 

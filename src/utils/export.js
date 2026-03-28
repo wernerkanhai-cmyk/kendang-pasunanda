@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { deduplicateGongByBeat } from '../engine/patternLogic';
 
 // ─── Page geometry ─────────────────────────────────────────────────────────────
 // A4 portrait at ~210 dpi gives a crisp result while keeping file size sane.
@@ -252,7 +253,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   drawTrack(slots_indung, nullY_indung, '#cc0000');
 
   // ── 6. Gong boxes (transparent rect + center line, anak=black, indung=red) ───
-  const deduplicatedGong = [...new Set((gong || []).map(g => Math.floor(g / 12) * 12))];
+  const deduplicatedGong = deduplicateGongByBeat(gong || []);
   for (const beatStart of deduplicatedGong) {
     if (beatStart < 0 || beatStart >= SLOTS_PER_ROW) continue;
     const gx = rowX + beatStart * SLOT_W;

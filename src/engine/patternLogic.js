@@ -20,6 +20,12 @@ export const generateEmptySlots = (count) => {
   });
 };
 
+/** Rounds a slot index down to the nearest beat boundary (every 12 slots). */
+export const slotToBeat = (slot) => Math.floor(slot / 12) * 12;
+
+/** Deduplicates a gong array by beat: multiple entries in the same beat → one entry. */
+export const deduplicateGongByBeat = (gong) => [...new Set(gong.map(slotToBeat))];
+
 // Generates a complete 4-bar pattern entity (192 slots per track)
 export const createEmptyPattern = (name = 'Song 1') => {
   return {
