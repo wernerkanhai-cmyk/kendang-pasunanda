@@ -32,13 +32,6 @@ const SLOTS_PER_ROW   = BARS_PER_ROW * SLOTS_PER_BAR; // 192
 const SLOT_W          = USABLE_W / SLOTS_PER_ROW;      // ~12.1 px
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
-function isEmptyBeat(slots, beatStart, hand) {
-  for (let i = 0; i < 12; i++) {
-    const s = slots[beatStart + i];
-    if (s && s[hand] !== '') return false;
-  }
-  return true;
-}
 
 // Returns beam descriptors: { startIdx, span, level, position }
 // Synced with TrackRow.jsx beam logic
@@ -145,7 +138,25 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
   // ── 5. Helper: draw symbols + beams for one track ────────────────────────────
   function drawTrack(slots, nullY, baseColor) {
-    // Rhythmic beams (8th = level 1, 16th = level 2)
+    const SYMBOL_REST = '.';
+    const BARS_LOCAL  = BARS_PER_ROW;
+    const BAR_SLOTS   = SLOTS_PER_BAR;
+
+    // Per-bar: last real note index (for trailing silence detection)
+    const lastNoteInBar = [];
+    for (let b = 0; b < BARS_LOCAL; b++) {
+      let last = -1;
+      for (let i = BAR_SLOTS - 1; i >= 0; i--) {
+        const s = slots[b * BAR_SLOTS + i];
+        if (!s) continue;
+        if ((s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)) {
+          last = i; break;
+        }
+      }
+      lastNoteInBar.push(last);
+    }
+
+    // ── Beams ────────────────────────────────────────────────────────────────
     const beams = calculateBeams(slots);
     ctx.lineWidth = 1;
     for (const beam of beams) {
@@ -161,53 +172,86 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       ctx.stroke();
     }
 
-    // Symbols
+    // ── Real symbols (data rests skipped — rendered separately below) ─────────
     for (let i = 0; i < SLOTS_PER_ROW; i++) {
       const slot = slots[i];
       if (!slot) continue;
       const x = rowX + i * SLOT_W + 2;
 
-      if (slot.top !== '') {
-        const isRest = slot.top === '.';
-        ctx.font = `${isRest ? REST_SIZE : SYM_SIZE}px Kendang, monospace`;
+      if (slot.top !== '' && slot.top !== SYMBOL_REST) {
+        ctx.font = `${SYM_SIZE}px Kendang, monospace`;
         ctx.fillStyle = baseColor;
-        ctx.globalAlpha = isRest ? 0.45 : 1.0;
+        ctx.globalAlpha = 1.0;
         ctx.textBaseline = 'bottom';
         ctx.fillText(slot.top, x, nullY - cfg.symAbove);
       }
-
-      if (slot.bottom !== '') {
-        const isRest = slot.bottom === '.';
-        ctx.font = `${isRest ? REST_SIZE : SYM_SIZE}px Kendang, monospace`;
+      if (slot.bottom !== '' && slot.bottom !== SYMBOL_REST) {
+        ctx.font = `${SYM_SIZE}px Kendang, monospace`;
         ctx.fillStyle = baseColor;
-        ctx.globalAlpha = isRest ? 0.45 : 1.0;
-        if (isRest) {
-          ctx.textBaseline = 'top';
-          ctx.fillText(slot.bottom, x, nullY + cfg.symBelow - 16);
-        } else {
-          ctx.textBaseline = 'top';
-          ctx.fillText(slot.bottom, x, nullY + cfg.symBelow);
-        }
+        ctx.globalAlpha = 1.0;
+        ctx.textBaseline = 'top';
+        ctx.fillText(slot.bottom, x, nullY + cfg.symBelow);
       }
-
       ctx.globalAlpha = 1.0;
     }
 
-    // Position-indicator dots — faint, one for top and one for bottom symbol position
-    ctx.font = `${REST_SIZE}px Kendang, monospace`;
+    // ── Rest dots: quarter rests + implied rests (same rules as screen) ───────
+    // Uses textAlign='center', textBaseline='middle', centered on the slot.
+    ctx.font      = `${REST_SIZE}px Kendang, monospace`;
     ctx.fillStyle = baseColor;
-    ctx.globalAlpha = 0.18;
     ctx.textBaseline = 'middle';
-    ctx.textAlign = 'center';
-    const topDotY    = nullY + cfg.dotTopOffset;
-    const bottomDotY = nullY + cfg.dotBottomOffset;
-    for (let beat = 0; beat < SLOTS_PER_ROW / 12; beat++) {
-      const cx = rowX + (beat * 12 + 6) * SLOT_W;
-      if (isEmptyBeat(slots, beat * 12, 'top'))    ctx.fillText('.', cx, topDotY);
-      if (isEmptyBeat(slots, beat * 12, 'bottom')) ctx.fillText('.', cx, bottomDotY);
+    ctx.textAlign    = 'center';
+    const dotY = { top: nullY + cfg.dotTopOffset, bottom: nullY + cfg.dotBottomOffset };
+
+    for (let barIdx = 0; barIdx < BARS_LOCAL; barIdx++) {
+      const barStart = barIdx * BAR_SLOTS;
+      const lastNote = lastNoteInBar[barIdx];
+
+      for (let beatOff = 0; beatOff < BAR_SLOTS; beatOff += 12) {
+        if (lastNote >= 0 && beatOff > lastNote) continue; // trailing silence
+        const beatStart = barStart + beatOff;
+
+        const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
+          s && ((s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST))
+        );
+
+        if (!beatHasNote) {
+          // Quarter rest: empty beat → one faint dot at beat centre, both hands
+          const cx = rowX + (beatStart + 6) * SLOT_W + SLOT_W / 2;
+          ctx.globalAlpha = 0.18;
+          ctx.fillText('.', cx, dotY.top);
+          ctx.fillText('.', cx, dotY.bottom);
+        } else {
+          // Implied rests per hand
+          const slot0 = slots[beatStart];
+          const slot6 = slots[beatStart + 6];
+          const slot9 = slots[beatStart + 9];
+
+          for (const hand of ['top', 'bottom']) {
+            const beatHasNoteForHand = slots.slice(beatStart, beatStart + 12).some(s =>
+              s && s[hand] !== '' && s[hand] !== SYMBOL_REST
+            );
+            if (!beatHasNoteForHand) continue;
+
+            ctx.globalAlpha = 0.45;
+
+            // Rule 1: beat-start dot when pos 0 is empty for this hand
+            if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
+              ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W / 2, dotY[hand]);
+            }
+            // Rule 2: pos-6 dot when pos 9 has a note and pos 6 is empty
+            if (slot6 && slot9 &&
+                (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
+                 slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST) {
+              ctx.fillText('.', rowX + (beatStart + 6) * SLOT_W + SLOT_W / 2, dotY[hand]);
+            }
+          }
+        }
+      }
     }
+
     ctx.globalAlpha = 1.0;
-    ctx.textAlign = 'left';
+    ctx.textAlign   = 'left';
   }
 
   drawTrack(slots_anak,   nullY_anak,   '#000000');
