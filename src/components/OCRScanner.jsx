@@ -274,11 +274,16 @@ const OCRScanner = ({ onScanResult }) => {
         onClick={() => cameraInputRef.current?.click()}>
         📷
       </button>
+      <button className="btn-secondary" title="Change API key"
+        style={btnStyle({ borderRadius: '6px', marginLeft: '4px' })}
+        onClick={() => setShowKeyInput(true)}>
+        🔑
+      </button>
 
       {error && (
         <div style={{ color: '#fc8181', fontSize: '0.75rem', marginTop: '0.25rem', maxWidth: '300px' }}>
           {error}
-          {(error.includes('401') || error.includes('API')) && (
+          {(error.toLowerCase().includes('api') || error.includes('401') || error.includes('key')) && (
             <button onClick={() => setShowKeyInput(true)}
               style={{ marginLeft: '0.5rem', color: '#90cdf4', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>
               {t('changeApiKey')}
