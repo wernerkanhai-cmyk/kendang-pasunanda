@@ -225,9 +225,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
           ctx.globalAlpha  = 1.0;
 
           if (!beatHasNoteForHand) {
-            // Quarter rest: deze hand heeft niets in dit tel → stip in het midden
-            const cx = rowX + (beatStart + 6) * SLOT_W + SLOT_W / 2;
-            ctx.fillText('.', cx, dotY[hand]);
+            // Quarter rest: deze hand heeft niets in dit tel → stip op de beatpositie
+            ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W / 2, dotY[hand]);
           } else {
             // Implied rests per hand
             // Rule 1: beat-start dot when pos 0 is empty for this hand
