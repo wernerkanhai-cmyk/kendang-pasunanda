@@ -373,13 +373,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
               data-slot-index={index}
               className={`slot-cell ${borderClasses} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
               style={gongShadow ? { boxShadow: gongShadow } : undefined}
-              onClick={(e) => {
-                e.stopPropagation();
-                // On touch: if a selection already exists, second tap extends it (no shift key on iPad)
-                const isTouch = window.matchMedia('(pointer: coarse)').matches;
-                const shouldExtend = e.shiftKey || (isTouch && activeRange !== null);
-                onSlotClick(index, shouldExtend);
-              }}
+              onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
               onContextMenu={(e) => openPopup(e, index)}
               onTouchEnd={(e) => {
                 // Suppress double-tap if a touch drag just completed

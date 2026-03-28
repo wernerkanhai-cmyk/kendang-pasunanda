@@ -72,6 +72,7 @@ const PatternEditor = ({
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
 const [showBeheer, setShowBeheer] = useState(true);
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
+  const [touchSelectMode, setTouchSelectMode] = useState(false);
   const [transportPos, setTransportPos] = useState(null); // null = default centered bottom
   const transportInteractRef = useRef(null);
 
@@ -865,6 +866,15 @@ const [showBeheer, setShowBeheer] = useState(true);
           <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
 
           <button
+            onClick={(e) => { e.stopPropagation(); setTouchSelectMode(v => !v); }}
+            style={{ background: touchSelectMode ? 'rgba(251,146,60,0.15)' : '#1e293b', color: touchSelectMode ? '#fb923c' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: `1px solid ${touchSelectMode ? '#f97316' : '#334155'}`, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            title="Bereik selecteren"
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="1" y="4" width="13" height="7" rx="1"/><line x1="4" y1="4" x2="4" y2="11"/><line x1="11" y1="4" x2="11" y2="11"/>
+            </svg>
+          </button>
+          <button
             onClick={(e) => { e.stopPropagation(); handleCopy(); }}
             disabled={!activeRangeObj}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center' }}
@@ -959,7 +969,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 slots={pattern.anak}
                 theme="anak"
                 activeRange={activeRangeObj?.trackId === 'anak' ? activeRangeObj : null}
-                onSlotClick={(index, isShift) => handleSlotClick('anak', index, isShift)}
+                onSlotClick={(index, isShift) => handleSlotClick('anak', index, isShift || touchSelectMode)}
                 gridResolution={gridResolution}
                 slotWidth={slotWidth}
                 onNoteMove={handleNoteMove}
@@ -994,7 +1004,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 slots={pattern.indung}
                 theme="indung"
                 activeRange={activeRangeObj?.trackId === 'indung' ? activeRangeObj : null}
-                onSlotClick={(index, isShift) => handleSlotClick('indung', index, isShift)}
+                onSlotClick={(index, isShift) => handleSlotClick('indung', index, isShift || touchSelectMode)}
                 gridResolution={gridResolution}
                 slotWidth={slotWidth}
                 onNoteMove={handleNoteMove}
