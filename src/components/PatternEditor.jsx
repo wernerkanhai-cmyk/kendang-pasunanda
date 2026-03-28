@@ -877,8 +877,16 @@ const [showBeheer, setShowBeheer] = useState(true);
             </button>
             {showMetronomeMenu && (
               <>
-                <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setShowMetronomeMenu(false)} />
-                <div style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 199 }}
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowMetronomeMenu(false); }}
+                  onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); setShowMetronomeMenu(false); }}
+                  onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setShowMetronomeMenu(false); }}
+                />
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', WebkitTransform: 'translateZ(0)', transform: 'translateZ(0)' }}>
                   {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
                     <button key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', border: 'none', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                       {label}
