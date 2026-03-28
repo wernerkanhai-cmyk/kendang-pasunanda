@@ -173,27 +173,29 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     }
 
     // ── Real symbols (data rests skipped — rendered separately below) ─────────
+    ctx.textAlign = 'center';
     for (let i = 0; i < SLOTS_PER_ROW; i++) {
       const slot = slots[i];
       if (!slot) continue;
-      const x = rowX + i * SLOT_W + 2;
+      const cx = rowX + i * SLOT_W + SLOT_W / 2;
 
       if (slot.top !== '' && slot.top !== SYMBOL_REST) {
         ctx.font = `${SYM_SIZE}px Kendang, monospace`;
         ctx.fillStyle = baseColor;
         ctx.globalAlpha = 1.0;
         ctx.textBaseline = 'bottom';
-        ctx.fillText(slot.top, x, nullY - cfg.symAbove);
+        ctx.fillText(slot.top, cx, nullY - cfg.symAbove);
       }
       if (slot.bottom !== '' && slot.bottom !== SYMBOL_REST) {
         ctx.font = `${SYM_SIZE}px Kendang, monospace`;
         ctx.fillStyle = baseColor;
         ctx.globalAlpha = 1.0;
         ctx.textBaseline = 'top';
-        ctx.fillText(slot.bottom, x, nullY + cfg.symBelow);
+        ctx.fillText(slot.bottom, cx, nullY + cfg.symBelow);
       }
       ctx.globalAlpha = 1.0;
     }
+    ctx.textAlign = 'left';
 
     // ── Rest dots: quarter rests + implied rests (same rules as screen) ───────
     // Top hand: textBaseline='bottom', y = nullY - symAbove  (same as note symbols)

@@ -112,7 +112,9 @@
   font-size: 0.85rem;
   position: absolute;
   z-index: 10;
-  left: 1px;
+  left: 0;
+  width: 100%;
+  text-align: center;
 }
 
 /* Colors */
