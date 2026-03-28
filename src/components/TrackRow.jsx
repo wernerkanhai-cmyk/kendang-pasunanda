@@ -22,6 +22,9 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
   const lastTapRef = useRef({ slotIndex: -1, time: 0 });
+  const touchDragRef = useRef(null); // { slotIndex, hand, symbol, offsetX, offsetY }
+  const ghostRef = useRef(null);
+  const touchMovedRef = useRef(false);
 
   useEffect(() => {
     if (!popup) return;
@@ -68,6 +71,78 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
       });
     } catch {}
   };
+
+  // Touch drag-and-drop (iOS/iPad — HTML5 drag API not supported)
+  const handleTouchStart = (e, slotIndex, hand, symbol) => {
+    e.stopPropagation();
+    touchMovedRef.current = false;
+    const touch = e.touches[0];
+    const span = e.currentTarget;
+    const rect = span.getBoundingClientRect();
+    const ghost = span.cloneNode(true);
+    ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;opacity:0.7;pointer-events:none;z-index:9999;font-size:${getComputedStyle(span).fontSize};`;
+    document.body.appendChild(ghost);
+    ghostRef.current = ghost;
+    touchDragRef.current = {
+      slotIndex, hand, symbol,
+      offsetX: touch.clientX - rect.left,
+      offsetY: touch.clientY - rect.top,
+    };
+  };
+
+  useEffect(() => {
+    const handleTouchMove = (e) => {
+      if (!touchDragRef.current) return;
+      e.preventDefault();
+      touchMovedRef.current = true;
+      const touch = e.touches[0];
+      if (ghostRef.current) {
+        const { offsetX, offsetY } = touchDragRef.current;
+        ghostRef.current.style.left = `${touch.clientX - offsetX}px`;
+        ghostRef.current.style.top  = `${touch.clientY - offsetY}px`;
+      }
+      // Find slot under finger (hide ghost so elementFromPoint hits the slot)
+      if (ghostRef.current) ghostRef.current.style.display = 'none';
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (ghostRef.current) ghostRef.current.style.display = '';
+      const slotEl = el?.closest('[data-slot-index]');
+      const idx = slotEl ? parseInt(slotEl.dataset.slotIndex, 10) : null;
+      setDragOverSlot(idx);
+    };
+
+    const handleTouchEnd = (e) => {
+      if (!touchDragRef.current) return;
+      const touch = e.changedTouches[0];
+      if (ghostRef.current) {
+        document.body.removeChild(ghostRef.current);
+        ghostRef.current = null;
+      }
+      if (touchMovedRef.current) {
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const slotEl = el?.closest('[data-slot-index]');
+        if (slotEl) {
+          const toSlot = parseInt(slotEl.dataset.slotIndex, 10);
+          const { slotIndex, hand, symbol } = touchDragRef.current;
+          if (slotIndex !== toSlot) {
+            onNoteMove && onNoteMove({
+              fromTrackId: trackId, fromSlot: slotIndex, fromHand: hand,
+              toTrackId: trackId,   toSlot,               toHand: hand,
+              symbol,
+            });
+          }
+        }
+      }
+      touchDragRef.current = null;
+      setDragOverSlot(null);
+    };
+
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+    return () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [onNoteMove, trackId]);
   // A standard bar is 48 slots. A beat is 12 slots. A 16th note step is 3 slots.
 
   // Triplet Detection Logic
@@ -295,11 +370,14 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           return (
             <div
               key={index}
+              data-slot-index={index}
               className={`slot-cell ${borderClasses} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
               style={gongShadow ? { boxShadow: gongShadow } : undefined}
               onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
               onContextMenu={(e) => openPopup(e, index)}
               onTouchEnd={(e) => {
+                // Suppress double-tap if a touch drag just completed
+                if (touchMovedRef.current) return;
                 const now = Date.now();
                 const last = lastTapRef.current;
                 if (last.slotIndex === index && now - last.time < 350) {
@@ -338,6 +416,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'top', slot.top)}
                   onDragEnd={() => setDragOverSlot(null)}
+                  onTouchStart={(e) => handleTouchStart(e, index, 'top', slot.top)}
                   className={`kendang-font ${isRestTop ? 'slot-rest' : 'slot-symbol'} ${posClassTop} color-${trackId} draggable-note`}
                 >
                   {slot.top}
@@ -348,6 +427,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   draggable
                   onDragStart={(e) => handleDragStart(e, index, 'bottom', slot.bottom)}
                   onDragEnd={() => setDragOverSlot(null)}
+                  onTouchStart={(e) => handleTouchStart(e, index, 'bottom', slot.bottom)}
                   className={`kendang-font ${isRestBottom ? 'slot-rest' : 'slot-symbol'} ${posClassBottom} color-${trackId} draggable-note`}
                 >
                   {slot.bottom}
