@@ -786,6 +786,15 @@ function App() {
     if (schedulerRef.current) schedulerRef.current.clickVolume = metronomeVolume;
   }, [metronomeVolume]);
 
+  // Sync clickWhilePlaying live bij wisselen van metronoommode tijdens playback
+  useEffect(() => {
+    const sched = schedulerRef.current;
+    if (!sched || !isPlaying) return;
+    const enabled = metronomeMode === 'on' || metronomeMode === '4+play' || metronomeMode === '8+play';
+    sched.clickWhilePlaying = enabled;
+    if (enabled) sched.playClickNow(); // directe klik bij inschakelen
+  }, [metronomeMode, isPlaying]);
+
   // ── Tempo automation ──────────────────────────────────────────────────────
 
   // Precomputed slot→cumulative-ms table for variable-tempo cursor sync

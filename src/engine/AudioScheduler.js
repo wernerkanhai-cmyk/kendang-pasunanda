@@ -90,6 +90,21 @@ export class AudioScheduler {
   clickWhilePlaying = false;
   clickVolume = 0.7; // 0–1, instelbaar via UI
 
+  /** Speel een directe metronoomklik af (bijv. bij inschakelen tijdens playback). */
+  playClickNow() {
+    if (!this.audioCtx) return;
+    const t = this.audioCtx.currentTime + 0.01;
+    const osc  = this.audioCtx.createOscillator();
+    const gain = this.audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(this.audioCtx.destination);
+    osc.frequency.value = 440;
+    gain.gain.setValueAtTime(Math.max(0.001, this.clickVolume), t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    osc.start(t);
+    osc.stop(t + 0.1);
+  }
+
   scheduleNote(slotNumber, time) {
     // Metronoomklik tijdens opname of bij clickWhilePlaying
     if ((this.isRecording || this.clickWhilePlaying) && slotNumber % 12 === 0) {
