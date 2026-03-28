@@ -346,7 +346,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                 position: 'absolute',
                 top: 0,
                 height: '100%',
-                left: beatStart * slotWidth + 1,
+                left: beatStart * slotWidth - 1,
                 width: 12 * slotWidth,
                 border: `2px solid ${gongColor}`,
                 pointerEvents: 'none',
