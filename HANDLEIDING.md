@@ -38,7 +38,7 @@ Klik op een zone in het trommelplaatje om een klank te laten horen én in te voe
 | Rust | . | — | . |
 
 ### Via het toetsenbord
-Zorg dat invoer actief is (de schakelaar in de toolbar) en druk op de toets in de tabel hierboven.
+Zorg dat invoer actief is (✏️ in de toolbar, groen = aan) en druk op de toets in de tabel hierboven.
 
 ### Via rechtsklikken
 Rechtsklik (of lang indrukken op mobiel) op een cel in het rooster om een klankenmenu te openen. Kies een klank per drum.
@@ -72,23 +72,49 @@ De transportbalk zweeft onderin het scherm en bevat:
 3. Speel via het toetsenbord of het Drum Pad
 4. Druk Spatie om te stoppen
 
-### Auto-kwantisering
-Zet **Auto-Quantize** aan in de toolbar om live ingespeelde noten automatisch op het raster te snappen.
+### Kwantiseren (Q-knop)
+De **Q**-knop heeft twee functies afhankelijk van de staat:
+- **Tijdens afspelen/opnemen**: zet Auto-Quantize aan/uit — live ingespeelde noten snappen automatisch op het raster (knop wordt groen)
+- **Wanneer gestopt**: snap de huidige selectie direct naar het raster
 
 ---
 
-## 4. Het rooster begrijpen
+## 4. De toolbar (tweede rij)
+
+De tweede rij van de toolbar bevat (van links naar rechts):
+
+| Knop | Functie |
+|------|---------|
+| zoom | Roosterzoom — sleep omhoog/omlaag of klik om te typen |
+| Clear | Patroon leegmaken |
+| Undo / Redo | Ongedaan maken / opnieuw |
+| ☐ | Bereik selecteren |
+| ⎘ / ✂ / 📋 / 🗑 | Kopiëren / knippen / plakken / wissen |
+| 🎵 (metronoom) | Metronoom aan/uit en modus kiezen (4, 8, 4+play, 8+play, on) |
+| ✏️ | Invoer aan/uit |
+| 1/4 ▾ | Roosterresolutie kiezen (1/4 t/m 1/16T) |
+| 🧲 | Magneet — cursor snabt bij klikken op de geselecteerde roosterresolutie (rood = aan) |
+| Q | Kwantiseren (zie boven) |
+
+De rij is horizontaal scrollbaar als de breedte het niet toelaat.
+
+---
+
+## 5. Het rooster begrijpen
 
 Elke maat bestaat uit 4 tellen, elk tel uit 12 slots:
-- **Dikke lijnen** = maatstреep
+- **Dikke lijnen** = maatstreep
 - **Dunne lijnen** = telmomenten
 - **Balken boven/onder noten** = achtste- en zestiende-notenverdeling
 - **Stippels (·)** = impliciete rusten (automatisch, niet invoerbaar)
 - **Gong-blokken** = gele markering waar een gonginslag valt
 
+### Magneet en cursor
+Als de magneet (🧲) actief is, snabt de cursor automatisch op de geselecteerde roosterresolutie bij elke klik of aanraking. Dit maakt het makkelijker om precies op een tel of achtste noot te beginnen.
+
 ---
 
-## 5. Patronen en songs beheren
+## 6. Patronen en songs beheren
 
 ### Patronen
 Een song bestaat uit meerdere **patronen** (regelblokken). In de linker zijbalk kun je:
@@ -105,7 +131,7 @@ Een song bestaat uit meerdere **patronen** (regelblokken). In de linker zijbalk 
 
 ---
 
-## 6. Snippets (losse patronen)
+## 7. Snippets (losse patronen)
 
 Via de **Snippet-bibliotheek** in de toolbar kun je losse gedeelten opslaan en hergebruiken:
 - Selecteer een reeks cellen
@@ -117,14 +143,14 @@ De snippetbibliotheek kan ook worden geëxporteerd en geïmporteerd als `.kendan
 
 ---
 
-## 7. Geluidsopties
+## 8. Geluidsopties
 
 ### Volume per spoor
 Gebruik de schuifregelaars **A** (Anak) en **I** (Indung) in de header om het volume per spoor aan te passen (0–200%).
 
 ### Geluidsinstellingen per klank
 Klik in het Drum Pad op de tab **⚙️ Geluid**:
-- **Volume** per klank (0–4×)
+- **Volume** per klank (standaard 3× origineel)
 - **Toonhoogte** per klank (−12 tot +12 halve tonen)
 - **Alles resetten** naar standaard
 
@@ -133,28 +159,57 @@ Als het geluid vertraging heeft ten opzichte van de cursor, gebruik dan de **Cur
 
 ---
 
-## 8. Vox-modus
+## 9. Vox-modus
 
 Wissel tussen **🥁 Kendang** en **🎤 Vox** via de knop in de header. In Vox-modus:
 - Worden de trommelnamen gezongen door een stem
-- Verschijnt een **V**-knop in de header voor het volume van de stem
+- Verschijnt een **V**-knop in de header voor het volume van de stem (standaard 50%)
 - Worden bepaalde combinaties van slagen automatisch als combo herkend (bijv. Dong + Pak = "Bang")
 
 ---
 
-## 9. PDF exporteren
+## 10. PDF exporteren
 
 Klik op het PDF-icoon om de huidige weergave te exporteren als printbaar PDF. De notatie wordt op ware grootte weergegeven met beams, rusten en gongindicaties.
 
 ---
 
-## 10. Zoom
+## 11. Zoom
 
-Gebruik de **zoom**-schuifregelaar in de toolbar (links van de Clear-knop) om het rooster groter of kleiner te maken. De knop **↔** past de breedte automatisch aan op 4 maten.
+Gebruik de **zoom**-knop in de toolbar (links van de Clear-knop) om het rooster groter of kleiner te maken. Sleep omhoog om in te zoomen, omlaag om uit te zoomen, dubbelklik om terug te zetten naar 100%.
 
 ---
 
-## 11. Sneltoetsen
+## 12. Metronoom
+
+Klik op het metronoomicoon (🎵) in de toolbar om de modus te kiezen:
+
+| Modus | Beschrijving |
+|-------|-------------|
+| off | Metronoom uit |
+| 4 | 4 tellen aftelling vóór opname |
+| 8 | 8 tellen aftelling vóór opname |
+| 4+play | 4 tellen aftelling + metronoom tijdens afspelen |
+| 8+play | 8 tellen aftelling + metronoom tijdens afspelen |
+| on | Metronoom altijd aan tijdens afspelen |
+
+Het volume van de metronoom is instelbaar via het uitklapmenu. De metronoom is meteen hoorbaar als je hem aanzet terwijl de song speelt.
+
+---
+
+## 13. Gebruik op iPad en iPhone
+
+De app werkt als een **Progressive Web App (PWA)**:
+1. Open de app in **Safari**
+2. Tik op het **Deel-icoon** (vierkant met pijl omhoog)
+3. Kies **"Zet op beginscherm"**
+4. Open de app daarna vanuit het beginscherm
+
+De app start dan volledig schermvullend zonder Safari-balk, zowel op iPad als iPhone.
+
+---
+
+## 14. Sneltoetsen
 
 | Toets | Functie |
 |-------|---------|
