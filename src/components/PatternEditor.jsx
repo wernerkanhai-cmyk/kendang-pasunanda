@@ -805,7 +805,7 @@ const [showBeheer, setShowBeheer] = useState(true);
           <button
             onClick={(e) => { e.stopPropagation(); setTouchSelectMode(v => !v); }}
             style={{ background: touchSelectMode ? 'rgba(251,146,60,0.15)' : '#1e293b', color: touchSelectMode ? '#fb923c' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: `1px solid ${touchSelectMode ? '#f97316' : '#334155'}`, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-            title="Bereik selecteren"
+            title="Select range"
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="1" y="4" width="13" height="7" rx="1"/><line x1="4" y1="4" x2="4" y2="11"/><line x1="11" y1="4" x2="11" y2="11"/>
@@ -919,7 +919,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               }
             }}
             style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
-            title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selectie naar grid'}
+            title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selection to grid'}
           >Q</button>
         </div>
       )}
