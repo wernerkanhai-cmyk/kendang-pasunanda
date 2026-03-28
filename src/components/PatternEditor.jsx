@@ -72,6 +72,8 @@ const PatternEditor = ({
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
 const [showBeheer, setShowBeheer] = useState(true);
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
+  const [metronomeMenuPos, setMetronomeMenuPos] = useState({ top: 0, left: 0 });
+  const metronomeBtnRef = useRef(null);
   const [touchSelectMode, setTouchSelectMode] = useState(false);
   const [transportPos, setTransportPos] = useState(null); // null = default centered bottom
   const transportInteractRef = useRef(null);
@@ -854,9 +856,16 @@ const [showBeheer, setShowBeheer] = useState(true);
             </svg>
           </button>
           <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
-          <div style={{ position: 'relative' }}>
+          <div ref={metronomeBtnRef} style={{ position: 'relative' }}>
             <button
-              onClick={(e) => { e.stopPropagation(); setShowMetronomeMenu(v => !v); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (metronomeBtnRef.current) {
+                  const r = metronomeBtnRef.current.getBoundingClientRect();
+                  setMetronomeMenuPos({ top: r.bottom + 4, left: r.left });
+                }
+                setShowMetronomeMenu(v => !v);
+              }}
               style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#64748b', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
               title={t('metronome')}
             >
@@ -867,7 +876,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               </svg>
             </button>
             {showMetronomeMenu && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+              <div style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
                 {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
                   <div key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                     {label}
