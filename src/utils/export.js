@@ -196,12 +196,13 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     }
 
     // ── Rest dots: quarter rests + implied rests (same rules as screen) ───────
-    // Uses textAlign='center', textBaseline='middle', centered on the slot.
+    // Top hand: textBaseline='bottom', y = nullY - symAbove  (same as note symbols)
+    // Bottom hand: textBaseline='top',  y = nullY + symBelow  (same as note symbols)
     ctx.font      = `${REST_SIZE}px Kendang, monospace`;
     ctx.fillStyle = baseColor;
-    ctx.textBaseline = 'middle';
-    ctx.textAlign    = 'center';
-    const dotY = { top: nullY + cfg.dotTopOffset, bottom: nullY + cfg.dotBottomOffset };
+    ctx.textAlign = 'center';
+    const dotY    = { top: nullY - cfg.symAbove, bottom: nullY + cfg.symBelow };
+    const dotBase = { top: 'bottom',             bottom: 'top' };
 
     for (let barIdx = 0; barIdx < BARS_LOCAL; barIdx++) {
       const barStart = barIdx * BAR_SLOTS;
@@ -218,9 +219,11 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
         if (!beatHasNote) {
           // Quarter rest: empty beat → one faint dot at beat centre, both hands
           const cx = rowX + (beatStart + 6) * SLOT_W + SLOT_W / 2;
-          ctx.globalAlpha = 0.18;
-          ctx.fillText('.', cx, dotY.top);
-          ctx.fillText('.', cx, dotY.bottom);
+          for (const hand of ['top', 'bottom']) {
+            ctx.textBaseline = dotBase[hand];
+            ctx.globalAlpha  = 0.18;
+            ctx.fillText('.', cx, dotY[hand]);
+          }
         } else {
           // Implied rests per hand
           const slot0 = slots[beatStart];
@@ -233,7 +236,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
             );
             if (!beatHasNoteForHand) continue;
 
-            ctx.globalAlpha = 0.45;
+            ctx.textBaseline = dotBase[hand];
+            ctx.globalAlpha  = 0.45;
 
             // Rule 1: beat-start dot when pos 0 is empty for this hand
             if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
