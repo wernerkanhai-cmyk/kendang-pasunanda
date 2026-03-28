@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
 import { generateEmptySlots, writeSymbolToPattern, getHandForSymbol, SYMBOL_REST } from '../engine/patternLogic';
@@ -875,24 +876,20 @@ const [showBeheer, setShowBeheer] = useState(true);
                 <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
               </svg>
             </button>
-            {showMetronomeMenu && (
+            {showMetronomeMenu && ReactDOM.createPortal(
               <>
-                <div style={{ position: 'fixed', inset: 0, zIndex: 199 }}
-                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowMetronomeMenu(false); }}
-                  onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); setShowMetronomeMenu(false); }}
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
                   onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setShowMetronomeMenu(false); }}
                 />
                 <div
-                  onClick={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
                   onPointerDown={(e) => e.stopPropagation()}
-                  style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 200, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', WebkitTransform: 'translateZ(0)', transform: 'translateZ(0)' }}>
+                  style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
                   {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
-                    <button key={val} onClick={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.35rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', border: 'none', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                       {label}
                     </button>
                   ))}
-                  <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onClick={(e) => e.stopPropagation()}>
+                  <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onPointerDown={(e) => e.stopPropagation()}>
                     <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
                     <input
                       type="range" min="0" max="1" step="0.05"
@@ -901,8 +898,9 @@ const [showBeheer, setShowBeheer] = useState(true);
                       style={{ width: '100%', accentColor: '#fb923c', cursor: 'pointer' }}
                     />
                   </div>
-              </div>
-              </>
+                </div>
+              </>,
+              document.body
             )}
           </div>
           <button
