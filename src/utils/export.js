@@ -221,7 +221,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
           const cx = rowX + (beatStart + 6) * SLOT_W + SLOT_W / 2;
           for (const hand of ['top', 'bottom']) {
             ctx.textBaseline = dotBase[hand];
-            ctx.globalAlpha  = 0.18;
+            ctx.globalAlpha  = 1.0;
             ctx.fillText('.', cx, dotY[hand]);
           }
         } else {
@@ -237,7 +237,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
             if (!beatHasNoteForHand) continue;
 
             ctx.textBaseline = dotBase[hand];
-            ctx.globalAlpha  = 0.45;
+            ctx.globalAlpha  = 1.0;
 
             // Rule 1: beat-start dot when pos 0 is empty for this hand
             if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
