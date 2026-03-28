@@ -212,33 +212,24 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       for (let beatOff = 0; beatOff < BAR_SLOTS; beatOff += 12) {
         const beatStart = barStart + beatOff;
 
-        const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
-          s && ((s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST))
-        );
+        const slot0 = slots[beatStart];
+        const slot6 = slots[beatStart + 6];
+        const slot9 = slots[beatStart + 9];
 
-        if (!beatHasNote) {
-          // Quarter rest: empty beat → one faint dot at beat centre, both hands
-          const cx = rowX + (beatStart + 6) * SLOT_W + SLOT_W / 2;
-          for (const hand of ['top', 'bottom']) {
-            ctx.textBaseline = dotBase[hand];
-            ctx.globalAlpha  = 1.0;
+        for (const hand of ['top', 'bottom']) {
+          const beatHasNoteForHand = slots.slice(beatStart, beatStart + 12).some(s =>
+            s && s[hand] !== '' && s[hand] !== SYMBOL_REST
+          );
+
+          ctx.textBaseline = dotBase[hand];
+          ctx.globalAlpha  = 1.0;
+
+          if (!beatHasNoteForHand) {
+            // Quarter rest: deze hand heeft niets in dit tel → stip in het midden
+            const cx = rowX + (beatStart + 6) * SLOT_W + SLOT_W / 2;
             ctx.fillText('.', cx, dotY[hand]);
-          }
-        } else {
-          // Implied rests per hand
-          const slot0 = slots[beatStart];
-          const slot6 = slots[beatStart + 6];
-          const slot9 = slots[beatStart + 9];
-
-          for (const hand of ['top', 'bottom']) {
-            const beatHasNoteForHand = slots.slice(beatStart, beatStart + 12).some(s =>
-              s && s[hand] !== '' && s[hand] !== SYMBOL_REST
-            );
-            if (!beatHasNoteForHand) continue;
-
-            ctx.textBaseline = dotBase[hand];
-            ctx.globalAlpha  = 1.0;
-
+          } else {
+            // Implied rests per hand
             // Rule 1: beat-start dot when pos 0 is empty for this hand
             if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
               ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W / 2, dotY[hand]);

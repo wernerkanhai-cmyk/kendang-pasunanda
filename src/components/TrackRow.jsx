@@ -198,18 +198,21 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
 
   // quarterRests: beat-start slots where the beat is empty and not in trailing silence.
   // Rendered as explicit top+bottom dots — independent of SYMBOL_REST data state.
+  // quarterRests: per hand — maat heeft noten maar deze hand heeft niets in dit tel
   const quarterRests = useMemo(() => {
-    const result = new Set();
+    const result = new Set(); // sleutels: `${beatStart}-top` / `${beatStart}-bottom`
     for (let barIdx = 0; barIdx < lastNoteInBar.length; barIdx++) {
       const barStart = barIdx * 48;
       const lastNote = lastNoteInBar[barIdx];
       if (lastNote < 0) continue; // volledig lege maat → geen stippen
       for (let beatOff = 0; beatOff < 48; beatOff += 12) {
         const beatStart = barStart + beatOff;
-        const beatHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
-          (s.top !== '' && s.top !== SYMBOL_REST) || (s.bottom !== '' && s.bottom !== SYMBOL_REST)
-        );
-        if (!beatHasNote) result.add(beatStart);
+        for (const hand of ['top', 'bottom']) {
+          const handHasNote = slots.slice(beatStart, beatStart + 12).some(s =>
+            s[hand] !== '' && s[hand] !== SYMBOL_REST
+          );
+          if (!handHasNote) result.add(`${beatStart}-${hand}`);
+        }
       }
     }
     return result;
@@ -452,11 +455,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
                   {slot.bottom}
                 </span>
               )}
-              {/* Quarter rest: empty beat, not trailing silence → dot on both lines */}
-              {index % 12 === 0 && quarterRests.has(index) && (
+              {/* Quarter rest per hand: maat heeft noten maar deze hand heeft niets in dit tel */}
+              {index % 12 === 0 && quarterRests.has(`${index}-top`) && (
                 <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
               )}
-              {index % 12 === 0 && quarterRests.has(index) && (
+              {index % 12 === 0 && quarterRests.has(`${index}-bottom`) && (
                 <span className={`kendang-font slot-rest pos-below color-${trackId}`}>{SYMBOL_REST}</span>
               )}
               {/* Implied rests: pos 6 lead-in dot when pos 9 has a note (plek 3→4 rule) */}
