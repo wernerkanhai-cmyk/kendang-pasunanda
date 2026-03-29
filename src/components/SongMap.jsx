@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useT } from '../i18n';
 
 const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActivate, onMoveUp, onMoveDown }) => {
@@ -13,7 +14,7 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
     return () => window.removeEventListener('pointerdown', close);
   }, [open, onClose]);
 
-  return (
+  return ReactDOM.createPortal(
     <>
       {/* Backdrop */}
       {open && (
@@ -121,7 +122,8 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
           })}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 };
 
