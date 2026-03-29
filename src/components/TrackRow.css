@@ -33,6 +33,7 @@
   height: 80px; /* Increased to allow more room for above/below */
   position: relative;
   contain: layout style; /* limit repaint scope per row */
+  will-change: transform; /* GPU composite layer for smooth scrolling */
 }
 
 .rhythmic-beam {

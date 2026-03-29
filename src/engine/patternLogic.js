@@ -89,15 +89,15 @@ export const sanitizePattern = (pattern) => {
 };
 
 export const writeSymbolToPattern = (pattern, trackId, slotIndex, symbol) => {
+  const track = pattern?.[trackId];
+  if (!Array.isArray(track) || slotIndex < 0 || slotIndex >= track.length) return pattern;
   const newPattern = JSON.parse(JSON.stringify(pattern));
   const hand = getHandForSymbol(symbol);
-  
   if (hand === 'both') {
      newPattern[trackId][slotIndex].top = symbol;
      newPattern[trackId][slotIndex].bottom = symbol;
   } else {
      newPattern[trackId][slotIndex][hand] = symbol;
   }
-  
   return newPattern;
 };

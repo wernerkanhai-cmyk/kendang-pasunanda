@@ -4,6 +4,8 @@
  * Bij 'vox': combislagen worden herkend en als combo-sample afgespeeld.
  */
 
+import { errorLog } from '../utils/errorLog.js';
+
 export const DEFAULT_SOUND_SETTINGS = {
   tung:    { gain: 3.0, pitch: 1.0 },
   dong:    { gain: 3.0, pitch: 1.0 },
@@ -181,11 +183,11 @@ export class SamplePlayer {
   async _load(key, url, target) {
     try {
       const res = await fetch(url);
-      if (!res.ok) { console.warn('[SamplePlayer] 404:', url); return; }
+      if (!res.ok) { errorLog.warn('SamplePlayer', '404 loading sample', url); return; }
       const arr = await res.arrayBuffer();
       target[key] = await this.audioCtx.decodeAudioData(arr);
     } catch (e) {
-      console.warn('[SamplePlayer] load error:', url, e);
+      errorLog.error('SamplePlayer', 'decode error', `${url} — ${e?.message}`);
     }
   }
 

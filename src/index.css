@@ -6,9 +6,11 @@
   src: url('/fonts/NeoDamina Werner edit.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 :root {
+  color-scheme: dark;
   --bg-dark: #0a0b10;
   --bg-panel: #14161f;
   --bg-row: #1d1f2a;
