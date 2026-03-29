@@ -631,7 +631,7 @@ const [showBeheer, setShowBeheer] = useState(true);
         <div style={{ flex: '0 0 4.5rem' }} />
         <div className="pattern-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-           {isActive && (
+           {isActive && ReactDOM.createPortal(
               <div
                 className="transport-controls"
                 style={{
@@ -735,7 +735,8 @@ const [showBeheer, setShowBeheer] = useState(true);
                  >
                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isRecording ? '#fff' : '#ef4444' }} />
                  </button>
-              </div>
+              </div>,
+              document.body
            )}
 
         </div>
