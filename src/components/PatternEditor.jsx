@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
@@ -76,12 +76,24 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [metronomeMenuPos, setMetronomeMenuPos] = useState({ top: 0, left: 0 });
   const metronomeBtnRef = useRef(null);
   const [touchSelectMode, setTouchSelectMode] = useState(false);
-  const [transportPos, setTransportPos] = useState(null); // null = default centered bottom
+  const [transportPos, setTransportPos] = useState(null);
   const transportInteractRef = useRef(null);
 
+  // Position transport bar to the left of the header volume knobs on first mount
+  useLayoutEffect(() => {
+    const hc = document.querySelector('.header-center');
+    if (hc) {
+      const r = hc.getBoundingClientRect();
+      setTransportPos({ x: Math.max(4, r.left - 268), y: Math.round(r.top + r.height / 2 - 24) });
+    }
+  }, []);
+
   const startTransportDrag = (clientX, clientY) => {
-    const initX = transportPos?.x ?? (window.innerWidth / 2 - 120);
-    const initY = transportPos?.y ?? (window.innerHeight - 60);
+    const hc = document.querySelector('.header-center');
+    const defX = hc ? Math.max(4, hc.getBoundingClientRect().left - 268) : window.innerWidth / 2 - 120;
+    const defY = hc ? Math.round(hc.getBoundingClientRect().top + hc.getBoundingClientRect().height / 2 - 24) : window.innerHeight - 60;
+    const initX = transportPos?.x ?? defX;
+    const initY = transportPos?.y ?? defY;
     transportInteractRef.current = { startX: clientX, startY: clientY, origX: initX, origY: initY };
     const onMove = (ev) => {
       const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;

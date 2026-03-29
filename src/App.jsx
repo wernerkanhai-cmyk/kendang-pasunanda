@@ -1378,6 +1378,62 @@ function App() {
             <p>{t('appSubtitle')} (v7.1)</p>
           </div>
 
+          {/* ── Song dropdown — naast de app naam ─────────────────────────── */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowSongMenu(v => !v)}
+              style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              title={t('manageSong')}
+            >🎵 {songName || 'Song'}</button>
+
+            {showSongMenu && (
+              <>
+                <div onClick={() => setShowSongMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
+                <div style={{
+                  position: 'absolute', top: '110%', left: 0, zIndex: 200,
+                  background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+                  padding: '0.75rem', minWidth: '240px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  display: 'flex', flexDirection: 'column', gap: '0.5rem',
+                }}>
+                  <input type="text" value={songName} onChange={(e) => setSongName(e.target.value)}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
+                    placeholder={t('songNamePlaceholder')} />
+                  <input type="text" value={songFolder} onChange={(e) => setSongFolder(e.target.value)}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
+                    placeholder={t('folderPlaceholder')} />
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button onClick={() => { handleSaveSong(); setShowSongMenu(false); }}
+                      style={{ flex: 1, background: '#3b82f6', color: '#fff', padding: '0.5rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                      title={currentSongId ? 'Update saved song' : 'Save current song'}
+                    >💾 {currentSongId ? t('updateBtn') : t('saveBtn')}</button>
+                    <button onClick={() => { handleNewSong(); setShowSongMenu(false); }}
+                      style={{ background: '#10b981', color: '#fff', padding: '0.5rem 0.8rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                    >{t('newBtn')}</button>
+                  </div>
+                  <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >{t('libraryBtn')}</button>
+                  {FACTORY_PRESETS.length > 0 && (
+                    <select defaultValue=""
+                      onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; setShowSongMenu(false); } }}
+                      style={{ background: '#0f172a', color: '#cbd5e1', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.6rem', fontSize: '0.85rem', cursor: 'pointer' }}
+                    >
+                      <option value="">{t('loadPreset')}</option>
+                      {FACTORY_CATEGORIES.map(cat => {
+                        const items = FACTORY_PRESETS.filter(p => p.category === cat.label);
+                        if (items.length === 0) return null;
+                        return (
+                          <optgroup key={cat.label} label={cat.label}>
+                            {items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                          </optgroup>
+                        );
+                      })}
+                    </select>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* ── Gecentreerd: volume knobs + schakelaar ───────────────────── */}
@@ -1793,61 +1849,6 @@ function App() {
               style={{ background: 'transparent', border: '1px solid #334155', borderRadius: '4px', color: '#64748b', cursor: 'pointer', padding: '0.2rem 0.5rem', fontSize: '0.85rem', lineHeight: 1, flexShrink: 0 }}
               title="Compositie-overzicht"
             >☰</button>
-            {/* Song dropdown — naast de compositie-knop */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <button
-                onClick={() => setShowSongMenu(v => !v)}
-                style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '0.85rem' }}
-                title={t('manageSong')}
-              >🎵 {songName || 'Song'}</button>
-              {showSongMenu && (
-                <>
-                  <div onClick={() => setShowSongMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
-                  <div style={{
-                    position: 'absolute', top: '110%', left: 0, zIndex: 200,
-                    background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
-                    padding: '0.75rem', minWidth: '240px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-                    display: 'flex', flexDirection: 'column', gap: '0.5rem',
-                  }}>
-                    <input type="text" value={songName} onChange={(e) => setSongName(e.target.value)}
-                      style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
-                      placeholder={t('songNamePlaceholder')} />
-                    <input type="text" value={songFolder} onChange={(e) => setSongFolder(e.target.value)}
-                      style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
-                      placeholder={t('folderPlaceholder')} />
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <button onClick={() => { handleSaveSong(); setShowSongMenu(false); }}
-                        style={{ flex: 1, background: '#3b82f6', color: '#fff', padding: '0.5rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                        title={currentSongId ? 'Update saved song' : 'Save current song'}
-                      >💾 {currentSongId ? t('updateBtn') : t('saveBtn')}</button>
-                      <button onClick={() => { handleNewSong(); setShowSongMenu(false); }}
-                        style={{ background: '#10b981', color: '#fff', padding: '0.5rem 0.8rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                      >{t('newBtn')}</button>
-                    </div>
-                    <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
-                      style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                    >{t('libraryBtn')}</button>
-                    {FACTORY_PRESETS.length > 0 && (
-                      <select defaultValue=""
-                        onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; setShowSongMenu(false); } }}
-                        style={{ background: '#0f172a', color: '#cbd5e1', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.6rem', fontSize: '0.85rem', cursor: 'pointer' }}
-                      >
-                        <option value="">{t('loadPreset')}</option>
-                        {FACTORY_CATEGORIES.map(cat => {
-                          const items = FACTORY_PRESETS.filter(p => p.category === cat.label);
-                          if (items.length === 0) return null;
-                          return (
-                            <optgroup key={cat.label} label={cat.label}>
-                              {items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                            </optgroup>
-                          );
-                        })}
-                      </select>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
             <div style={{ flex: 1, fontSize: '1.1rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center' }}>
               {songName}
             </div>
