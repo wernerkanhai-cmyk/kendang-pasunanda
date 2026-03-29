@@ -60,10 +60,8 @@ const PatternEditor = ({
   onToggleTempoTrack,
   onSeek,
   onDuplicate,
-  onMoveUp,
-  onMoveDown,
-  isFirst = false,
-  isLast = false,
+  onDelete,
+  canDelete = true,
   trackVolumes = { anak: 1.0, indung: 1.0 },
   onTrackVolumeChange,
 }) => {
@@ -573,18 +571,11 @@ const [showBeheer, setShowBeheer] = useState(true);
            >⧉</button>
 
            <button
-             onClick={(e) => { e.stopPropagation(); onMoveUp?.(); }}
-             disabled={isFirst}
-             style={{ background: 'transparent', color: isFirst ? '#334155' : '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.75rem', cursor: isFirst ? 'default' : 'pointer', opacity: isFirst ? 0.35 : 1 }}
-             title={t('moveUp')}
-           >▲</button>
-
-           <button
-             onClick={(e) => { e.stopPropagation(); onMoveDown?.(); }}
-             disabled={isLast}
-             style={{ background: 'transparent', color: isLast ? '#334155' : '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.75rem', cursor: isLast ? 'default' : 'pointer', opacity: isLast ? 0.35 : 1 }}
-             title={t('moveDown')}
-           >▼</button>
+             onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+             disabled={!canDelete}
+             style={{ background: 'transparent', color: canDelete ? '#ef4444' : '#334155', border: `1px solid ${canDelete ? '#ef4444' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35 }}
+             title="Delete section"
+           >🗑</button>
 
            {/* Snippet Manager Overlay */}
            {isManagingSnippets && (

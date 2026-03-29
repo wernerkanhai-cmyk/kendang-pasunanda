@@ -447,6 +447,15 @@ function App() {
     });
   };
 
+  const handleDeleteSongBlock = (patternId) => {
+    setSong(prev => {
+      if (prev.length <= 1) return prev; // keep at least one section
+      const next = prev.filter(p => p.id !== patternId);
+      if (activePatternId === patternId) setActivePatternId(next[0]?.id ?? null);
+      return next;
+    });
+  };
+
   // Auto-scroll to newly added block
   useEffect(() => {
     if (lastAddedBlockRef.current) {
@@ -1957,10 +1966,8 @@ function App() {
                       trackVolumes={trackVolumes}
                       onTrackVolumeChange={(track, val) => setTrackVolumes(v => ({ ...v, [track]: val }))}
                       onDuplicate={() => duplicateSongBlock(pattern.id)}
-                      onMoveUp={() => movePatternUp(pattern.id)}
-                      onMoveDown={() => movePatternDown(pattern.id)}
-                      isFirst={idx === 0}
-                      isLast={idx === song.length - 1}
+                      onDelete={() => handleDeleteSongBlock(pattern.id)}
+                      canDelete={song.length > 1}
                     />
                   </div>
                 </React.Fragment>
