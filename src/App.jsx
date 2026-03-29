@@ -1004,7 +1004,7 @@ function App() {
     let loopStartGlobal, loopEndGlobal;
     if (hasSelection) {
       const selStart = Math.min(activeSlot.startIndex, activeSlot.endIndex);
-      const selEnd = Math.max(activeSlot.startIndex, activeSlot.endIndex);
+      const selEnd = Math.max(activeSlot.startIndex, activeSlot.endIndex) + 1;
       const clampedEnd = Math.min(pattern.anak.length, selEnd);
       loopStartGlobal = globalStart + selStart;
       loopEndGlobal = globalStart + clampedEnd;
