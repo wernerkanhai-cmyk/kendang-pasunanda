@@ -57,7 +57,7 @@ const T = {
     addBlock: '+ Add Section',
     addBlockTooltip: 'Add new section at the end',
     // App title
-    appSubtitle: 'Sequencer & OCR Studio',
+    appSubtitle: 'Sequencer & Solfège',
     // Instrument panel
     instrument: 'Instrument',
     padTab: 'Pad',
@@ -190,7 +190,7 @@ const T = {
     compositionLabel: 'COMPOSITIE',
     addBlock: '+ Voeg Regel Toe',
     addBlockTooltip: 'Voeg nieuwe regel toe aan het einde',
-    appSubtitle: 'Sequencer & OCR Studio',
+    appSubtitle: 'Sequencer & Solfège',
     instrument: 'Instrument',
     padTab: 'Pad',
     soundTab: '⚙️ Geluid',
@@ -314,7 +314,7 @@ const T = {
     compositionLabel: 'KOMPOSISI',
     addBlock: '+ Tambah Bagian',
     addBlockTooltip: 'Tambahkan bagian baru di akhir',
-    appSubtitle: 'Sequencer & OCR Studio',
+    appSubtitle: 'Sequencer & Solfège',
     instrument: 'Instrumen',
     padTab: 'Pad',
     soundTab: '⚙️ Suara',
