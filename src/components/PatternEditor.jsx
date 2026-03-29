@@ -50,6 +50,7 @@ const PatternEditor = ({
   measureOffset = 0,
   loopingPatternId,
   onLoopPattern,
+  loopRange = null,
   soloTrack = null,
   onToggleSolo,
   metronomeMode,
@@ -429,6 +430,11 @@ const [showBeheer, setShowBeheer] = useState(true);
   };
 
   const activeRangeObj = getActiveRange();
+
+  // Loop range for this pattern (for grid highlight)
+  const loopRangeObj = (loopRange?.patternId === pattern.id)
+    ? { start: loopRange.startSlot, end: loopRange.endSlot }
+    : null;
 
   const SOLO_BTN_W = 24; // 20px button + 4px margin
   const playheadSlot = (activeSlot?.patternId === pattern.id && activeSlot?.startIndex !== undefined)
@@ -946,6 +952,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 slots={pattern.anak}
                 theme="anak"
                 activeRange={activeRangeObj?.trackId === 'anak' ? activeRangeObj : null}
+                loopRange={loopRangeObj}
                 onSlotClick={(index, isShift) => handleSlotClick('anak', index, isShift || touchSelectMode)}
                 gridResolution={gridResolution}
                 slotWidth={slotWidth}
@@ -981,6 +988,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 slots={pattern.indung}
                 theme="indung"
                 activeRange={activeRangeObj?.trackId === 'indung' ? activeRangeObj : null}
+                loopRange={loopRangeObj}
                 onSlotClick={(index, isShift) => handleSlotClick('indung', index, isShift || touchSelectMode)}
                 gridResolution={gridResolution}
                 slotWidth={slotWidth}

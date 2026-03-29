@@ -47,6 +47,8 @@ function App() {
   const [precount, setPrecount] = useState(0);
   const [loopingPatternId, setLoopingPatternId] = useState(null);
   const loopingPatternIdRef = useRef(null);
+  const [loopRange, setLoopRange] = useState(null); // { patternId, startSlot, endSlot } local slots
+  const loopRangeRef = useRef(null);
   const [soloTrack, setSoloTrack] = useState(null); // null | 'anak' | 'indung'
   const soloTrackRef = useRef(null);
   const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
@@ -918,6 +920,8 @@ function App() {
       if (loopingPatternIdRef.current) {
         loopingPatternIdRef.current = null;
         setLoopingPatternId(null);
+        loopRangeRef.current = null;
+        setLoopRange(null);
         const total = song.reduce((sum, p) => sum + p.anak.length, 0);
         schedulerRef.current.setTotalSlots(total);
       }
@@ -976,6 +980,8 @@ function App() {
       // Stop loop — herstel normale song totalSlots
       loopingPatternIdRef.current = null;
       setLoopingPatternId(null);
+      loopRangeRef.current = null;
+      setLoopRange(null);
       schedulerRef.current.pause();
       setIsPlaying(false);
       const total = song.reduce((sum, p) => sum + p.anak.length, 0);
@@ -990,19 +996,40 @@ function App() {
     const globalStart = localToGlobal(patternId, 0, song);
     const pattern = song.find(p => p.id === patternId);
     if (!pattern) return;
+
+    // Use the active selection as loop range if a range is selected on this pattern
+    const hasSelection = activeSlot?.patternId === patternId
+      && activeSlot.startIndex !== activeSlot.endIndex;
+
+    let loopStartGlobal, loopEndGlobal;
+    if (hasSelection) {
+      const selStart = Math.min(activeSlot.startIndex, activeSlot.endIndex);
+      const selEnd = Math.max(activeSlot.startIndex, activeSlot.endIndex) + gridResolution;
+      const clampedEnd = Math.min(pattern.anak.length, selEnd);
+      loopStartGlobal = globalStart + selStart;
+      loopEndGlobal = globalStart + clampedEnd;
+      const newLoopRange = { patternId, startSlot: selStart, endSlot: clampedEnd - 1 };
+      loopRangeRef.current = newLoopRange;
+      setLoopRange(newLoopRange);
+    } else {
+      loopStartGlobal = globalStart;
+      loopEndGlobal = globalStart + pattern.anak.length;
+      loopRangeRef.current = null;
+      setLoopRange(null);
+    }
+
     loopingPatternIdRef.current = patternId;
     setLoopingPatternId(patternId);
-    const loopTotal = globalStart + pattern.anak.length;
-    schedulerRef.current.setTotalSlots(loopTotal);
+    schedulerRef.current.setTotalSlots(loopEndGlobal);
     // Build slot time table for this loop range
-    slotTimesRef.current = buildSlotTimesMs(globalStart, loopTotal, buildTempoAt(song, bpm));
-    await schedulerRef.current.play(false, globalStart);
+    slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
+    await schedulerRef.current.play(false, loopStartGlobal);
     const ctx2 = schedulerRef.current.audioCtx;
     const latMs2 = ctx2 ? ((ctx2.outputLatency || 0) + (ctx2.baseLatency || 0)) * 1000 : 0;
     const msUntilLoop = Math.max(0, (schedulerRef.current.playStartAudioTime - ctx2.currentTime) * 1000);
     playStartWallTimeRef.current = Date.now() + msUntilLoop + latMs2;
     setIsPlaying(true);
-    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: 0, endIndex: 0 } : prev);
+    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: loopStartGlobal - globalStart, endIndex: loopStartGlobal - globalStart } : prev);
   };
 
   const rewind = () => {
@@ -1954,6 +1981,7 @@ function App() {
                       measureOffset={measureOffset}
                       loopingPatternId={loopingPatternId}
                       onLoopPattern={handleLoopPattern}
+                      loopRange={loopRange}
                       soloTrack={soloTrack}
                       onToggleSolo={toggleSolo}
                       metronomeMode={metronomeMode}

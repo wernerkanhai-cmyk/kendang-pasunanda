@@ -70,6 +70,10 @@
   background-color: rgba(0, 0, 0, 0.06);
 }
 
+.loop-range {
+  background-color: rgba(249, 115, 22, 0.15); /* Amber loop range highlight */
+}
+
 .active-slot {
   background-color: rgba(59, 130, 246, 0.3) !important; /* Blue selection highlight */
 }

@@ -18,7 +18,7 @@ const getVerticalPositionClass = (symbol, hand) => {
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot }) => {
+const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
   const lastTapRef = useRef({ slotIndex: -1, time: 0 });
@@ -384,6 +384,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
           else if (isSubStepStart) borderClasses += ' substep-start';
 
           const isActive = activeRange && index >= activeRange.start && index <= activeRange.end;
+          const isLoopRange = loopRange && index >= loopRange.start && index <= loopRange.end;
           const isTripletStart = triplets.includes(index);
           
           const isRestTop = slot.top === SYMBOL_REST;
@@ -396,7 +397,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, onSlotClick, slotWidth =
             <div
               key={index}
               data-slot-index={index}
-              className={`slot-cell ${borderClasses} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
+              className={`slot-cell ${borderClasses} ${isLoopRange ? 'loop-range' : ''} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
               onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
               onContextMenu={(e) => openPopup(e, index)}
               onTouchEnd={(e) => {
