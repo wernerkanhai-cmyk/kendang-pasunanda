@@ -587,6 +587,43 @@ function App() {
     }, 0);
   };
 
+  const deleteMeasuresFromEnd = (patternId, count) => {
+    setUndoStack(prev => [...prev.slice(-49), song]);
+    setRedoStack([]);
+
+    let newLength = 0;
+
+    setSong(prevSong => {
+      const pIdx = prevSong.findIndex(p => p.id === patternId);
+      if (pIdx === -1) return prevSong;
+
+      const p = prevSong[pIdx];
+      const slotsToRemove = count * 48;
+      const clampedLength = Math.max(48, p.anak.length - slotsToRemove);
+      if (clampedLength === p.anak.length) return prevSong;
+
+      const newPattern = JSON.parse(JSON.stringify(p));
+      newPattern.anak   = newPattern.anak.slice(0, clampedLength);
+      newPattern.indung = newPattern.indung.slice(0, clampedLength);
+      if (newPattern.gong) newPattern.gong = newPattern.gong.filter(g => g < clampedLength);
+
+      newLength = clampedLength;
+      const nextSong = [...prevSong];
+      nextSong[pIdx] = newPattern;
+      return nextSong;
+    });
+
+    setTimeout(() => {
+      if (newLength > 0) {
+        setActiveSlot(prev => {
+          if (!prev || prev.patternId !== patternId) return prev;
+          const clamped = Math.min(prev.startIndex, newLength - 1);
+          return { ...prev, startIndex: clamped, endIndex: clamped };
+        });
+      }
+    }, 0);
+  };
+
   const handleUndo = () => {
     if (undoStack.length === 0) return;
     const previousState = undoStack[undoStack.length - 1];
@@ -1976,6 +2013,7 @@ function App() {
                       handleImportSnippets={handleImportSnippets}
                       insertMeasure={() => insertMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
                       deleteMeasure={() => deleteMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
+                      deleteMeasuresFromEnd={(count) => deleteMeasuresFromEnd(pattern.id, count)}
                       onGongToggle={handleGongToggle}
                       measureOffset={measureOffset}
                       loopingPatternId={loopingPatternId}

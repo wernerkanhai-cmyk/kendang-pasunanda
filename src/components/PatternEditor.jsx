@@ -46,6 +46,7 @@ const PatternEditor = ({
   handleImportSnippets,
   insertMeasure,
   deleteMeasure,
+  deleteMeasuresFromEnd,
   onGongToggle,
   measureOffset = 0,
   loopingPatternId,
@@ -582,6 +583,19 @@ const [showBeheer, setShowBeheer] = useState(true);
              style={{ background: 'transparent', color: canDelete ? '#ef4444' : '#334155', border: `1px solid ${canDelete ? '#ef4444' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35 }}
              title="Delete section"
            >🗑</button>
+
+           {[1, 2, 3].map(n => {
+             const canDel = totalMeasures > n;
+             return (
+               <button
+                 key={n}
+                 onClick={(e) => { e.stopPropagation(); if (canDel) deleteMeasuresFromEnd?.(n); }}
+                 disabled={!canDel}
+                 style={{ background: 'transparent', color: canDel ? '#f87171' : '#334155', border: `1px solid ${canDel ? '#f87171' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.7rem', cursor: canDel ? 'pointer' : 'default', opacity: canDel ? 1 : 0.35, fontVariantNumeric: 'tabular-nums' }}
+                 title={`Verwijder ${n} maat${n > 1 ? 'en' : ''} van achteren`}
+               >−{n}⊣</button>
+             );
+           })}
 
            {/* Snippet Manager Overlay */}
            {isManagingSnippets && (
