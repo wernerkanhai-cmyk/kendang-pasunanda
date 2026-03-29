@@ -383,8 +383,8 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
           else if (isGridLine) borderClasses += ' grid-line';
           else if (isSubStepStart) borderClasses += ' substep-start';
 
-          const isActive = activeRange && index >= activeRange.start && index <= activeRange.end;
-          const isLoopRange = loopRange && index >= loopRange.start && index <= loopRange.end;
+          const isActive = activeRange && index >= activeRange.start && index < activeRange.end;
+          const isLoopRange = loopRange && index >= loopRange.start && index < loopRange.end;
           const isTripletStart = triplets.includes(index);
           
           const isRestTop = slot.top === SYMBOL_REST;

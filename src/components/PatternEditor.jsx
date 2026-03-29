@@ -197,7 +197,7 @@ const [showBeheer, setShowBeheer] = useState(true);
     const range = getActiveRange() || selectedRange.current;
     if (!range) return;
     const newTrack = [...pattern[range.trackId]];
-    for (let i = range.start; i <= range.end; i++) {
+    for (let i = range.start; i < range.end; i++) {
       newTrack[i] = emptySlot(i);
     }
     updatePattern({ ...pattern, [range.trackId]: newTrack });
@@ -319,7 +319,7 @@ const [showBeheer, setShowBeheer] = useState(true);
     if (!range) return;
     setClipboard({
       trackId: range.trackId,
-      data: JSON.parse(JSON.stringify(pattern[range.trackId].slice(range.start, range.end + 1))),
+      data: JSON.parse(JSON.stringify(pattern[range.trackId].slice(range.start, range.end))),
     });
   };
 
@@ -328,10 +328,10 @@ const [showBeheer, setShowBeheer] = useState(true);
     if (!range) return;
     setClipboard({
       trackId: range.trackId,
-      data: JSON.parse(JSON.stringify(pattern[range.trackId].slice(range.start, range.end + 1))),
+      data: JSON.parse(JSON.stringify(pattern[range.trackId].slice(range.start, range.end))),
     });
     const newTrack = [...pattern[range.trackId]];
-    for (let i = range.start; i <= range.end; i++) {
+    for (let i = range.start; i < range.end; i++) {
       newTrack[i] = emptySlot(i);
     }
     updatePattern({ ...pattern, [range.trackId]: newTrack });
@@ -358,10 +358,10 @@ const [showBeheer, setShowBeheer] = useState(true);
     const trimmedName = snippetName.trim();
     const folder = snippetFolder || 'Algemeen';
     const copiedSymbols = {
-      anak:   JSON.parse(JSON.stringify(pattern.anak.slice(range.start, range.end + 1))),
-      indung: JSON.parse(JSON.stringify(pattern.indung.slice(range.start, range.end + 1))),
+      anak:   JSON.parse(JSON.stringify(pattern.anak.slice(range.start, range.end))),
+      indung: JSON.parse(JSON.stringify(pattern.indung.slice(range.start, range.end))),
       gong:   (pattern.gong || [])
-                .filter(g => g >= range.start && g <= range.end)
+                .filter(g => g >= range.start && g < range.end)
                 .map(g => g - range.start),
     };
 
