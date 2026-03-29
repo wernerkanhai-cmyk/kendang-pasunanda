@@ -1008,7 +1008,7 @@ function App() {
       const clampedEnd = Math.min(pattern.anak.length, selEnd);
       loopStartGlobal = globalStart + selStart;
       loopEndGlobal = globalStart + clampedEnd;
-      const newLoopRange = { patternId, startSlot: selStart, endSlot: clampedEnd - 1 };
+      const newLoopRange = { patternId, startSlot: selStart, endSlot: clampedEnd };
       loopRangeRef.current = newLoopRange;
       setLoopRange(newLoopRange);
     } else {
@@ -1029,7 +1029,6 @@ function App() {
     const msUntilLoop = Math.max(0, (schedulerRef.current.playStartAudioTime - ctx2.currentTime) * 1000);
     playStartWallTimeRef.current = Date.now() + msUntilLoop + latMs2;
     setIsPlaying(true);
-    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: loopStartGlobal - globalStart, endIndex: loopStartGlobal - globalStart } : prev);
   };
 
   const rewind = () => {
