@@ -1451,7 +1451,7 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="branding">
             <h1>Kendang Pasunanda</h1>
-            <p>{t('appSubtitle')} (v7.1)</p>
+            <p>{t('appSubtitle')}</p>
           </div>
 
           {/* ── Song dropdown — naast de app naam ─────────────────────────── */}
