@@ -131,30 +131,22 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [bpmEditing, setBpmEditing] = useState(false);
   const [bpmInput, setBpmInput] = useState('');
   const bpmDragRef = useRef(null); // { startY, moved }
-  const [zoomEditing, setZoomEditing] = useState(false);
-  const [zoomInput, setZoomInput] = useState('');
-  const zoomDragRef = useRef(null); // { startY, moved }
-
   const totalMeasures = Math.ceil(pattern.anak.length / 48);
   const totalSlots = pattern.anak.length;
 
   const [slotWidth, setSlotWidth] = useState(12);
-  const [zoom, setZoom] = useState(1);
   const baseSlotWidthRef = useRef(12);
   useEffect(() => {
     if (!timelineRef.current) return;
     const ro = new ResizeObserver(entries => {
       const w = entries[0].contentRect.width;
-      baseSlotWidthRef.current = w / 192; // always fit 4 bars (192 slots)
-      setSlotWidth(Math.max(4, baseSlotWidthRef.current * zoom));
+      baseSlotWidthRef.current = w / 192;
+      setSlotWidth(Math.max(4, baseSlotWidthRef.current));
     });
     ro.observe(timelineRef.current);
     return () => ro.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalSlots]);
-  useEffect(() => {
-    setSlotWidth(Math.max(4, baseSlotWidthRef.current * zoom));
-  }, [zoom]);
 
   // Keep selectedRange ref tracking the LAST MULTI-SLOT selection.
   // Only update it when a genuine range is selected (start !== end).
@@ -745,55 +737,6 @@ const [showBeheer, setShowBeheer] = useState(true);
 
       {isActive && (
         <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)', overflowX: 'auto', flexWrap: 'nowrap' }}>
-          {/* Zoom controls */}
-          <span style={{ fontSize: '0.65rem', color: '#64748b' }}>{t('zoom')}</span>
-          {zoomEditing ? (
-            <input
-              type="number"
-              value={zoomInput}
-              autoFocus
-              onChange={(e) => setZoomInput(e.target.value)}
-              onBlur={() => {
-                const val = parseFloat(zoomInput);
-                if (!isNaN(val)) setZoom(Math.max(0.25, Math.min(8, val / 100)));
-                setZoomEditing(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') e.currentTarget.blur();
-                if (e.key === 'Escape') setZoomEditing(false);
-                e.stopPropagation();
-              }}
-              style={{ width: '5ch', fontWeight: 'bold', fontSize: '0.85rem', color: '#fff', background: '#334155', border: '1px solid #60a5fa', borderRadius: '3px', textAlign: 'center', padding: '0.1rem' }}
-            />
-          ) : (
-            <span
-              style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#94a3b8', textAlign: 'center', touchAction: 'none', userSelect: 'none', cursor: 'ns-resize', padding: '0.2rem 0.5rem', display: 'inline-block', minWidth: '42px', background: '#1e293b', border: '1px solid #334155', borderRadius: '3px' }}
-              title={t('zoomTooltip')}
-              onPointerDown={(e) => {
-                e.currentTarget.setPointerCapture(e.pointerId);
-                zoomDragRef.current = { startY: e.clientY, moved: false };
-              }}
-              onPointerMove={(e) => {
-                if (!zoomDragRef.current) return;
-                const delta = zoomDragRef.current.startY - e.clientY;
-                if (Math.abs(delta) >= 4) {
-                  zoomDragRef.current.moved = true;
-                  setZoom(z => +(Math.max(0.25, Math.min(8, z + (delta > 0 ? 0.1 : -0.1))).toFixed(2)));
-                  zoomDragRef.current.startY = e.clientY;
-                }
-              }}
-              onPointerUp={() => {
-                if (zoomDragRef.current && !zoomDragRef.current.moved) {
-                  setZoomInput(String(Math.round(zoom * 100)));
-                  setZoomEditing(true);
-                }
-                zoomDragRef.current = null;
-              }}
-              onDoubleClick={(e) => { e.stopPropagation(); setZoom(1); }}
-            >{Math.round(zoom * 100)}%</span>
-          )}
-          {zoom !== 1 && <button onClick={(e) => { e.stopPropagation(); setZoom(1); }} style={{ background: 'transparent', border: 'none', color: '#475569', fontSize: '0.65rem', cursor: 'pointer' }}>reset</button>}
-          <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
           <button
             onClick={(e) => { e.stopPropagation(); handleClearPattern(); }}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
