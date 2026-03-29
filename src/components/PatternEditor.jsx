@@ -79,22 +79,20 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [transportPos, setTransportPos] = useState(null);
   const transportInteractRef = useRef(null);
 
-  // Position transport bar to the left of the header volume knobs after first paint
+  // Position transport bar to the right of the song save button after first paint
   useEffect(() => {
-    const hc = document.querySelector('.header-center');
-    if (!hc) return;
-    const r = hc.getBoundingClientRect();
-    const x = Math.max(4, r.left - 268);
+    const btn = document.getElementById('song-save-btn');
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const x = Math.min(r.right + 8, window.innerWidth - 268);
     const y = Math.max(4, Math.round(r.top + r.height / 2 - 24));
-    if (x < window.innerWidth && y < window.innerHeight) {
-      setTransportPos({ x, y });
-    }
+    setTransportPos({ x, y });
   }, []);
 
   const startTransportDrag = (clientX, clientY) => {
-    const hc = document.querySelector('.header-center');
-    const defX = hc ? Math.max(4, hc.getBoundingClientRect().left - 268) : window.innerWidth / 2 - 120;
-    const defY = hc ? Math.round(hc.getBoundingClientRect().top + hc.getBoundingClientRect().height / 2 - 24) : window.innerHeight - 60;
+    const btn = document.getElementById('song-save-btn');
+    const defX = btn ? Math.min(btn.getBoundingClientRect().right + 8, window.innerWidth - 268) : window.innerWidth / 2 - 120;
+    const defY = btn ? Math.max(4, Math.round(btn.getBoundingClientRect().top + btn.getBoundingClientRect().height / 2 - 24)) : window.innerHeight - 60;
     const initX = transportPos?.x ?? defX;
     const initY = transportPos?.y ?? defY;
     transportInteractRef.current = { startX: clientX, startY: clientY, origX: initX, origY: initY };

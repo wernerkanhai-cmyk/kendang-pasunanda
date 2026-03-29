@@ -1381,6 +1381,7 @@ function App() {
           {/* ── Song dropdown — naast de app naam ─────────────────────────── */}
           <div style={{ position: 'relative' }}>
             <button
+              id="song-save-btn"
               onClick={() => setShowSongMenu(v => !v)}
               style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
               title={t('manageSong')}
