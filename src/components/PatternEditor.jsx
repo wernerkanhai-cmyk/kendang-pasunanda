@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
@@ -79,12 +79,15 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [transportPos, setTransportPos] = useState(null);
   const transportInteractRef = useRef(null);
 
-  // Position transport bar to the left of the header volume knobs on first mount
-  useLayoutEffect(() => {
+  // Position transport bar to the left of the header volume knobs after first paint
+  useEffect(() => {
     const hc = document.querySelector('.header-center');
-    if (hc) {
-      const r = hc.getBoundingClientRect();
-      setTransportPos({ x: Math.max(4, r.left - 268), y: Math.round(r.top + r.height / 2 - 24) });
+    if (!hc) return;
+    const r = hc.getBoundingClientRect();
+    const x = Math.max(4, r.left - 268);
+    const y = Math.max(4, Math.round(r.top + r.height / 2 - 24));
+    if (x < window.innerWidth && y < window.innerHeight) {
+      setTransportPos({ x, y });
     }
   }, []);
 
