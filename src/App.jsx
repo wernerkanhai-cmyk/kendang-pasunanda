@@ -1435,6 +1435,13 @@ function App() {
               </>
             )}
           </div>
+
+          {/* ── Songbuilder (☰) — direct rechts naast song save knop ──── */}
+          <button
+            onClick={handleOpenSongMap}
+            style={{ background: 'transparent', border: '1px solid #334155', borderRadius: '6px', color: '#64748b', cursor: 'pointer', padding: '0.6rem 0.75rem', fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}
+            title="Compositie-overzicht"
+          >☰</button>
         </div>
 
         {/* ── Gecentreerd: volume knobs + schakelaar ───────────────────── */}
@@ -1844,15 +1851,8 @@ function App() {
 
         <main className="sequencer-section">
         <div className="song-timeline">
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0.4rem 1rem 0.2rem', gap: '0.5rem' }}>
-            <button
-              onClick={handleOpenSongMap}
-              style={{ background: 'transparent', border: '1px solid #334155', borderRadius: '4px', color: '#64748b', cursor: 'pointer', padding: '0.2rem 0.5rem', fontSize: '0.85rem', lineHeight: 1, flexShrink: 0 }}
-              title="Compositie-overzicht"
-            >☰</button>
-            <div style={{ flex: 1, fontSize: '1.1rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center' }}>
-              {songName}
-            </div>
+          <div style={{ padding: '0.4rem 1rem 0.2rem', fontSize: '1.1rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center' }}>
+            {songName}
           </div>
           <SongMap
             song={song}
