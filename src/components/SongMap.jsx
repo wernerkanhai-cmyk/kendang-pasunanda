@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useT } from '../i18n';
 
-const SongMap = ({ song, activePatternId, open, onClose, onActivate, onMoveUp, onMoveDown }) => {
+const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActivate, onMoveUp, onMoveDown }) => {
   const t = useT();
   // Close on outside tap
   useEffect(() => {
@@ -31,7 +31,7 @@ const SongMap = ({ song, activePatternId, open, onClose, onActivate, onMoveUp, o
         className="songmap-panel"
         style={{
           position: 'fixed',
-          top: 0, left: 0, bottom: 0,
+          top: topOffset, left: 0, bottom: 0,
           width: '200px',
           zIndex: 401,
           background: '#0f172a',
