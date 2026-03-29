@@ -45,7 +45,7 @@ export const interpolateBpm = (tempoTrack, localSlot) => {
   return sorted[sorted.length - 1].bpm;
 };
 
-const TempoTrack = ({ pattern, defaultBpm, onUpdate, slotWidth }) => {
+const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth }) => {
   const t = useT();
   const [open, setOpen] = useState(true);
   const svgRef = useRef(null);
@@ -228,23 +228,39 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, slotWidth }) => {
       : `${Math.round(Math.min(...tempoTrack.map(n => n.bpm)))}–${Math.round(Math.max(...tempoTrack.map(n => n.bpm)))} BPM`;
 
   const isActive = tempoTrack.length > 0;
+  const enabled = pattern.tempoTrackEnabled !== false;
 
   // Grid lines for 20-100
   const gridBpms = [20, 30, 40, 50, 60, 70, 80, 90, 100];
   const labelBpms = [20, 40, 60, 80, 100];
 
   return (
-    <div style={{ marginBottom: '6px', border: `2px solid ${isActive ? 'rgba(212,175,55,0.6)' : 'rgba(255,255,255,0.35)'}`, borderRadius: '4px', overflow: 'visible', position: 'relative' }}>
+    <div style={{ marginBottom: '6px', border: `2px solid ${isActive && enabled ? 'rgba(212,175,55,0.6)' : 'rgba(255,255,255,0.35)'}`, borderRadius: '4px', overflow: 'visible', position: 'relative' }}>
       {/* Header */}
       <div
-        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', cursor: 'pointer', background: open ? 'rgba(212,175,55,0.22)' : 'rgba(255,255,255,0.08)', userSelect: 'none', minWidth: 0 }}
+        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', cursor: 'pointer', background: open && enabled ? 'rgba(212,175,55,0.22)' : 'rgba(255,255,255,0.08)', userSelect: 'none', minWidth: 0 }}
         onClick={() => setOpen(o => !o)}
       >
         <span style={{ fontSize: '0.7rem', color: open ? '#d4af37' : '#94a3b8', flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
-        <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: isActive ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>{t('tempoLabel')}</span>
-        <span style={{ fontSize: '0.65rem', color: isActive ? '#d4af37' : '#64748b', marginLeft: '2px', flexShrink: 0 }}>{summaryLabel}</span>
+        <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: isActive && enabled ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>{t('tempoLabel')}</span>
+        <span style={{ fontSize: '0.65rem', color: isActive && enabled ? '#d4af37' : '#64748b', marginLeft: '2px', flexShrink: 0 }}>{enabled ? summaryLabel : `${defaultBpm} BPM (globaal)`}</span>
 
-        {open && (
+        {/* Enable/disable toggle */}
+        {onToggleEnabled && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleEnabled(pattern.id); }}
+            style={{
+              marginLeft: '4px', padding: '1px 7px', fontSize: '0.62rem', borderRadius: '3px', cursor: 'pointer', flexShrink: 0,
+              background: enabled ? '#d4af37' : '#1e293b',
+              color: enabled ? '#0f172a' : '#64748b',
+              border: `1px solid ${enabled ? '#d4af37' : '#334155'}`,
+              fontWeight: 'bold',
+            }}
+            title={enabled ? 'Disable tempo automation' : 'Enable tempo automation'}
+          >{enabled ? 'ON' : 'OFF'}</button>
+        )}
+
+        {open && enabled && (
           <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }} onClick={e => e.stopPropagation()}>
             <button onClick={applyStatic}
               style={{ padding: '1px 6px', fontSize: '0.62rem', background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', borderRadius: '3px', cursor: 'pointer' }}
@@ -265,14 +281,14 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, slotWidth }) => {
 
       {/* SVG Canvas */}
       {open && (
-        <div style={{ background: 'rgba(0,0,0,0.3)', height: TRACK_HEIGHT + 'px', position: 'relative' }}>
+        <div style={{ background: 'rgba(0,0,0,0.3)', height: TRACK_HEIGHT + 'px', position: 'relative', opacity: enabled ? 1 : 0.35, pointerEvents: enabled ? 'auto' : 'none' }}>
           <svg
             ref={svgRef}
             viewBox={`0 0 ${totalWidth} ${TRACK_HEIGHT}`}
             preserveAspectRatio="none"
             width="100%"
             height={TRACK_HEIGHT}
-            style={{ display: 'block', cursor: 'crosshair' }}
+            style={{ display: 'block', cursor: enabled ? 'crosshair' : 'default' }}
             onDoubleClick={handleDoubleClick}
           >
             {gridBpms.map(b => (

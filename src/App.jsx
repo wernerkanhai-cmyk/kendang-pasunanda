@@ -711,7 +711,7 @@ function App() {
       if (!currentSong) return;
 
       // Realtime BPM from tempo automation
-      const hasAutomation = currentSong.some(p => p.tempoTrack && p.tempoTrack.length > 0);
+      const hasAutomation = currentSong.some(p => p.tempoTrack && p.tempoTrack.length > 0 && p.tempoTrackEnabled !== false);
       if (hasAutomation) {
         const currentBpmRef = bpmRef.current;
         const rt = Math.round(buildTempoAt(currentSong, currentBpmRef)(globalSlot));
@@ -823,7 +823,7 @@ function App() {
       if (globalSlot < offset + len) {
         const localSlot = globalSlot - offset;
         const track = pattern.tempoTrack;
-        if (!track || track.length === 0) return defaultBpm;
+        if (!track || track.length === 0 || pattern.tempoTrackEnabled === false) return defaultBpm;
         const sorted = [...track].sort((a, b) => a.slot - b.slot);
         if (localSlot <= sorted[0].slot) return sorted[0].bpm;
         if (localSlot >= sorted[sorted.length - 1].slot) return sorted[sorted.length - 1].bpm;
@@ -879,6 +879,10 @@ function App() {
 
   const handleUpdateTempoTrack = (patternId, newTempoTrack) => {
     setSong(prev => prev.map(p => p.id === patternId ? { ...p, tempoTrack: newTempoTrack } : p));
+  };
+
+  const handleToggleTempoTrack = (patternId) => {
+    setSong(prev => prev.map(p => p.id === patternId ? { ...p, tempoTrackEnabled: p.tempoTrackEnabled === false } : p));
   };
 
   const handleBpmChange = (delta) => {
@@ -1948,6 +1952,7 @@ function App() {
                       metronomeVolume={metronomeVolume}
                       setMetronomeVolume={setMetronomeVolume}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
+                      onToggleTempoTrack={handleToggleTempoTrack}
                       onSeek={handleSeek}
                       trackVolumes={trackVolumes}
                       onTrackVolumeChange={(track, val) => setTrackVolumes(v => ({ ...v, [track]: val }))}

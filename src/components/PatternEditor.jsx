@@ -57,6 +57,7 @@ const PatternEditor = ({
   metronomeVolume = 0.7,
   setMetronomeVolume,
   onUpdateTempoTrack,
+  onToggleTempoTrack,
   onSeek,
   onDuplicate,
   onMoveUp,
@@ -968,6 +969,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             pattern={pattern}
             defaultBpm={bpm}
             onUpdate={onUpdateTempoTrack}
+            onToggleEnabled={onToggleTempoTrack}
             slotWidth={slotWidth}
           />
         </div>

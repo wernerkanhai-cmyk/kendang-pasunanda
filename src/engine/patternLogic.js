@@ -34,7 +34,8 @@ export const createEmptyPattern = (name = 'Song 1') => {
     anak: generateEmptySlots(192),    // Top track
     indung: generateEmptySlots(192),  // Bottom track
     gong: [],                         // Array of slot indices (multiples of 6) where gong plays
-    tempoTrack: []                    // Array of { slot, bpm } tempo nodes; empty = use global BPM
+    tempoTrack: [],                   // Array of { slot, bpm } tempo nodes; empty = use global BPM
+    tempoTrackEnabled: true           // When false, automation data is kept but global BPM is used
   };
 };
 
@@ -85,6 +86,7 @@ export const sanitizePattern = (pattern) => {
     indung:     sanitizeTrack(pattern?.indung),
     gong:       Array.isArray(pattern?.gong)       ? pattern.gong.filter(n => typeof n === 'number' && n >= 0) : [],
     tempoTrack: Array.isArray(pattern?.tempoTrack) ? pattern.tempoTrack : [],
+    tempoTrackEnabled: pattern?.tempoTrackEnabled !== false, // default true for existing data
   };
 };
 
