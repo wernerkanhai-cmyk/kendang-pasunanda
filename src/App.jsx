@@ -1438,6 +1438,7 @@ function App() {
 
           {/* ── Songbuilder (☰) — direct rechts naast song save knop ──── */}
           <button
+            id="songbuilder-btn"
             onClick={handleOpenSongMap}
             style={{ background: 'transparent', border: '1px solid #334155', borderRadius: '6px', color: '#64748b', cursor: 'pointer', padding: '0.6rem 0.75rem', fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}
             title="Compositie-overzicht"

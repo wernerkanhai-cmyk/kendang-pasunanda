@@ -82,7 +82,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   // Position transport bar to the right of the song save button after layout is stable
   useEffect(() => {
     const measure = () => {
-      const btn = document.getElementById('song-save-btn');
+      const btn = document.getElementById('songbuilder-btn');
       if (!btn) return;
       const r = btn.getBoundingClientRect();
       if (r.width === 0) { requestAnimationFrame(measure); return; } // not laid out yet
@@ -94,7 +94,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   }, []);
 
   const startTransportDrag = (clientX, clientY) => {
-    const btn = document.getElementById('song-save-btn');
+    const btn = document.getElementById('songbuilder-btn');
     const defX = btn ? Math.min(btn.getBoundingClientRect().right + 8, window.innerWidth - 268) : window.innerWidth / 2 - 120;
     const defY = btn ? Math.max(4, Math.round(btn.getBoundingClientRect().top + btn.getBoundingClientRect().height / 2 - 24)) : window.innerHeight - 60;
     const initX = transportPos?.x ?? defX;
