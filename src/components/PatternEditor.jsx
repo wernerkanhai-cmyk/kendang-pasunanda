@@ -584,18 +584,17 @@ const [showBeheer, setShowBeheer] = useState(true);
              title="Delete section"
            >🗑</button>
 
-           {[1, 2, 3].map(n => {
-             const canDel = totalMeasures > n;
+           {(() => {
+             const canDel = totalMeasures > 1;
              return (
                <button
-                 key={n}
-                 onClick={(e) => { e.stopPropagation(); if (canDel) deleteMeasuresFromEnd?.(n); }}
+                 onClick={(e) => { e.stopPropagation(); if (canDel) deleteMeasuresFromEnd?.(1); }}
                  disabled={!canDel}
-                 style={{ background: 'transparent', color: canDel ? '#f87171' : '#334155', border: `1px solid ${canDel ? '#f87171' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.7rem', cursor: canDel ? 'pointer' : 'default', opacity: canDel ? 1 : 0.35, fontVariantNumeric: 'tabular-nums' }}
-                 title={`Verwijder ${n} maat${n > 1 ? 'en' : ''} van achteren`}
-               >−{n}⊣</button>
+                 style={{ background: 'transparent', color: canDel ? '#f87171' : '#334155', border: `1px solid ${canDel ? '#f87171' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.7rem', cursor: canDel ? 'pointer' : 'default', opacity: canDel ? 1 : 0.35 }}
+                 title="Verwijder laatste maat"
+               >−1⊣</button>
              );
-           })}
+           })()}
 
            {/* Snippet Manager Overlay */}
            {isManagingSnippets && (
