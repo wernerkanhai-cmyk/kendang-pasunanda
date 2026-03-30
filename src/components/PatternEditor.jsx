@@ -80,6 +80,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   const metronomeBtnRef = useRef(null);
   const [touchSelectMode, setTouchSelectMode] = useState(false);
   const [rulerDrag, setRulerDrag] = useState(null); // { start, current } in measure indices
+  const [handleDrag, setHandleDrag] = useState(null); // { side: 'start'|'end', start: slot, end: slot }
   const [transportPos, setTransportPos] = useState(null);
   const transportInteractRef = useRef(null);
 
@@ -456,6 +457,42 @@ const [showBeheer, setShowBeheer] = useState(true);
         const startM = Math.min(prev.start, prev.current);
         const endM = Math.max(prev.start, prev.current);
         onRulerLoop?.(startM * 48, (endM + 1) * 48);
+        return null;
+      });
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
+  const handleLoopHandlePointerDown = (e, side) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!loopRangeObj) return;
+    const rulerEl = e.currentTarget.closest('.measure-ruler');
+    const fixedStart = loopRangeObj.start;
+    const fixedEnd = loopRangeObj.end;
+    setHandleDrag({ side, start: fixedStart, end: fixedEnd });
+    const mw = 48 * slotWidth;
+    const onMove = (ev) => {
+      if (!rulerEl) return;
+      const rect = rulerEl.getBoundingClientRect();
+      const x = Math.max(0, ev.clientX - rect.left);
+      const snappedMeasure = Math.max(0, Math.min(totalMeasures, Math.round(x / mw)));
+      const newSlot = snappedMeasure * 48;
+      setHandleDrag(prev => {
+        if (!prev) return null;
+        if (side === 'start') {
+          return { ...prev, start: Math.min(newSlot, prev.end - 48) };
+        } else {
+          return { ...prev, end: Math.max(newSlot, prev.start + 48) };
+        }
+      });
+    };
+    const onUp = () => {
+      setHandleDrag(prev => {
+        if (prev) onRulerLoop?.(prev.start, prev.end);
         return null;
       });
       window.removeEventListener('pointermove', onMove);
@@ -967,21 +1004,42 @@ const [showBeheer, setShowBeheer] = useState(true);
 
       <div className="timeline-wrapper" ref={timelineRef} style={isLocked ? { boxShadow: '0 0 16px rgba(212,175,55,0.15)', borderTop: '1px solid rgba(212,175,55,0.2)' } : {}}>
         {/* Measure Ruler */}
-        <div className="measure-ruler" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', color: '#64748b', userSelect: 'none' }}>
-           {Array.from({ length: totalMeasures }).map((_, i) => {
-              const isDragging = rulerDrag && i >= Math.min(rulerDrag.start, rulerDrag.current) && i <= Math.max(rulerDrag.start, rulerDrag.current);
-              const isInLoop = loopRangeObj && i >= Math.floor(loopRangeObj.start / 48) && i < Math.ceil(loopRangeObj.end / 48);
-              const bg = isDragging ? 'rgba(212,175,55,0.35)' : isInLoop ? 'rgba(245,158,11,0.18)' : 'transparent';
-              return (
-                <div key={i}
-                  style={{ width: 48 * slotWidth + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', background: bg, borderRadius: '2px', cursor: 'ew-resize', color: isDragging ? '#d4af37' : isInLoop ? '#f59e0b' : '#64748b' }}
-                  onPointerDown={(e) => handleRulerPointerDown(e, i)}
-                >
-                  {i + 1 + measureOffset}
-                </div>
-              );
-           })}
-        </div>
+        {(() => {
+          const displayLoop = handleDrag ? { start: handleDrag.start, end: handleDrag.end } : loopRangeObj;
+          const mw = 48 * slotWidth;
+          return (
+            <div className="measure-ruler" style={{ position: 'relative', display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', color: '#64748b', userSelect: 'none' }}>
+              {Array.from({ length: totalMeasures }).map((_, i) => {
+                const isDragging = rulerDrag && i >= Math.min(rulerDrag.start, rulerDrag.current) && i <= Math.max(rulerDrag.start, rulerDrag.current);
+                return (
+                  <div key={i}
+                    style={{ width: mw + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'crosshair', color: isDragging ? '#d4af37' : '#64748b', background: isDragging ? 'rgba(212,175,55,0.2)' : 'transparent' }}
+                    onPointerDown={(e) => handleRulerPointerDown(e, i)}
+                  >
+                    {i + 1 + measureOffset}
+                  </div>
+                );
+              })}
+              {/* Loop bar overlay with resize handles */}
+              {displayLoop && (() => {
+                const barLeft = displayLoop.start * slotWidth;
+                const barWidth = Math.max(0, (displayLoop.end - displayLoop.start) * slotWidth);
+                const handleStyle = { position: 'absolute', top: 0, bottom: 0, width: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'ew-resize', pointerEvents: 'all', zIndex: 5 };
+                const gripStyle = { width: 3, height: 12, background: '#f59e0b', borderRadius: 2 };
+                return (
+                  <div style={{ position: 'absolute', top: 0, left: barLeft, width: barWidth, height: '100%', background: handleDrag ? 'rgba(212,175,55,0.25)' : 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.7)', borderRadius: 2, pointerEvents: 'none', boxSizing: 'border-box' }}>
+                    <div style={{ ...handleStyle, left: -5 }} onPointerDown={(e) => handleLoopHandlePointerDown(e, 'start')}>
+                      <div style={gripStyle} />
+                    </div>
+                    <div style={{ ...handleStyle, right: -5 }} onPointerDown={(e) => handleLoopHandlePointerDown(e, 'end')}>
+                      <div style={gripStyle} />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          );
+        })()}
 
         {/* Track rows with gong overlay */}
         <div
