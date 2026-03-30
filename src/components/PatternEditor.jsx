@@ -817,8 +817,8 @@ const [showBeheer, setShowBeheer] = useState(true);
         </div>
       </div>
 
-      {isActive && (
-        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)', overflowX: 'auto', flexWrap: 'nowrap', opacity: isLocked ? 0.35 : 1, pointerEvents: isLocked ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
+      {isActive && !isLocked && (
+        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)', overflowX: 'auto', flexWrap: 'nowrap' }}>
           <button
             onClick={(e) => { e.stopPropagation(); handleClearPattern(); }}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -988,7 +988,7 @@ const [showBeheer, setShowBeheer] = useState(true);
 
 
       {/* Tempo Track — outside horizontal scroll so it's always visible */}
-      {onUpdateTempoTrack && (
+      {onUpdateTempoTrack && !isLocked && (
         <div style={{ padding: '4px 1rem 0' }}>
           <TempoTrack
             pattern={pattern}
