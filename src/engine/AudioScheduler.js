@@ -72,6 +72,14 @@ export class AudioScheduler {
     if (this.currentSlot >= this.totalSlots) this.currentSlot = 0;
   }
 
+  setLoopBounds(start, end) {
+    this.loopStart = start;
+    this.totalSlots = Math.max(start + 1, end);
+    if (this.currentSlot < start || this.currentSlot >= this.totalSlots) {
+      this.currentSlot = start;
+    }
+  }
+
   // Audio-clock time waarop slot loopStart speelt — voor rAF cursor
   playStartAudioTime = 0;
 

@@ -1069,7 +1069,7 @@ function App() {
     setIsPlaying(true);
   };
 
-  const handleRulerLoop = async (patternId, startSlot, endSlot) => {
+  const handleRulerLoop = (patternId, startSlot, endSlot) => {
     if (!schedulerRef.current) return;
     const globalStart = localToGlobal(patternId, 0, song);
     const pattern = song.find(p => p.id === patternId);
@@ -1082,14 +1082,8 @@ function App() {
     setLoopRange(newLoopRange);
     loopingPatternIdRef.current = patternId;
     setLoopingPatternId(patternId);
-    schedulerRef.current.setTotalSlots(loopEndGlobal);
+    schedulerRef.current.setLoopBounds(loopStartGlobal, loopEndGlobal);
     slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
-    await schedulerRef.current.play(false, loopStartGlobal);
-    const ctx2 = schedulerRef.current.audioCtx;
-    const latMs2 = ctx2 ? ((ctx2.outputLatency || 0) + (ctx2.baseLatency || 0)) * 1000 : 0;
-    const msUntilLoop = Math.max(0, (schedulerRef.current.playStartAudioTime - ctx2.currentTime) * 1000);
-    playStartWallTimeRef.current = Date.now() + msUntilLoop + latMs2;
-    setIsPlaying(true);
   };
 
   const rewind = () => {

@@ -470,31 +470,29 @@ const [showBeheer, setShowBeheer] = useState(true);
     e.preventDefault();
     e.stopPropagation();
     if (!loopRangeObj) return;
-    const rulerEl = e.currentTarget.closest('.measure-ruler');
-    const fixedStart = loopRangeObj.start;
-    const fixedEnd = loopRangeObj.end;
-    setHandleDrag({ side, start: fixedStart, end: fixedEnd });
+    const rulerEl = e.currentTarget.parentElement; // direct parent = .measure-ruler
+    const initialStart = loopRangeObj.start;
+    const initialEnd = loopRangeObj.end;
     const mw = 48 * slotWidth;
+    let dragStart = initialStart;
+    let dragEnd = initialEnd;
+    setHandleDrag({ side, start: initialStart, end: initialEnd });
     const onMove = (ev) => {
       if (!rulerEl) return;
       const rect = rulerEl.getBoundingClientRect();
       const x = Math.max(0, ev.clientX - rect.left);
       const snappedMeasure = Math.max(0, Math.min(totalMeasures, Math.round(x / mw)));
       const newSlot = snappedMeasure * 48;
-      setHandleDrag(prev => {
-        if (!prev) return null;
-        if (side === 'start') {
-          return { ...prev, start: Math.min(newSlot, prev.end - 48) };
-        } else {
-          return { ...prev, end: Math.max(newSlot, prev.start + 48) };
-        }
-      });
+      if (side === 'start') {
+        dragStart = Math.min(newSlot, dragEnd - 48);
+      } else {
+        dragEnd = Math.max(newSlot, dragStart + 48);
+      }
+      setHandleDrag({ side, start: dragStart, end: dragEnd });
     };
     const onUp = () => {
-      setHandleDrag(prev => {
-        if (prev) onRulerLoop?.(prev.start, prev.end);
-        return null;
-      });
+      onRulerLoop?.(dragStart, dragEnd);
+      setHandleDrag(null);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
@@ -1005,10 +1003,10 @@ const [showBeheer, setShowBeheer] = useState(true);
       <div className="timeline-wrapper" ref={timelineRef} style={isLocked ? { boxShadow: '0 0 16px rgba(212,175,55,0.15)', borderTop: '1px solid rgba(212,175,55,0.2)' } : {}}>
         {/* Measure Ruler */}
         {(() => {
-          const displayLoop = handleDrag ? { start: handleDrag.start, end: handleDrag.end } : loopRangeObj;
+          const displayLoop = handleDrag ?? loopRangeObj;
           const mw = 48 * slotWidth;
           return (
-            <div className="measure-ruler" style={{ position: 'relative', display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', color: '#64748b', userSelect: 'none' }}>
+            <div className="measure-ruler" style={{ position: 'relative', display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', userSelect: 'none' }}>
               {Array.from({ length: totalMeasures }).map((_, i) => {
                 const isDragging = rulerDrag && i >= Math.min(rulerDrag.start, rulerDrag.current) && i <= Math.max(rulerDrag.start, rulerDrag.current);
                 return (
@@ -1020,23 +1018,28 @@ const [showBeheer, setShowBeheer] = useState(true);
                   </div>
                 );
               })}
-              {/* Loop bar overlay with resize handles */}
-              {displayLoop && (() => {
-                const barLeft = displayLoop.start * slotWidth;
-                const barWidth = Math.max(0, (displayLoop.end - displayLoop.start) * slotWidth);
-                const handleStyle = { position: 'absolute', top: 0, bottom: 0, width: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'ew-resize', pointerEvents: 'all', zIndex: 5 };
-                const gripStyle = { width: 3, height: 12, background: '#f59e0b', borderRadius: 2 };
-                return (
-                  <div style={{ position: 'absolute', top: 0, left: barLeft, width: barWidth, height: '100%', background: handleDrag ? 'rgba(212,175,55,0.25)' : 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.7)', borderRadius: 2, pointerEvents: 'none', boxSizing: 'border-box' }}>
-                    <div style={{ ...handleStyle, left: -5 }} onPointerDown={(e) => handleLoopHandlePointerDown(e, 'start')}>
-                      <div style={gripStyle} />
-                    </div>
-                    <div style={{ ...handleStyle, right: -5 }} onPointerDown={(e) => handleLoopHandlePointerDown(e, 'end')}>
-                      <div style={gripStyle} />
-                    </div>
-                  </div>
-                );
-              })()}
+              {/* Loop bar fill — pointer-events none so ruler drag still works underneath */}
+              {displayLoop && (
+                <div style={{ position: 'absolute', top: 1, bottom: 1, left: displayLoop.start * slotWidth, width: Math.max(0, (displayLoop.end - displayLoop.start) * slotWidth), background: handleDrag ? 'rgba(212,175,55,0.22)' : 'rgba(245,158,11,0.18)', border: '1px solid rgba(245,158,11,0.65)', borderRadius: 2, pointerEvents: 'none', boxSizing: 'border-box' }} />
+              )}
+              {/* Left handle */}
+              {displayLoop && (
+                <div
+                  style={{ position: 'absolute', top: 0, bottom: 0, left: Math.max(0, displayLoop.start * slotWidth - 5), width: 12, cursor: 'ew-resize', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, touchAction: 'none' }}
+                  onPointerDown={(e) => handleLoopHandlePointerDown(e, 'start')}
+                >
+                  <div style={{ width: 3, height: 14, background: '#f59e0b', borderRadius: 2, pointerEvents: 'none' }} />
+                </div>
+              )}
+              {/* Right handle */}
+              {displayLoop && (
+                <div
+                  style={{ position: 'absolute', top: 0, bottom: 0, left: Math.max(0, displayLoop.end * slotWidth - 7), width: 12, cursor: 'ew-resize', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, touchAction: 'none' }}
+                  onPointerDown={(e) => handleLoopHandlePointerDown(e, 'end')}
+                >
+                  <div style={{ width: 3, height: 14, background: '#f59e0b', borderRadius: 2, pointerEvents: 'none' }} />
+                </div>
+              )}
             </div>
           );
         })()}
