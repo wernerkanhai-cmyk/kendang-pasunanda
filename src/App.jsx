@@ -2090,8 +2090,8 @@ function App() {
             });
           })()}
 
-          {/* Append new block at the bottom */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0 1.5rem', padding: '0 1rem' }}>
+          {/* Append new block at the bottom — sticky zodat altijd bereikbaar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0 0', padding: '0.4rem 1rem', position: 'sticky', bottom: 0, background: 'var(--bg-primary, #0f172a)', borderTop: '1px solid var(--border-subtle)', zIndex: 10 }}>
             <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
             <button
               onClick={addSongBlock}
