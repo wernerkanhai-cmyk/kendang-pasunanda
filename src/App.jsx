@@ -787,19 +787,36 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying]);
 
-  // Auto-scroll active pattern block into view during playback
+  // Auto-scroll: zet de actieve sectie bovenaan zodra het afspelen er naartoe gaat
   const lastScrolledPatternRef = useRef(null);
   useEffect(() => {
     if (!isPlaying || !activeSlot) return;
     const id = activeSlot.patternId;
     if (id === lastScrolledPatternRef.current) return;
     lastScrolledPatternRef.current = id;
-    document.getElementById(`block-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById(`block-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [isPlaying, activeSlot?.patternId]);
 
-  // Reset scroll tracker when playback stops
+  // Lookahead-scroll: als de cursor de laatste maat ingaat, maak de volgende sectie alvast zichtbaar
+  const lastPreScrolledRef = useRef(null);
   useEffect(() => {
-    if (!isPlaying) lastScrolledPatternRef.current = null;
+    if (!isPlaying || !activeSlot) return;
+    const currentIdx = song.findIndex(p => p.id === activeSlot.patternId);
+    if (currentIdx < 0 || currentIdx >= song.length - 1) return;
+    const currentPattern = song[currentIdx];
+    if (activeSlot.startIndex < currentPattern.anak.length - 48) return; // nog niet in laatste maat
+    const nextId = song[currentIdx + 1].id;
+    if (lastPreScrolledRef.current === nextId) return;
+    lastPreScrolledRef.current = nextId;
+    document.getElementById(`block-${nextId}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [isPlaying, activeSlot?.patternId, activeSlot?.startIndex]);
+
+  // Reset scroll trackers when playback stops
+  useEffect(() => {
+    if (!isPlaying) {
+      lastScrolledPatternRef.current = null;
+      lastPreScrolledRef.current = null;
+    }
   }, [isPlaying]);
 
   // Keep a ref to song so the scheduler closure can always read the latest version
