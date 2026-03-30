@@ -544,7 +544,7 @@ const [showBeheer, setShowBeheer] = useState(true);
         boxShadow: isActive ? '0 0 20px rgba(59, 130, 246, 0.1)' : 'var(--shadow-lg)'
       }}
     >
-      <div className="pattern-header" style={{ display: 'flex', alignItems: 'center' }}>
+      <div className="pattern-header" style={{ display: 'flex', alignItems: 'center', opacity: isLocked ? 0.3 : 1, pointerEvents: isLocked ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
         <input 
           type="text" 
           value={pattern.name} 
