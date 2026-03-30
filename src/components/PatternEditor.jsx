@@ -68,6 +68,7 @@ const PatternEditor = ({
   onTrackVolumeChange,
   isLocked = false,
   onRulerLoop,
+  onClearRulerLoop,
 }) => {
   const t = useT();
   const [isNamingSnippet, setIsNamingSnippet] = useState(false);
@@ -441,6 +442,15 @@ const [showBeheer, setShowBeheer] = useState(true);
 
   const handleRulerPointerDown = (e, measureIdx) => {
     e.preventDefault();
+    // Klik binnen bestaande loop-bar → zet loop uit
+    if (loopRangeObj) {
+      const mStart = Math.floor(loopRangeObj.start / 48);
+      const mEnd = Math.ceil(loopRangeObj.end / 48) - 1;
+      if (measureIdx >= mStart && measureIdx <= mEnd) {
+        onClearRulerLoop?.();
+        return;
+      }
+    }
     setRulerDrag({ start: measureIdx, current: measureIdx });
     const onMove = (ev) => {
       const ruler = e.currentTarget?.closest?.('.measure-ruler');

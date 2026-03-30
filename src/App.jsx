@@ -1086,6 +1086,17 @@ function App() {
     setIsPlaying(true);
   };
 
+  const handleClearRulerLoop = () => {
+    loopRangeRef.current = null;
+    setLoopRange(null);
+    loopingPatternIdRef.current = null;
+    setLoopingPatternId(null);
+    if (schedulerRef.current) {
+      const total = song.reduce((sum, p) => sum + p.anak.length, 0);
+      schedulerRef.current.setLoopBounds(0, total);
+    }
+  };
+
   const handleRulerLoop = (patternId, startSlot, endSlot) => {
     if (!schedulerRef.current) return;
     const globalStart = localToGlobal(patternId, 0, song);
@@ -2083,6 +2094,7 @@ function App() {
                       canDelete={song.length > 1}
                       isLocked={isLocked}
                       onRulerLoop={(startSlot, endSlot) => handleRulerLoop(pattern.id, startSlot, endSlot)}
+                      onClearRulerLoop={handleClearRulerLoop}
                     />
                   </div>
                 </React.Fragment>
