@@ -53,6 +53,7 @@ function App() {
   const soloTrackRef = useRef(null);
   const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
   const [metronomeVolume, setMetronomeVolume] = useState(0.7);
+  const [isLocked, setIsLocked] = useState(false);
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
 
@@ -1068,6 +1069,29 @@ function App() {
     setIsPlaying(true);
   };
 
+  const handleRulerLoop = async (patternId, startSlot, endSlot) => {
+    if (!schedulerRef.current) return;
+    const globalStart = localToGlobal(patternId, 0, song);
+    const pattern = song.find(p => p.id === patternId);
+    if (!pattern) return;
+    const clampedEnd = Math.min(pattern.anak.length, endSlot);
+    const loopStartGlobal = globalStart + startSlot;
+    const loopEndGlobal = globalStart + clampedEnd;
+    const newLoopRange = { patternId, startSlot, endSlot: clampedEnd };
+    loopRangeRef.current = newLoopRange;
+    setLoopRange(newLoopRange);
+    loopingPatternIdRef.current = patternId;
+    setLoopingPatternId(patternId);
+    schedulerRef.current.setTotalSlots(loopEndGlobal);
+    slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
+    await schedulerRef.current.play(false, loopStartGlobal);
+    const ctx2 = schedulerRef.current.audioCtx;
+    const latMs2 = ctx2 ? ((ctx2.outputLatency || 0) + (ctx2.baseLatency || 0)) * 1000 : 0;
+    const msUntilLoop = Math.max(0, (schedulerRef.current.playStartAudioTime - ctx2.currentTime) * 1000);
+    playStartWallTimeRef.current = Date.now() + msUntilLoop + latMs2;
+    setIsPlaying(true);
+  };
+
   const rewind = () => {
     if (!schedulerRef.current) return;
     const now = Date.now();
@@ -1614,6 +1638,19 @@ function App() {
 
         <div className="global-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
+          {/* ── Practice Mode lock ─────────────────────────────────────── */}
+          <button
+            onClick={() => setIsLocked(l => !l)}
+            style={{
+              background: isLocked ? 'rgba(212,175,55,0.2)' : 'transparent',
+              color: isLocked ? '#d4af37' : '#64748b',
+              border: `1px solid ${isLocked ? '#d4af37' : '#475569'}`,
+              borderRadius: '6px', padding: '0.6rem 0.75rem', cursor: 'pointer', fontSize: '1rem',
+              boxShadow: isLocked ? '0 0 8px rgba(212,175,55,0.4)' : 'none',
+            }}
+            title={isLocked ? 'Practice Mode aan — klik om te bewerken' : 'Schakel Practice Mode in'}
+          >{isLocked ? '🔒' : '🔓'}</button>
+
           {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
           <div style={{ position: 'relative' }}>
             <button
@@ -2033,6 +2070,8 @@ function App() {
                       onDuplicate={() => duplicateSongBlock(pattern.id)}
                       onDelete={() => handleDeleteSongBlock(pattern.id)}
                       canDelete={song.length > 1}
+                      isLocked={isLocked}
+                      onRulerLoop={(startSlot, endSlot) => handleRulerLoop(pattern.id, startSlot, endSlot)}
                     />
                   </div>
                 </React.Fragment>

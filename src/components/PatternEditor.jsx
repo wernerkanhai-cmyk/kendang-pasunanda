@@ -66,6 +66,8 @@ const PatternEditor = ({
   canDelete = true,
   trackVolumes = { anak: 1.0, indung: 1.0 },
   onTrackVolumeChange,
+  isLocked = false,
+  onRulerLoop,
 }) => {
   const t = useT();
   const [isNamingSnippet, setIsNamingSnippet] = useState(false);
@@ -77,6 +79,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [metronomeMenuPos, setMetronomeMenuPos] = useState({ top: 0, left: 0 });
   const metronomeBtnRef = useRef(null);
   const [touchSelectMode, setTouchSelectMode] = useState(false);
+  const [rulerDrag, setRulerDrag] = useState(null); // { start, current } in measure indices
   const [transportPos, setTransportPos] = useState(null);
   const transportInteractRef = useRef(null);
 
@@ -195,6 +198,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   const emptySlot = (i) => ({ top: (i % 12 === 0) ? '.' : '', bottom: (i % 12 === 0) ? '.' : '' });
 
   const handleClear = () => {
+    if (isLocked) return;
     const range = getActiveRange() || selectedRange.current;
     if (!range) return;
     const newTrack = [...pattern[range.trackId]];
@@ -206,6 +210,7 @@ const [showBeheer, setShowBeheer] = useState(true);
 
   // When clearing a single slot, replace with rest if notes exist later in the same beat
   const clearSlotWithRestFill = (trackId, slotIndex) => {
+    if (isLocked) return;
     const newTrack = [...pattern[trackId]];
     const beatEnd = Math.floor(slotIndex / 12) * 12 + 12;
     const slot = newTrack[slotIndex];
@@ -228,6 +233,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   };
 
   const handleNoteMove = ({ fromTrackId, fromSlot, fromHand, toTrackId, toSlot, toHand, symbol }) => {
+    if (isLocked) return;
     const newAnak = [...pattern.anak];
     const newIndung = [...pattern.indung];
     const getTrack = (id) => id === 'anak' ? newAnak : newIndung;
@@ -261,6 +267,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   };
 
   const handleInsertSymbol = (trackId, slotIndex, symbol) => {
+    if (isLocked) return;
     let updated = writeSymbolToPattern(pattern, trackId, slotIndex, symbol);
     if (symbol !== SYMBOL_REST) {
       const hand = getHandForSymbol(symbol);
@@ -325,6 +332,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   };
 
   const handleCut = () => {
+    if (isLocked) return;
     const range = getActiveRange() || selectedRange.current;
     if (!range) return;
     setClipboard({
@@ -428,6 +436,33 @@ const [showBeheer, setShowBeheer] = useState(true);
         setActiveSlot({ patternId: pattern.id, trackId, startIndex: snapped, endIndex: snapped });
       }
     }
+  };
+
+  const handleRulerPointerDown = (e, measureIdx) => {
+    e.preventDefault();
+    setRulerDrag({ start: measureIdx, current: measureIdx });
+    const onMove = (ev) => {
+      const ruler = e.currentTarget?.closest?.('.measure-ruler');
+      if (!ruler) return;
+      const rect = ruler.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      const mw = 48 * slotWidth;
+      const m = Math.max(0, Math.min(totalMeasures - 1, Math.floor(x / mw)));
+      setRulerDrag(prev => prev ? { ...prev, current: m } : null);
+    };
+    const onUp = () => {
+      setRulerDrag(prev => {
+        if (!prev) return null;
+        const startM = Math.min(prev.start, prev.current);
+        const endM = Math.max(prev.start, prev.current);
+        onRulerLoop?.(startM * 48, (endM + 1) * 48);
+        return null;
+      });
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
   };
 
   const activeRangeObj = getActiveRange();
@@ -577,14 +612,16 @@ const [showBeheer, setShowBeheer] = useState(true);
              title={t('duplicatePattern')}
            >⧉</button>
 
-           <button
-             onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
-             disabled={!canDelete}
-             style={{ background: 'transparent', color: canDelete ? '#ef4444' : '#334155', border: `1px solid ${canDelete ? '#ef4444' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35 }}
-             title="Delete section"
-           >🗑</button>
+           {!isLocked && (
+             <button
+               onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+               disabled={!canDelete}
+               style={{ background: 'transparent', color: canDelete ? '#ef4444' : '#334155', border: `1px solid ${canDelete ? '#ef4444' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35 }}
+               title="Delete section"
+             >🗑</button>
+           )}
 
-           {(() => {
+           {!isLocked && (() => {
              const canDel = totalMeasures > 1;
              return (
                <button
@@ -746,7 +783,7 @@ const [showBeheer, setShowBeheer] = useState(true);
       </div>
 
       {isActive && (
-        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)', overflowX: 'auto', flexWrap: 'nowrap' }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)', overflowX: 'auto', flexWrap: 'nowrap', opacity: isLocked ? 0.35 : 1, pointerEvents: isLocked ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
           <button
             onClick={(e) => { e.stopPropagation(); handleClearPattern(); }}
             style={{ background: '#1e293b', color: '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -928,14 +965,22 @@ const [showBeheer, setShowBeheer] = useState(true);
         </div>
       )}
 
-      <div className="timeline-wrapper" ref={timelineRef}>
+      <div className="timeline-wrapper" ref={timelineRef} style={isLocked ? { boxShadow: '0 0 16px rgba(212,175,55,0.15)', borderTop: '1px solid rgba(212,175,55,0.2)' } : {}}>
         {/* Measure Ruler */}
-        <div className="measure-ruler" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', color: '#64748b' }}>
-           {Array.from({ length: totalMeasures }).map((_, i) => (
-              <div key={i} style={{ width: 48 * slotWidth + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
-                {i + 1 + measureOffset}
-              </div>
-           ))}
+        <div className="measure-ruler" style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', color: '#64748b', userSelect: 'none' }}>
+           {Array.from({ length: totalMeasures }).map((_, i) => {
+              const isDragging = rulerDrag && i >= Math.min(rulerDrag.start, rulerDrag.current) && i <= Math.max(rulerDrag.start, rulerDrag.current);
+              const isInLoop = loopRangeObj && i >= Math.floor(loopRangeObj.start / 48) && i < Math.ceil(loopRangeObj.end / 48);
+              const bg = isDragging ? 'rgba(212,175,55,0.35)' : isInLoop ? 'rgba(245,158,11,0.18)' : 'transparent';
+              return (
+                <div key={i}
+                  style={{ width: 48 * slotWidth + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', background: bg, borderRadius: '2px', cursor: 'ew-resize', color: isDragging ? '#d4af37' : isInLoop ? '#f59e0b' : '#64748b' }}
+                  onPointerDown={(e) => handleRulerPointerDown(e, i)}
+                >
+                  {i + 1 + measureOffset}
+                </div>
+              );
+           })}
         </div>
 
         {/* Track rows with gong overlay */}
@@ -1020,22 +1065,23 @@ const [showBeheer, setShowBeheer] = useState(true);
             top: 0,
             bottom: 0,
             left: SOLO_BTN_W + playheadSlot * slotWidth,
-            width: 2,
-            background: 'rgba(59,130,246,0.85)',
+            width: isLocked ? 4 : 2,
+            background: isLocked ? 'rgba(212,175,55,0.9)' : 'rgba(59,130,246,0.85)',
             zIndex: 30,
             pointerEvents: 'none',
+            boxShadow: isLocked ? '0 0 6px rgba(212,175,55,0.6)' : 'none',
           }}>
             {/* Draggable triangle handle */}
             <div
               style={{
                 position: 'absolute',
                 top: -10,
-                left: -5,
+                left: isLocked ? -6 : -5,
                 width: 0,
                 height: 0,
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: '10px solid #3b82f6',
+                borderLeft: `${isLocked ? 7 : 6}px solid transparent`,
+                borderRight: `${isLocked ? 7 : 6}px solid transparent`,
+                borderTop: `10px solid ${isLocked ? '#d4af37' : '#3b82f6'}`,
                 cursor: 'ew-resize',
                 pointerEvents: 'all',
               }}
