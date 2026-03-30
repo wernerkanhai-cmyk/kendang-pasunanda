@@ -440,17 +440,15 @@ const [showBeheer, setShowBeheer] = useState(true);
     }
   };
 
+  const handleRulerDoubleClick = (measureIdx) => {
+    if (!loopRangeObj) return;
+    const mStart = Math.floor(loopRangeObj.start / 48);
+    const mEnd = Math.ceil(loopRangeObj.end / 48) - 1;
+    if (measureIdx >= mStart && measureIdx <= mEnd) onClearRulerLoop?.();
+  };
+
   const handleRulerPointerDown = (e, measureIdx) => {
     e.preventDefault();
-    // Klik binnen bestaande loop-bar → zet loop uit
-    if (loopRangeObj) {
-      const mStart = Math.floor(loopRangeObj.start / 48);
-      const mEnd = Math.ceil(loopRangeObj.end / 48) - 1;
-      if (measureIdx >= mStart && measureIdx <= mEnd) {
-        onClearRulerLoop?.();
-        return;
-      }
-    }
     setRulerDrag({ start: measureIdx, current: measureIdx });
     const onMove = (ev) => {
       const ruler = e.currentTarget?.closest?.('.measure-ruler');
@@ -1023,6 +1021,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                   <div key={i}
                     style={{ width: mw + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'crosshair', color: isDragging ? '#d4af37' : '#64748b', background: isDragging ? 'rgba(212,175,55,0.2)' : 'transparent' }}
                     onPointerDown={(e) => handleRulerPointerDown(e, i)}
+                    onDoubleClick={() => handleRulerDoubleClick(i)}
                   >
                     {i + 1 + measureOffset}
                   </div>
