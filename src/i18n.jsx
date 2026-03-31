@@ -42,9 +42,9 @@ const T = {
     switchTooltip: (active) => `Active: ${active} — click to switch`,
     // Song library modal
     songLibraryTitle: '📚 Song Library',
-    exportLib: '⬇ Export',
-    importLib: '⬆ Import',
-    importSong: '⬆ Import song',
+    exportLib: '⬆ Export',
+    importLib: '⬇ Import',
+    importSong: '⬇ Import song',
     exportSongTitle: 'Export as .kendang file',
     searchPlaceholder: 'Search by name or folder...',
     loadBtn: 'Load',

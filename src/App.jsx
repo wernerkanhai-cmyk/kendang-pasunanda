@@ -1966,7 +1966,7 @@ function App() {
                               onClick={() => handleExportSong(s)}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
                               title={t('exportSongTitle')}
-                            >↓</button>
+                            >↑</button>
                             <button
                               onClick={() => handleDeleteSong(s.id)}
                               style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
