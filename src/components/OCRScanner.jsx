@@ -191,10 +191,10 @@ const OCRScanner = ({ onScanResult }) => {
   // Resize/convert image to JPEG, max 2000px wide, quality 0.85
   const prepareImage = (file) => new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onerror = (e) => reject(new Error(`Could not read file: ${reader.error?.message || e?.type || 'unknown'}`));
     reader.onload = (e) => {
       const img = new Image();
-      img.onerror = () => reject(new Error('Could not decode image'));
+      img.onerror = (e) => reject(new Error(`Could not decode image: ${e?.message || e?.type || 'unknown'}`));
       img.onload = () => {
         const MAX = 2000;
         const scale = Math.min(1, MAX / Math.max(img.width, img.height));
@@ -256,7 +256,8 @@ const OCRScanner = ({ onScanResult }) => {
 
       if (onScanResult) onScanResult([pattern]);
     } catch (err) {
-      setError(err.message);
+      console.error('[OCR] error:', err);
+      setError(err.message || String(err));
     } finally {
       setLoading(false);
     }
