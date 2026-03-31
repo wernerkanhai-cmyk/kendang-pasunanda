@@ -225,6 +225,10 @@ function App() {
     localStorage.setItem('kendangSavedSongs', JSON.stringify(savedSongs));
   }, [savedSongs]);
 
+  // Import library dialog
+  const [pendingImport, setPendingImport] = useState(null); // { songs: [] } wacht op mapkeuze
+  const [importFolderName, setImportFolderName] = useState('');
+
   // The global switch dictating which track we are writing to from the DrumPad
   const [inputMode, setInputMode] = useState('anak'); // 'anak' or 'indung'
 
@@ -361,17 +365,33 @@ function App() {
         const decoded = decodeURIComponent(escape(atob(ev.target.result)));
         const imported = JSON.parse(decoded);
         if (!Array.isArray(imported)) throw new Error();
-        setSavedSongs(prev => {
-          const existingIds = new Set(prev.map(s => s.id));
-          const nieuwen = imported.filter(s => s.id && s.name && !existingIds.has(s.id));
-          return [...prev, ...nieuwen];
-        });
+        const valid = imported.filter(s => s.id && s.name);
+        if (valid.length === 0) throw new Error();
+        // Stel de bestandsnaam voor als mapnaam (zonder extensie)
+        const suggested = file.name.replace(/\.(kendang-lib|kendang)$/i, '').replace(/[_-]/g, ' ');
+        setImportFolderName(suggested);
+        setPendingImport({ songs: valid });
       } catch {
         alert(t('invalidLibrary'));
       }
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const confirmImportLibrary = (folderOverride) => {
+    if (!pendingImport) return;
+    setSavedSongs(prev => {
+      const existingIds = new Set(prev.map(s => s.id));
+      const nieuwen = pendingImport.songs.map(s => ({
+        ...s,
+        id: existingIds.has(s.id) ? Date.now().toString() + Math.random() : s.id,
+        folder: folderOverride || s.folder || 'Algemeen',
+      }));
+      return [...prev, ...nieuwen];
+    });
+    setPendingImport(null);
+    setImportFolderName('');
   };
 
   const handleLoadPreset = (presetId) => {
@@ -1884,6 +1904,46 @@ function App() {
               title={`${t('cursorSyncOffsetTitle')}: ${cursorOffsetMs} ms`}
             />
           </div>
+
+          {/* Import Library — mapkeuze dialoog */}
+          {pendingImport && (
+            <div
+              onClick={() => { setPendingImport(null); setImportFolderName(''); }}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+              >
+                <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>
+                  Bibliotheek importeren ({pendingImport.songs.length} songs)
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                    Importeer in map (leeg = originele mappen bewaren):
+                  </label>
+                  <input
+                    type="text"
+                    value={importFolderName}
+                    onChange={(e) => setImportFolderName(e.target.value)}
+                    placeholder="bijv. Werner, Gapur, ..."
+                    autoFocus
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => { setPendingImport(null); setImportFolderName(''); }}
+                    style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >Annuleer</button>
+                  <button
+                    onClick={() => confirmImportLibrary(importFolderName.trim() || null)}
+                    style={{ background: '#3b82f6', border: 'none', borderRadius: '6px', color: '#fff', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
+                  >Importeer</button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Song Library Modal */}
           {showSongLibrary && (
