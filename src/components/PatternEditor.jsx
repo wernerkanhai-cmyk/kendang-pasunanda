@@ -441,7 +441,11 @@ const [showBeheer, setShowBeheer] = useState(true);
   };
 
   const handleRulerDoubleClick = (measureIdx) => {
-    if (!loopRangeObj) return;
+    if (!loopRangeObj) {
+      // Geen loop actief → stel in op de aangeklikte maat
+      onRulerLoop?.(measureIdx * 48, (measureIdx + 1) * 48);
+      return;
+    }
     const mStart = Math.floor(loopRangeObj.start / 48);
     const mEnd = Math.ceil(loopRangeObj.end / 48) - 1;
     if (measureIdx >= mStart && measureIdx <= mEnd) onClearRulerLoop?.();
