@@ -1105,12 +1105,22 @@ function App() {
     const loopStartGlobal = globalStart + startSlot;
     const loopEndGlobal = globalStart + clampedEnd;
     const newLoopRange = { patternId, startSlot, endSlot: clampedEnd };
+    // UI direct updaten zodat de loopbar al zichtbaar is
     loopRangeRef.current = newLoopRange;
     setLoopRange(newLoopRange);
     loopingPatternIdRef.current = patternId;
     setLoopingPatternId(patternId);
-    schedulerRef.current.setLoopBounds(loopStartGlobal, loopEndGlobal);
-    slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
+    if (isPlaying) {
+      // Wacht op einde huidige cyclus — geef nieuwe range door als pending
+      schedulerRef.current.pendingLoop = { start: loopStartGlobal, end: loopEndGlobal };
+      // Wanneer de scheduler de wissel uitvoert, herbouw slotTimesRef
+      schedulerRef.current.onLoopSwitch = (start, end) => {
+        slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
+      };
+    } else {
+      schedulerRef.current.setLoopBounds(loopStartGlobal, loopEndGlobal);
+      slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
+    }
   };
 
   const rewind = () => {

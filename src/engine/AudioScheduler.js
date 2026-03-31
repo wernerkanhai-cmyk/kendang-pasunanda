@@ -22,6 +22,8 @@ export class AudioScheduler {
     this.timerID = null;
     this.totalSlots = 192;
     this.loopStart = 0; // Slot waarnaar terug geloopt wordt
+    this.pendingLoop = null; // { start, end } — wacht op einde huidige cyclus
+    this.onLoopSwitch = null; // (start, end) => void — callback na loop-wissel
   }
 
   setAudioContext(ctx) {
@@ -63,7 +65,18 @@ export class AudioScheduler {
 
     this.currentSlot++;
     if (this.currentSlot >= this.totalSlots) {
-      this.currentSlot = this.loopStart; // Loop terug naar startpunt
+      if (this.pendingLoop) {
+        const { start, end } = this.pendingLoop;
+        this.pendingLoop = null;
+        this.loopStart = start;
+        this.totalSlots = end;
+        this.currentSlot = start;
+        // Cursor referentie: nieuwe loop begint op dit audiotijdstip
+        this.playStartAudioTime = this.nextNoteTime;
+        if (this.onLoopSwitch) this.onLoopSwitch(start, end);
+      } else {
+        this.currentSlot = this.loopStart;
+      }
     }
   }
 
@@ -229,6 +242,7 @@ export class AudioScheduler {
     this.isPlaying = false;
     this.isRecording = false;
     this.clickWhilePlaying = false;
+    this.pendingLoop = null;
     clearTimeout(this.timerID);
   }
 
