@@ -189,24 +189,29 @@ const OCRScanner = ({ onScanResult }) => {
   const savedKey = () => localStorage.getItem(API_KEY_STORAGE) || '';
 
   // Resize/convert image to JPEG, max 2000px wide, quality 0.85
+  // Gebruikt createObjectURL ipv readAsDataURL — voorkomt iOS "Load failed" bij grote bestanden
   const prepareImage = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = (e) => reject(new Error(`Could not read file: ${reader.error?.message || e?.type || 'unknown'}`));
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onerror = (e) => reject(new Error(`Could not decode image: ${e?.message || e?.type || 'unknown'}`));
-      img.onload = () => {
-        const MAX = 2000;
-        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-        const canvas = document.createElement('canvas');
-        canvas.width  = Math.round(img.width  * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
-      };
-      img.src = e.target.result;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not decode image — probeer een kleiner of ander bestand'));
     };
-    reader.readAsDataURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 2000;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      try {
+        resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+      } catch (err) {
+        reject(new Error(`Canvas export mislukt: ${err.message}`));
+      }
+    };
+    img.src = url;
   });
 
   const handleFile = async (file) => {
