@@ -584,7 +584,7 @@ const [showBeheer, setShowBeheer] = useState(true);
           title={t('manageTooltip')}
         >{t('manage')}</button>
 
-        {/* Section loop toggle */}
+        {/* Section loop toggle — altijd klikbaar, ook in locked mode */}
         <button
           onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
           style={{
@@ -593,6 +593,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             color: isLooped ? '#d4af37' : '#64748b',
             border: `1px solid ${isLooped ? '#d4af37' : 'var(--border-subtle)'}`,
             borderRadius: '4px', cursor: 'pointer',
+            pointerEvents: 'auto', opacity: 1,
           }}
           title="Loop deze section"
         >⟳</button>
