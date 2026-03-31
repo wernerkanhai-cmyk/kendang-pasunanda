@@ -30,7 +30,7 @@ van 2 of meer symbolen getrokken is en ze visueel verbindt.
 HOE BALKEN ERUITZIEN — EXACTE OFFSETREGELS:
   Geen balk boven de noot          → kwartnoot  → offset 0 (alleen)
   1 balk boven 2 noten             → 2× achtste  → offsets 0 en 6
-  1 balk boven 4 noten             → 4× achtste  → offsets 0, 6 (max 2 per balk)
+  1 balk boven 4 noten             → 4× achtste  → offsets 0, 6, 12, 18 (max 2 per balk)
   2 balken boven 2 noten           → 2× 16e noot → offsets 0 en 3   ← LET OP: NIET 0 en 6!
   2 balken boven 4 noten           → 4× 16e noot → offsets 0, 3, 6, 9
   2 balken boven 3 noten           → 3× 16e noot → offsets 0, 3, 6
@@ -38,13 +38,25 @@ HOE BALKEN ERUITZIEN — EXACTE OFFSETREGELS:
 CRUCIAAL: 2 balken boven een PAAR noten = offsets 0 en 3, NIET 0 en 6.
 Voorbeeld: [P̂ ṗ] met 2 balken erboven → P̂ op offset 0, ṗ op offset 3.
 
+⚠️ VEREENVOUDIGINGSREGEL — LEES DIT GOED:
+Een 16e noot waarvan de andere 16e positie leeg is (rust) wordt geschreven met slechts
+1 balk — dit ziet eruit als een achtste noot. Toch is het offset 0 of 3.
+MAAR: in de praktijk is 1 balk bijna altijd gewoon een achtste noot (o=0 en o=6).
+
+⚠️ TELREGEL — CRUCIAAL:
+Tel het EXACTE aantal horizontale balklijnen boven de noten ZORGVULDIG.
+  • 1 enkele horizontale lijn → achtste noot (o=0 en o=6)
+  • 2 duidelijk APARTE horizontale lijnen → 16e noot (o=0 en o=3)
+Bij twijfel: gebruik achtste-noot offsets (o=0 en o=6). Achtste is veruit het meest voorkomend.
+Vergis je NIET: 1 balk ziet er soms dikker uit maar is nog steeds 1 balk = achtste.
+
 Een stip (·) is een RUST. De balk boven de stip geeft de rustduur aan:
   Stip zonder balk  → kwartnoot rust  → volgende noot op offset 0 van volgende tel
   Stip met 1 balk   → achtste rust   → volgende noot op offset 6
   Stip met 2 balken → 16e rust       → volgende noten op offsets 3 (en evt. 6, 9)
 
 Gemengde voorbeelden binnen één tel (b=beat):
-  [noot-1balk] [noot-1balk]              → o=0 en o=6  (twee achtsten)
+  [noot-1balk] [noot-1balk]              → o=0 en o=6  (twee achtsten) ← MEEST VOORKOMEND
   [noot-2balken] [noot-2balken]          → o=0 en o=3  (twee 16en)
   [·-1balk] [noot-1balk]                 → o=6         (8e rust + één achtste)
   [·-1balk] [noot-2balken] [noot-2balken]→ o=6 en o=9  (8e rust + twee 16en)
@@ -75,10 +87,11 @@ ${MAATINDELING}
 ${SYMBOOLMAPPING}
 
 Geef exact dit formaat terug (ALTIJD 4 elementen, ook als leeg):
-{"anak":[[{"b":1,"o":0,"s":"J"},{"b":1,"o":3,"s":"F"},{"b":2,"o":0,"s":";"},{"b":2,"o":3,"s":"F"},{"b":3,"o":0,"s":"J"},{"b":3,"o":3,"s":"F"},{"b":4,"o":0,"s":";"},{"b":4,"o":3,"s":"F"}],[],[],[]]}
+{"anak":[[{"b":1,"o":0,"s":"J"},{"b":1,"o":6,"s":"F"},{"b":2,"o":0,"s":";"},{"b":2,"o":6,"s":"F"},{"b":3,"o":0,"s":"J"},{"b":3,"o":6,"s":"F"},{"b":4,"o":0,"s":";"},{"b":4,"o":6,"s":"F"}],[],[],[]]}
 
-Typisch patroon: elke tel heeft 2 P-symbolen met 2 balken → eerste op o=0, tweede op o=3.
-Bottom sub-rij in dezelfde maat: · DD · D D tt · → beat2: C op o=0 en o=3; beat3: C op o=0, C op o=6; beat4: C op o=0, N op o=6, N op o=9.
+Toelichting voorbeeld: elke tel heeft 2 P-symbolen met 1 balk (achtste noten) → eerste op o=0, tweede op o=6.
+Gebruik o=3 ALLEEN als je DUIDELIJK 2 aparte balklijnen ziet boven het paar. Bij twijfel: o=6.
+Bottom sub-rij voorbeeld: · DD · D D tt · → beat2: C op o=0 en o=6; beat3: C op o=0, C op o=6; beat4: C op o=0, N op o=6.
 Waarbij: b=beat(1-4), o=offset(0,3,6,9), s=symboolcode.
 LET OP: Zowel TOP als BOTTOM sub-rij symbolen gaan in dezelfde anak[] array.
 Lege maten → []. Rust-punten (·) nooit opnemen.
