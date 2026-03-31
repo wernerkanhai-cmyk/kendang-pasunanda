@@ -1201,23 +1201,34 @@ function App() {
   };
 
   const handleSeek = (patternId, localSlot) => {
-    if (!isPlaying || !schedulerRef.current || !slotTimesRef.current) return;
+    if (!isPlaying || !schedulerRef.current) return;
     const globalSlot = localToGlobal(patternId, localSlot, song);
     const sched = schedulerRef.current;
     const ctx = sched.audioCtx;
     if (!ctx) return;
-    const { loopStart, times } = slotTimesRef.current;
-    const i = globalSlot - loopStart;
-    const offsetMs = (i >= 0 && i < times.length) ? times[i] : 0;
+
+    // Bepaal loopEnd (zelfde logica als togglePlay)
+    const lr = loopRangeRef.current;
+    const activeSecs = loopedSections.length > 0 ? song.filter(p => loopedSections.includes(p.id)) : null;
+    const loopEnd = activeSecs
+      ? localToGlobal(activeSecs[activeSecs.length - 1].id, 0, song) + activeSecs[activeSecs.length - 1].anak.length
+      : lr
+        ? localToGlobal(lr.patternId, lr.endSlot, song)
+        : song.reduce((sum, p) => sum + p.anak.length, 0);
+
+    // Reset loopStart naar de nieuwe positie zodat cursor elapsed=0 correct mapt
+    sched.loopStart = globalSlot;
+    sched.totalSlots = loopEnd;
+    slotTimesRef.current = buildSlotTimesMs(globalSlot, loopEnd, buildTempoAt(song, bpm));
+
     const delay = 0.02;
     const nextNoteTime = ctx.currentTime + delay;
-    // Bereken playStartAudioTime op basis van slotTimesRef (variable tempo correct)
-    sched.playStartAudioTime = nextNoteTime - offsetMs / 1000;
+    sched.playStartAudioTime = nextNoteTime; // elapsed=0 = globalSlot
     clearTimeout(sched.timerID);
     sched.currentSlot = globalSlot;
     sched.nextNoteTime = nextNoteTime;
     sched.scheduler();
-    playStartWallTimeRef.current = Date.now() - offsetMs + cursorOffsetMsRef.current;
+    playStartWallTimeRef.current = Date.now() + cursorOffsetMsRef.current;
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
