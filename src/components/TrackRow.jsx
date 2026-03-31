@@ -399,6 +399,15 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
               data-slot-index={index}
               className={`slot-cell ${borderClasses} ${isLoopRange ? 'loop-range' : ''} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
               onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                const hasSymbol = slot.top !== '' || slot.bottom !== '';
+                if (hasSymbol && onClearSlot) {
+                  onClearSlot(index);
+                } else {
+                  openPopup(e, index);
+                }
+              }}
               onContextMenu={(e) => openPopup(e, index)}
               onTouchEnd={(e) => {
                 // Suppress double-tap if a touch drag just completed
