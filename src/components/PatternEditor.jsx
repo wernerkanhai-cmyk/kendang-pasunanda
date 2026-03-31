@@ -588,12 +588,14 @@ const [showBeheer, setShowBeheer] = useState(true);
         <button
           onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
           style={{
-            marginLeft: '0.3rem', padding: '0.25rem 0.5rem', fontSize: '0.85rem',
-            background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
-            color: isLooped ? '#d4af37' : '#64748b',
-            border: `1px solid ${isLooped ? '#d4af37' : 'var(--border-subtle)'}`,
-            borderRadius: '4px', cursor: 'pointer',
+            marginLeft: '0.4rem', padding: '0.35rem 0.7rem', fontSize: '1.7rem',
+            lineHeight: 1,
+            background: isLooped ? 'rgba(212,175,55,0.2)' : 'transparent',
+            color: isLooped ? '#d4af37' : '#f97316',
+            border: `2px solid ${isLooped ? '#d4af37' : '#f97316'}`,
+            borderRadius: '6px', cursor: 'pointer',
             pointerEvents: 'auto', opacity: 1,
+            boxShadow: isLooped ? '0 0 8px rgba(212,175,55,0.5)' : '0 0 4px rgba(249,115,22,0.3)',
           }}
           title="Loop deze section"
         >⟳</button>
