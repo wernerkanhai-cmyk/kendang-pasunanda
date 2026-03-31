@@ -584,22 +584,6 @@ const [showBeheer, setShowBeheer] = useState(true);
           title={t('manageTooltip')}
         >{t('manage')}</button>
 
-        {/* Section loop toggle — altijd klikbaar, ook in locked mode */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
-          style={{
-            marginLeft: '0.4rem', padding: '0.35rem 0.7rem', fontSize: '1.7rem',
-            lineHeight: 1,
-            background: isLooped ? 'rgba(212,175,55,0.2)' : 'transparent',
-            color: isLooped ? '#d4af37' : '#f97316',
-            border: `2px solid ${isLooped ? '#d4af37' : '#f97316'}`,
-            borderRadius: '6px', cursor: 'pointer',
-            pointerEvents: 'auto', opacity: 1,
-            boxShadow: isLooped ? '0 0 8px rgba(212,175,55,0.5)' : '0 0 4px rgba(249,115,22,0.3)',
-          }}
-          title="Loop deze section"
-        >⟳</button>
-
         {/* Snippet Library Controls — kept for isNamingSnippet inline form */}
         <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: showBeheer && !isLocked ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
            {isNamingSnippet ? (
@@ -1119,11 +1103,29 @@ const [showBeheer, setShowBeheer] = useState(true);
                 onClearSlot={(slotIndex) => clearSlotWithRestFill('anak', slotIndex)}
               />
             </div>
+            {/* Rechter gutter spacer — spiegelt solo-knop breedte */}
+            <div style={{ flexShrink: 0, width: '24px' }} />
           </div>
 
           {/* The thin central line connecting Anak and Indung visually */}
-          <div style={{ height: '14px', background: 'var(--border-subtle)', width: '100%', margin: '4px 0', position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <span style={{ position: 'absolute', left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, userSelect: 'none', pointerEvents: 'none' }}>Indung</span>
+          <div style={{ height: '14px', background: 'var(--border-subtle)', width: '100%', margin: '4px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ paddingLeft: SOLO_BTN_W + 4 + 'px', fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, userSelect: 'none', pointerEvents: 'none' }}>Indung</span>
+            {/* Section loop knop — ter hoogte van de middenbalk */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
+              style={{
+                flexShrink: 0, width: '20px', height: '20px', marginLeft: '4px',
+                background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
+                color: isLooped ? '#d4af37' : '#f97316',
+                border: `1px solid ${isLooped ? '#d4af37' : '#f97316'}`,
+                borderRadius: '3px', cursor: 'pointer',
+                fontSize: '0.75rem', fontWeight: 'bold',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                pointerEvents: 'auto',
+                boxShadow: isLooped ? '0 0 6px rgba(212,175,55,0.5)' : 'none',
+              }}
+              title="Loop deze section"
+            >⟳</button>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -1155,6 +1157,8 @@ const [showBeheer, setShowBeheer] = useState(true);
                 onClearSlot={(slotIndex) => clearSlotWithRestFill('indung', slotIndex)}
               />
             </div>
+            {/* Rechter gutter spacer */}
+            <div style={{ flexShrink: 0, width: '24px' }} />
           </div>
 
         {/* Playhead */}
