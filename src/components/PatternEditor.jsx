@@ -67,6 +67,8 @@ const PatternEditor = ({
   trackVolumes = { anak: 1.0, indung: 1.0 },
   onTrackVolumeChange,
   isLocked = false,
+  isLooped = false,
+  onToggleSectionLoop,
   onRulerLoop,
   onClearRulerLoop,
 }) => {
@@ -82,7 +84,6 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [touchSelectMode, setTouchSelectMode] = useState(false);
   const [rulerDrag, setRulerDrag] = useState(null); // { start, current } in measure indices
   const [handleDrag, setHandleDrag] = useState(null); // { side: 'start'|'end', start: slot, end: slot }
-  const lastLoopLengthRef = useRef(0); // slots — 0 = nog niet ingesteld
   const [transportPos, setTransportPos] = useState(null);
   const transportInteractRef = useRef(null);
 
@@ -443,9 +444,8 @@ const [showBeheer, setShowBeheer] = useState(true);
 
   const handleRulerDoubleClick = (measureIdx) => {
     if (!loopRangeObj) {
-      // Geen loop actief → stel in met vorige looplengte (of 1 maat als nog niet ingesteld)
-      const len = lastLoopLengthRef.current || 48;
-      onRulerLoop?.(measureIdx * 48, measureIdx * 48 + len);
+      // Geen loop actief → stel in op 1 maat
+      onRulerLoop?.(measureIdx * 48, (measureIdx + 1) * 48);
       return;
     }
     const mStart = Math.floor(loopRangeObj.start / 48);
@@ -470,12 +470,9 @@ const [showBeheer, setShowBeheer] = useState(true);
         if (!prev) return null;
         const startM = Math.min(prev.start, prev.current);
         const endM = Math.max(prev.start, prev.current);
-        const draggedSlots = (endM - startM + 1) * 48;
-        const prevLen = lastLoopLengthRef.current;
-        // Geen sleep (1 maat) → gebruik vorige looplengte; anders de gesleepte lengte
-        const loopSlots = (startM === endM && prevLen > 0) ? prevLen : draggedSlots;
-        lastLoopLengthRef.current = loopSlots;
-        onRulerLoop?.(startM * 48, startM * 48 + loopSlots);
+        const startSlot = startM * 48;
+        const endSlot = (endM + 1) * 48;
+        onRulerLoop?.(startSlot, endSlot);
         return null;
       });
       window.removeEventListener('pointermove', onMove);
@@ -521,16 +518,13 @@ const [showBeheer, setShowBeheer] = useState(true);
 
   const activeRangeObj = getActiveRange();
 
-  // Loop range for this pattern (for grid highlight)
+  // Loop range for this pattern (voor grid highlight):
+  // — ruler-selectie heeft voorrang; anders: hele section als isLooped actief is
   const loopRangeObj = (loopRange?.patternId === pattern.id)
     ? { start: loopRange.startSlot, end: loopRange.endSlot }
-    : null;
-
-  // Bijhouden van de vorige looplengte — direct in render (ref, geen state)
-  if (loopRangeObj) {
-    const len = loopRangeObj.end - loopRangeObj.start;
-    if (len > 0) lastLoopLengthRef.current = len;
-  }
+    : isLooped
+      ? { start: 0, end: pattern.anak.length }
+      : null;
 
   const SOLO_BTN_W = 24; // 20px button + 4px margin
   const playheadSlot = (activeSlot?.patternId === pattern.id && activeSlot?.startIndex !== undefined)
@@ -589,6 +583,19 @@ const [showBeheer, setShowBeheer] = useState(true);
           }}
           title={t('manageTooltip')}
         >{t('manage')}</button>
+
+        {/* Section loop toggle */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
+          style={{
+            marginLeft: '0.3rem', padding: '0.25rem 0.5rem', fontSize: '0.85rem',
+            background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
+            color: isLooped ? '#d4af37' : '#64748b',
+            border: `1px solid ${isLooped ? '#d4af37' : 'var(--border-subtle)'}`,
+            borderRadius: '4px', cursor: 'pointer',
+          }}
+          title="Loop deze section"
+        >⟳</button>
 
         {/* Snippet Library Controls — kept for isNamingSnippet inline form */}
         <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: showBeheer && !isLocked ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>

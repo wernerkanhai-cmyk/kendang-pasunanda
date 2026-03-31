@@ -49,6 +49,7 @@ function App() {
   const loopingPatternIdRef = useRef(null);
   const [loopRange, setLoopRange] = useState(null); // { patternId, startSlot, endSlot } local slots
   const loopRangeRef = useRef(null);
+  const [loopedSections, setLoopedSections] = useState([]); // patternIds die in de section-loop zitten
   const [soloTrack, setSoloTrack] = useState(null); // null | 'anak' | 'indung'
   const soloTrackRef = useRef(null);
   const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
@@ -977,19 +978,25 @@ function App() {
       setIsPlaying(false);
       setIsRecording(false);
     } else {
-      // Als een loopRange actief is, start altijd vanaf het begin van de loop
+      // Bepaal loop-start en -einde: section-loop heeft prioriteit boven ruler-loop
       const lr = loopRangeRef.current;
-      const globalStart = lr
-        ? localToGlobal(lr.patternId, lr.startSlot, song)
-        : activeSlot
-          ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
-          : 0;
-      // Loop end: gebruik loop-range einde als actief, anders volledige song lengte
-      const loopEnd = lr
-        ? localToGlobal(lr.patternId, lr.endSlot, song)
-        : song.reduce((sum, p) => sum + p.anak.length, 0);
+      const activeSections = loopedSections.length > 0
+        ? song.filter(p => loopedSections.includes(p.id))
+        : null;
+      const globalStart = activeSections
+        ? localToGlobal(activeSections[0].id, 0, song)
+        : lr
+          ? localToGlobal(lr.patternId, lr.startSlot, song)
+          : activeSlot
+            ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
+            : 0;
+      const loopEnd = activeSections
+        ? localToGlobal(activeSections[activeSections.length - 1].id, 0, song) + activeSections[activeSections.length - 1].anak.length
+        : lr
+          ? localToGlobal(lr.patternId, lr.endSlot, song)
+          : song.reduce((sum, p) => sum + p.anak.length, 0);
       // Zorg dat de scheduler ook de juiste loopStart+totalSlots heeft
-      if (lr) schedulerRef.current.setLoopBounds(globalStart, loopEnd);
+      if (activeSections || lr) schedulerRef.current.setLoopBounds(globalStart, loopEnd);
       slotTimesRef.current = buildSlotTimesMs(globalStart, loopEnd, buildTempoAt(song, bpm));
 
       if (metronomeMode === '4') {
@@ -1090,10 +1097,55 @@ function App() {
     setLoopRange(null);
     loopingPatternIdRef.current = null;
     setLoopingPatternId(null);
+    setLoopedSections([]);
     if (schedulerRef.current) {
       const total = song.reduce((sum, p) => sum + p.anak.length, 0);
       schedulerRef.current.setLoopBounds(0, total);
     }
+  };
+
+  const handleToggleSectionLoop = (patternId) => {
+    setLoopedSections(prev => {
+      const next = prev.includes(patternId)
+        ? prev.filter(id => id !== patternId)
+        : [...prev, patternId];
+
+      if (next.length === 0) {
+        // Alle sections gedeactiveerd → volledige song
+        loopRangeRef.current = null;
+        setLoopRange(null);
+        loopingPatternIdRef.current = null;
+        setLoopingPatternId(null);
+        if (schedulerRef.current) {
+          const total = songRef.current.reduce((sum, p) => sum + p.anak.length, 0);
+          schedulerRef.current.setLoopBounds(0, total);
+        }
+      } else {
+        // Bepaal globale range: van begin eerste geloopte section t/m einde laatste
+        const ordered = songRef.current.filter(p => next.includes(p.id));
+        const firstId = ordered[0].id;
+        const lastPattern = ordered[ordered.length - 1];
+        const globalStart = localToGlobal(firstId, 0, songRef.current);
+        const globalEnd = localToGlobal(lastPattern.id, 0, songRef.current) + lastPattern.anak.length;
+        // Wis ruler-loopRange zodat section-loop voorrang heeft
+        loopRangeRef.current = null;
+        setLoopRange(null);
+        loopingPatternIdRef.current = null;
+        setLoopingPatternId(null);
+        if (schedulerRef.current) {
+          if (isPlaying) {
+            schedulerRef.current.setPendingLoopAfterCurrentMeasure(globalStart, globalEnd);
+            schedulerRef.current.onLoopSwitch = (start, end) => {
+              slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
+            };
+          } else {
+            schedulerRef.current.setLoopBounds(globalStart, globalEnd);
+            slotTimesRef.current = buildSlotTimesMs(globalStart, globalEnd, buildTempoAt(songRef.current, bpm));
+          }
+        }
+      }
+      return next;
+    });
   };
 
   const handleRulerLoop = (patternId, startSlot, endSlot) => {
@@ -2112,6 +2164,8 @@ function App() {
                       onDelete={() => handleDeleteSongBlock(pattern.id)}
                       canDelete={song.length > 1}
                       isLocked={isLocked}
+                      isLooped={loopedSections.includes(pattern.id)}
+                      onToggleSectionLoop={() => handleToggleSectionLoop(pattern.id)}
                       onRulerLoop={(startSlot, endSlot) => handleRulerLoop(pattern.id, startSlot, endSlot)}
                       onClearRulerLoop={handleClearRulerLoop}
                     />
