@@ -82,6 +82,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [touchSelectMode, setTouchSelectMode] = useState(false);
   const [rulerDrag, setRulerDrag] = useState(null); // { start, current } in measure indices
   const [handleDrag, setHandleDrag] = useState(null); // { side: 'start'|'end', start: slot, end: slot }
+  const lastLoopLengthRef = useRef(0); // slots — 0 = nog niet ingesteld
   const [transportPos, setTransportPos] = useState(null);
   const transportInteractRef = useRef(null);
 
@@ -442,8 +443,9 @@ const [showBeheer, setShowBeheer] = useState(true);
 
   const handleRulerDoubleClick = (measureIdx) => {
     if (!loopRangeObj) {
-      // Geen loop actief → stel in op de aangeklikte maat
-      onRulerLoop?.(measureIdx * 48, (measureIdx + 1) * 48);
+      // Geen loop actief → stel in met vorige looplengte (of 1 maat als nog niet ingesteld)
+      const len = lastLoopLengthRef.current || 48;
+      onRulerLoop?.(measureIdx * 48, measureIdx * 48 + len);
       return;
     }
     const mStart = Math.floor(loopRangeObj.start / 48);
@@ -468,7 +470,12 @@ const [showBeheer, setShowBeheer] = useState(true);
         if (!prev) return null;
         const startM = Math.min(prev.start, prev.current);
         const endM = Math.max(prev.start, prev.current);
-        onRulerLoop?.(startM * 48, (endM + 1) * 48);
+        const draggedSlots = (endM - startM + 1) * 48;
+        const prevLen = lastLoopLengthRef.current;
+        // Geen sleep (1 maat) → gebruik vorige looplengte; anders de gesleepte lengte
+        const loopSlots = (startM === endM && prevLen > 0) ? prevLen : draggedSlots;
+        lastLoopLengthRef.current = loopSlots;
+        onRulerLoop?.(startM * 48, startM * 48 + loopSlots);
         return null;
       });
       window.removeEventListener('pointermove', onMove);
@@ -518,6 +525,12 @@ const [showBeheer, setShowBeheer] = useState(true);
   const loopRangeObj = (loopRange?.patternId === pattern.id)
     ? { start: loopRange.startSlot, end: loopRange.endSlot }
     : null;
+
+  // Bijhouden van de vorige looplengte — direct in render (ref, geen state)
+  if (loopRangeObj) {
+    const len = loopRangeObj.end - loopRangeObj.start;
+    if (len > 0) lastLoopLengthRef.current = len;
+  }
 
   const SOLO_BTN_W = 24; // 20px button + 4px margin
   const playheadSlot = (activeSlot?.patternId === pattern.id && activeSlot?.startIndex !== undefined)
