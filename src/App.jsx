@@ -4,7 +4,6 @@ import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmp
 import PatternEditor from './components/PatternEditor';
 import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
-import OCRScanner from './components/OCRScanner';
 import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
 import { FACTORY_PRESETS, FACTORY_CATEGORIES } from './factory/presets';
 import { AudioScheduler } from './engine/AudioScheduler';
@@ -1797,24 +1796,6 @@ function App() {
                   boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                   display: 'flex', flexDirection: 'column', gap: '0.4rem',
                 }}>
-                  {/* Scan */}
-                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('scanSection')}</div>
-                  <OCRScanner onScanResult={(patterns) => {
-                    setShowToolsMenu(false);
-                    if (patterns.length === 0) return;
-                    setUndoStack(prev => [...prev.slice(-49), song]);
-                    setRedoStack([]);
-                    setSong(prev => {
-                      const isDefault = prev.length === 1 &&
-                        ['Regel 1', 'Section 1', 'Bagian 1'].includes(prev[0].name) &&
-                        prev[0].anak.every(s => s.top === '.' || s.top === '') &&
-                        prev[0].indung.every(s => s.top === '.' || s.top === '');
-                      return isDefault ? patterns : [...prev, ...patterns];
-                    });
-                    setActivePatternId(patterns[0].id);
-                    setActiveSlot({ patternId: patterns[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 });
-                  }} />
-
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
 
                   {/* PDF */}
