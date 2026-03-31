@@ -18,7 +18,7 @@ const getVerticalPositionClass = (symbol, hand) => {
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot }) => {
+const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, isLocked = false }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
   const lastTapRef = useRef({ slotIndex: -1, time: 0 });
@@ -34,6 +34,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
   }, [popup]);
 
   const openPopup = (e, slotIndex) => {
+    if (isLocked) return;
     e.preventDefault();
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
@@ -401,6 +402,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
               onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
+                if (isLocked) return;
                 const hasSymbol = slot.top !== '' || slot.bottom !== '';
                 if (hasSymbol && onClearSlot) {
                   onClearSlot(index);
@@ -412,6 +414,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
               onTouchEnd={(e) => {
                 // Suppress double-tap if a touch drag just completed
                 if (touchMovedRef.current) return;
+                if (isLocked) return;
                 const now = Date.now();
                 const last = lastTapRef.current;
                 if (last.slotIndex === index && now - last.time < 350) {

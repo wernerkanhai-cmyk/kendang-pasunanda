@@ -1101,6 +1101,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 gong={pattern.gong || []}
                 onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('anak', slotIndex, symbol)}
                 onClearSlot={(slotIndex) => clearSlotWithRestFill('anak', slotIndex)}
+                isLocked={isLocked}
               />
             </div>
             {/* Rechter gutter spacer — spiegelt solo-knop breedte */}
@@ -1155,6 +1156,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 gong={pattern.gong || []}
                 onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('indung', slotIndex, symbol)}
                 onClearSlot={(slotIndex) => clearSlotWithRestFill('indung', slotIndex)}
+                isLocked={isLocked}
               />
             </div>
             {/* Rechter gutter spacer */}
