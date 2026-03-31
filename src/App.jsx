@@ -1295,6 +1295,7 @@ function App() {
   };
 
   const handleGongFromInstrument = () => {
+    if (isLocked) return;
     samplerRef.current?.playGong();
     if (activeSlot) {
       const blockStart = Math.floor(activeSlot.startIndex / 6) * 6;
@@ -1308,6 +1309,7 @@ function App() {
       const trackForSound = activeSlot ? activeSlot.trackId : (naturalTrack || 'anak');
       samplerRef.current?.play(symbol, trackForSound);
     }
+    if (isLocked) return;
     if (!inputEnabled) return;
     if (!activeSlot && !isRecording) return;
 
