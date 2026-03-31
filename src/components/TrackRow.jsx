@@ -18,7 +18,7 @@ const getVerticalPositionClass = (symbol, hand) => {
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, isLocked = false }) => {
+const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, onGongToggle, isLocked = false }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
   const lastTapRef = useRef({ slotIndex: -1, time: 0 });
@@ -345,6 +345,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
           return (
             <div
               key={`gong-${beatStart}`}
+              onClick={(e) => { e.stopPropagation(); if (!isLocked) onGongToggle?.(beatStart); }}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -352,9 +353,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                 left: beatStart * slotWidth - 1,
                 width: 12 * slotWidth,
                 border: `2px solid ${gongColor}`,
-                pointerEvents: 'none',
+                pointerEvents: onGongToggle ? 'auto' : 'none',
                 zIndex: 5,
                 boxSizing: 'border-box',
+                cursor: onGongToggle && !isLocked ? 'pointer' : 'default',
               }}
             >
               {/* Horizontale middenlijn op de nullijn */}
