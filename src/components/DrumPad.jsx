@@ -186,6 +186,7 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
 
       {activeTab === 'geluid' && soundSettings && onSoundSettingsChange && (
         <SoundSettingsContent settings={soundSettings} onChange={onSoundSettingsChange}
+          onPlay={onTrigger}
           cursorOffsetMs={cursorOffsetMs} onCursorOffsetChange={onCursorOffsetChange} />
       )}
 
