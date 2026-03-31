@@ -139,9 +139,12 @@ export class AudioScheduler {
     if (this.audioCtx?.state === 'suspended') {
       this.audioCtx.resume();
     }
-    // Als nextNoteTime ver in het verleden ligt (bijv. na een suspend), resync naar nu
+    // Als nextNoteTime ver in het verleden ligt (bijv. na een suspend), resync naar nu.
+    // Verschuif playStartAudioTime mee zodat de cursor niet springt.
     if (this.nextNoteTime < this.audioCtx.currentTime - 0.5) {
-      this.nextNoteTime = this.audioCtx.currentTime + 0.02;
+      const resetTo = this.audioCtx.currentTime + 0.02;
+      this.playStartAudioTime += (resetTo - this.nextNoteTime);
+      this.nextNoteTime = resetTo;
     }
     while (this.nextNoteTime < this.audioCtx.currentTime + this.scheduleAheadTime) {
       this.scheduleNote(this.currentSlot, this.nextNoteTime);
@@ -210,7 +213,7 @@ export class AudioScheduler {
     if (this.audioCtx.state === 'suspended') {
       await this.audioCtx.resume();
     }
-
+    clearTimeout(this.timerID); // Voorkom dubbele scheduler-chains bij snelle start/stop
     this.isPlaying = true;
     this.isRecording = isRecordingMode;
     if (startSlot !== null) {

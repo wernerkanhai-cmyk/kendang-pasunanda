@@ -984,9 +984,13 @@ function App() {
         : activeSlot
           ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
           : 0;
-      // Build slot time table for variable-tempo cursor sync
-      const totalSlots = song.reduce((sum, p) => sum + p.anak.length, 0);
-      slotTimesRef.current = buildSlotTimesMs(globalStart, totalSlots, buildTempoAt(song, bpm));
+      // Loop end: gebruik loop-range einde als actief, anders volledige song lengte
+      const loopEnd = lr
+        ? localToGlobal(lr.patternId, lr.endSlot, song)
+        : song.reduce((sum, p) => sum + p.anak.length, 0);
+      // Zorg dat de scheduler ook de juiste loopStart+totalSlots heeft
+      if (lr) schedulerRef.current.setLoopBounds(globalStart, loopEnd);
+      slotTimesRef.current = buildSlotTimesMs(globalStart, loopEnd, buildTempoAt(song, bpm));
 
       if (metronomeMode === '4') {
         schedulerRef.current.clickWhilePlaying = false;
@@ -1137,11 +1141,21 @@ function App() {
   const handleSeek = (patternId, localSlot) => {
     if (!isPlaying || !schedulerRef.current || !slotTimesRef.current) return;
     const globalSlot = localToGlobal(patternId, localSlot, song);
+    const sched = schedulerRef.current;
+    const ctx = sched.audioCtx;
+    if (!ctx) return;
     const { loopStart, times } = slotTimesRef.current;
     const i = globalSlot - loopStart;
     const offsetMs = (i >= 0 && i < times.length) ? times[i] : 0;
+    const delay = 0.02;
+    const nextNoteTime = ctx.currentTime + delay;
+    // Bereken playStartAudioTime op basis van slotTimesRef (variable tempo correct)
+    sched.playStartAudioTime = nextNoteTime - offsetMs / 1000;
+    clearTimeout(sched.timerID);
+    sched.currentSlot = globalSlot;
+    sched.nextNoteTime = nextNoteTime;
+    sched.scheduler();
     playStartWallTimeRef.current = Date.now() - offsetMs + cursorOffsetMsRef.current;
-    schedulerRef.current.seekTo(globalSlot);
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
