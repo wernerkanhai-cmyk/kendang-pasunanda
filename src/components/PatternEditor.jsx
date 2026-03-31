@@ -454,7 +454,7 @@ const [showBeheer, setShowBeheer] = useState(true);
       const ruler = e.currentTarget?.closest?.('.measure-ruler');
       if (!ruler) return;
       const rect = ruler.getBoundingClientRect();
-      const x = ev.clientX - rect.left;
+      const x = ev.clientX - rect.left - SOLO_BTN_W;
       const mw = 48 * slotWidth;
       const m = Math.max(0, Math.min(totalMeasures - 1, Math.floor(x / mw)));
       setRulerDrag(prev => prev ? { ...prev, current: m } : null);
@@ -488,7 +488,7 @@ const [showBeheer, setShowBeheer] = useState(true);
     const onMove = (ev) => {
       if (!rulerEl) return;
       const rect = rulerEl.getBoundingClientRect();
-      const x = Math.max(0, ev.clientX - rect.left);
+      const x = Math.max(0, ev.clientX - rect.left - SOLO_BTN_W);
       const snappedMeasure = Math.max(0, Math.min(totalMeasures, Math.round(x / mw)));
       const newSlot = snappedMeasure * 48;
       if (side === 'start') {
@@ -1015,6 +1015,8 @@ const [showBeheer, setShowBeheer] = useState(true);
           const mw = 48 * slotWidth;
           return (
             <div className="measure-ruler" style={{ position: 'relative', display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', userSelect: 'none' }}>
+              {/* Spacer om uit te lijnen met de grid (solo-knop breedte) */}
+              <div style={{ flexShrink: 0, width: SOLO_BTN_W + 'px' }} />
               {Array.from({ length: totalMeasures }).map((_, i) => {
                 const isDragging = rulerDrag && i >= Math.min(rulerDrag.start, rulerDrag.current) && i <= Math.max(rulerDrag.start, rulerDrag.current);
                 return (
@@ -1027,14 +1029,14 @@ const [showBeheer, setShowBeheer] = useState(true);
                   </div>
                 );
               })}
-              {/* Loop bar fill — pointer-events none so ruler drag still works underneath */}
+              {/* Loop bar fill — uitgelijd met grid (+ SOLO_BTN_W offset) */}
               {displayLoop && (
-                <div style={{ position: 'absolute', top: 1, bottom: 1, left: displayLoop.start * slotWidth, width: Math.max(0, (displayLoop.end - displayLoop.start) * slotWidth), background: handleDrag ? 'rgba(212,175,55,0.22)' : 'rgba(245,158,11,0.18)', border: '1px solid rgba(245,158,11,0.65)', borderRadius: 2, pointerEvents: 'none', boxSizing: 'border-box' }} />
+                <div style={{ position: 'absolute', top: 1, bottom: 1, left: SOLO_BTN_W + displayLoop.start * slotWidth, width: Math.max(0, (displayLoop.end - displayLoop.start) * slotWidth), background: handleDrag ? 'rgba(212,175,55,0.22)' : 'rgba(245,158,11,0.18)', border: '1px solid rgba(245,158,11,0.65)', borderRadius: 2, pointerEvents: 'none', boxSizing: 'border-box' }} />
               )}
               {/* Left handle */}
               {displayLoop && (
                 <div
-                  style={{ position: 'absolute', top: 0, bottom: 0, left: Math.max(0, displayLoop.start * slotWidth - 5), width: 12, cursor: 'ew-resize', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, touchAction: 'none' }}
+                  style={{ position: 'absolute', top: 0, bottom: 0, left: SOLO_BTN_W + displayLoop.start * slotWidth - 5, width: 12, cursor: 'ew-resize', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, touchAction: 'none' }}
                   onPointerDown={(e) => handleLoopHandlePointerDown(e, 'start')}
                 >
                   <div style={{ width: 3, height: 14, background: '#f59e0b', borderRadius: 2, pointerEvents: 'none' }} />
@@ -1043,7 +1045,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               {/* Right handle */}
               {displayLoop && (
                 <div
-                  style={{ position: 'absolute', top: 0, bottom: 0, left: Math.max(0, displayLoop.end * slotWidth - 7), width: 12, cursor: 'ew-resize', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, touchAction: 'none' }}
+                  style={{ position: 'absolute', top: 0, bottom: 0, left: SOLO_BTN_W + displayLoop.end * slotWidth - 7, width: 12, cursor: 'ew-resize', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, touchAction: 'none' }}
                   onPointerDown={(e) => handleLoopHandlePointerDown(e, 'end')}
                 >
                   <div style={{ width: 3, height: 14, background: '#f59e0b', borderRadius: 2, pointerEvents: 'none' }} />
