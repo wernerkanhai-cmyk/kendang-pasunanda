@@ -985,10 +985,13 @@ function App() {
       setIsPlaying(false);
       setIsRecording(false);
     } else {
-      // Convert cursor position to a global slot
-      const globalStart = activeSlot
-        ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
-        : 0;
+      // Als een loopRange actief is, start altijd vanaf het begin van de loop
+      const lr = loopRangeRef.current;
+      const globalStart = lr
+        ? localToGlobal(lr.patternId, lr.startSlot, song)
+        : activeSlot
+          ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
+          : 0;
       // Build slot time table for variable-tempo cursor sync
       const totalSlots = song.reduce((sum, p) => sum + p.anak.length, 0);
       slotTimesRef.current = buildSlotTimesMs(globalStart, totalSlots, buildTempoAt(song, bpm));
