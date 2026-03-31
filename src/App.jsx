@@ -347,7 +347,7 @@ function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kendang-bibliotheek-${new Date().toISOString().slice(0, 10)}.kendang`;
+    a.download = `kendang-bibliotheek-${new Date().toISOString().slice(0, 10)}.kendang-lib`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -1916,7 +1916,7 @@ function App() {
                       title={t('importLib')}
                     >
                       {t('importLib')}
-                      <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportLibrary} />
+                      <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImportLibrary} />
                     </label>
                     <button onClick={() => setShowSongLibrary(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
