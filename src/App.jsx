@@ -1111,8 +1111,8 @@ function App() {
     loopingPatternIdRef.current = patternId;
     setLoopingPatternId(patternId);
     if (isPlaying) {
-      // Wacht op einde huidige cyclus — geef nieuwe range door als pending
-      schedulerRef.current.pendingLoop = { start: loopStartGlobal, end: loopEndGlobal };
+      // Zet pending loop — scheduler wisselt na einde huidige maat (max 1 maat wachten)
+      schedulerRef.current.setPendingLoopAfterCurrentMeasure(loopStartGlobal, loopEndGlobal);
       // Wanneer de scheduler de wissel uitvoert, herbouw slotTimesRef
       schedulerRef.current.onLoopSwitch = (start, end) => {
         slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));

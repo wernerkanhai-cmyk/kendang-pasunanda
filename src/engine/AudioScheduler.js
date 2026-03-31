@@ -93,6 +93,15 @@ export class AudioScheduler {
     }
   }
 
+  // Sla een nieuwe loop op als pending en zet totalSlots op het einde van de huidige maat
+  // zodat de wissel na maximaal 1 maat plaatsvindt (niet na de hele song)
+  setPendingLoopAfterCurrentMeasure(start, end) {
+    this.pendingLoop = { start, end };
+    const barSize = 48;
+    const endOfCurrentBar = Math.ceil((this.currentSlot + 1) / barSize) * barSize;
+    this.totalSlots = Math.max(endOfCurrentBar, this.loopStart + barSize);
+  }
+
   // Audio-clock time waarop slot loopStart speelt — voor rAF cursor
   playStartAudioTime = 0;
 
