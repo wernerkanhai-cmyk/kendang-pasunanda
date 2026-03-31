@@ -154,10 +154,15 @@ const parseJson = (text) => {
     jsonStr = text.slice(start, end + 1);
   }
   jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+  // Fix "key" ; value → "key": value (semicolons used as colons)
   jsonStr = jsonStr.replace(/"([^"]+)"\s*;/g, '"$1":');
   jsonStr = jsonStr.replace(/([{,]\s*)([a-zA-Z_]\w*)\s*;/g, '$1"$2":');
+  // Fix unquoted keys: key: → "key":
   jsonStr = jsonStr.replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":');
+  // Fix unquoted ";" and ":" symbol values: "s":; → "s":";"
   jsonStr = jsonStr.replace(/"s"\s*:\s*([;:])\s*([,}\]])/g, '"s":"$1"$2');
+  // Fix missing colon between key and value: "key" "val" → "key":"val", "key" 1 → "key":1
+  jsonStr = jsonStr.replace(/"([^"]*?)"\s+(?=["{[\d\-]|true|false|null)/g, '"$1":');
   return JSON.parse(jsonStr);
 };
 
