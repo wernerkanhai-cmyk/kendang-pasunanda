@@ -972,14 +972,6 @@ function App() {
       schedulerRef.current.pause();
       setIsPlaying(false);
       setRealtimeBpm(null);
-      if (loopingPatternIdRef.current) {
-        loopingPatternIdRef.current = null;
-        setLoopingPatternId(null);
-        loopRangeRef.current = null;
-        setLoopRange(null);
-        const total = song.reduce((sum, p) => sum + p.anak.length, 0);
-        schedulerRef.current.setTotalSlots(total);
-      }
     } else if (isPlaying && isRecording) {
       schedulerRef.current.pause();
       setIsPlaying(false);
