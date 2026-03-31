@@ -307,10 +307,14 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
          }
 
          // Level 2 Beams: draw when any note is at a 16th-note position (offset % 6 ≠ 0).
-         // Same span as the level-1 beam so single 16th notes also get a double beam.
+         // Starts at firstNote (not l1Start) so the double beam covers only the actual
+         // 16th notes — not the implied rest at beat start. This is correct notation:
+         //   [rest] [16th] [16th] → single beam from 0→9, double beam from 6→9.
          const has16th = activeIndices.some(i => i % 6 !== 0);
          if (has16th && l1Span > 0) {
-           handResults.push({ startIdx: beatStart + l1Start, span: l1Span, level: 2, position });
+           const l2Span = lastNote - firstNote;
+           // Fallback to l1Span when single isolated 16th note (l2Span === 0)
+           handResults.push({ startIdx: beatStart + firstNote, span: l2Span > 0 ? l2Span : l1Span, level: 2, position });
          }
        }
        return handResults;
