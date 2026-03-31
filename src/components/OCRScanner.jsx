@@ -82,6 +82,15 @@ De zwarte sectie toont 4 maten in 2 sub-rijen. BEIDE sub-rijen moeten worden opg
 LET OP: De noten uit BEIDE sub-rijen komen in dezelfde anak[] array per maat.
 Sla de onderste sub-rij NIET over — die is even belangrijk als de bovenste.
 
+ABSOLUTE REGEL — KUMPYANG/KUTIPLAK (bovenste sub-rij, P-varianten):
+P-symboolparen in de BOVENSTE sub-rij zijn ALTIJD achtste noten: o=0 en o=6.
+Gebruik NOOIT o=3 voor P-symbolen in de bovenste sub-rij.
+De balkjes boven P-paren zien er soms dik of dubbel uit — dit is het handschrift, GEEN dubbele balk.
+Een dikke balk is nog steeds 1 balk. Gebruik altijd o=0 en o=6 voor P-paren.
+
+ALLEEN in de ONDERSTE sub-rij (D / t / Ø-symbolen) kunnen 16e noten voorkomen (o=3 of o=9),
+maar ook daar: 8e noten (o=0 en o=6) zijn het meest voorkomend.
+
 ${MAATINDELING}
 
 ${SYMBOOLMAPPING}
@@ -89,8 +98,7 @@ ${SYMBOOLMAPPING}
 Geef exact dit formaat terug (ALTIJD 4 elementen, ook als leeg):
 {"anak":[[{"b":1,"o":0,"s":"J"},{"b":1,"o":6,"s":"F"},{"b":2,"o":0,"s":";"},{"b":2,"o":6,"s":"F"},{"b":3,"o":0,"s":"J"},{"b":3,"o":6,"s":"F"},{"b":4,"o":0,"s":";"},{"b":4,"o":6,"s":"F"}],[],[],[]]}
 
-Toelichting voorbeeld: elke tel heeft 2 P-symbolen met 1 balk (achtste noten) → eerste op o=0, tweede op o=6.
-Gebruik o=3 ALLEEN als je DUIDELIJK 2 aparte balklijnen ziet boven het paar. Bij twijfel: o=6.
+Toelichting voorbeeld: P-paren op o=0 en o=6 (achtste noten). NOOIT o=3 voor P-symbolen.
 Bottom sub-rij voorbeeld: · DD · D D tt · → beat2: C op o=0 en o=6; beat3: C op o=0, C op o=6; beat4: C op o=0, N op o=6.
 Waarbij: b=beat(1-4), o=offset(0,3,6,9), s=symboolcode.
 LET OP: Zowel TOP als BOTTOM sub-rij symbolen gaan in dezelfde anak[] array.
@@ -112,6 +120,13 @@ De rode sectie toont 4 maten in 2 sub-rijen. BEIDE sub-rijen moeten worden opgen
 
 LET OP: De noten uit BEIDE sub-rijen komen in dezelfde indung[] array per maat.
 Sla de onderste sub-rij NIET over — die is even belangrijk als de bovenste.
+
+ABSOLUTE REGEL — P-VARIANTEN (bovenste sub-rij):
+P-symboolparen in de BOVENSTE sub-rij zijn ALTIJD achtste noten: o=0 en o=6.
+Gebruik NOOIT o=3 voor P-symbolen in de bovenste sub-rij.
+Een dikke of vette balk boven P-paren is nog steeds 1 balk — gebruik altijd o=0 en o=6.
+
+ALLEEN in de ONDERSTE sub-rij (D / t / Ø-symbolen) kunnen 16e noten voorkomen (o=3 of o=9).
 
 ${MAATINDELING}
 
