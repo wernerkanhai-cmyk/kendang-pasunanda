@@ -27,23 +27,31 @@ const MAATINDELING = `
 BALKLIJNEN bepalen de nootwaarde. Een balk is een horizontale lijn die boven een groep
 van 2 of meer symbolen getrokken is en ze visueel verbindt.
 
-HOE BALKEN ERUITZIEN:
-  Geen balk boven de noot          → kwartnoot  → offset 0
-  1 horizontale lijn boven 2 noten → achtste     → de 2 noten op offsets 0 en 6
-  2 parallelle lijnen boven noten  → 16e noot    → 4 noten op offsets 0, 3, 6, 9
+HOE BALKEN ERUITZIEN — EXACTE OFFSETREGELS:
+  Geen balk boven de noot          → kwartnoot  → offset 0 (alleen)
+  1 balk boven 2 noten             → 2× achtste  → offsets 0 en 6
+  1 balk boven 4 noten             → 4× achtste  → offsets 0, 6 (max 2 per balk)
+  2 balken boven 2 noten           → 2× 16e noot → offsets 0 en 3   ← LET OP: NIET 0 en 6!
+  2 balken boven 4 noten           → 4× 16e noot → offsets 0, 3, 6, 9
+  2 balken boven 3 noten           → 3× 16e noot → offsets 0, 3, 6
 
-LET OP: Een balk verbindt een GROEP noten — zoek de lijn boven elke noot en tel hoeveel
-parallelle lijnen er zijn. Twee symbolen met 1 balk erboven = elk een achtste noot.
+CRUCIAAL: 2 balken boven een PAAR noten = offsets 0 en 3, NIET 0 en 6.
+Voorbeeld: [P̂ ṗ] met 2 balken erboven → P̂ op offset 0, ṗ op offset 3.
 
 Een stip (·) is een RUST. De balk boven de stip geeft de rustduur aan:
-  Stip zonder balk  → kwartnoot rust
-  Stip met 1 balk   → achtste rust  → volgende noten op offsets 6, 9
-  Stip met 2 balken → 16e rust      → volgende noten op offsets 3, 6, 9
+  Stip zonder balk  → kwartnoot rust  → volgende noot op offset 0 van volgende tel
+  Stip met 1 balk   → achtste rust   → volgende noot op offset 6
+  Stip met 2 balken → 16e rust       → volgende noten op offsets 3 (en evt. 6, 9)
 
-Gemengde voorbeelden binnen één tel:
-  [noot-1balk] [noot-1balk]        → offsets 0 en 6  (twee achtste noten)
-  [·-1balk] [noot-2balken] [noot-2balken] → offsets 6 en 9  (8e rust + twee 16e noten)
-  [noot-2balken] [noot-2balken] [noot-2balken] [noot-2balken] → offsets 0,3,6,9
+Gemengde voorbeelden binnen één tel (b=beat):
+  [noot-1balk] [noot-1balk]              → o=0 en o=6  (twee achtsten)
+  [noot-2balken] [noot-2balken]          → o=0 en o=3  (twee 16en)
+  [·-1balk] [noot-1balk]                 → o=6         (8e rust + één achtste)
+  [·-1balk] [noot-2balken] [noot-2balken]→ o=6 en o=9  (8e rust + twee 16en)
+  [noot-2balken]×4                       → o=0,3,6,9
+
+GONG-SYMBOOL: Een omcirkeld symbool (⊙ of cirkel om een letter) is een gongmarkering,
+GEEN noot. Negeer het volledig — neem het niet op in de JSON.
 
 Rust-stippen (·) nooit opnemen in de JSON — alleen de klingende noten.`.trim();
 
@@ -67,10 +75,12 @@ ${MAATINDELING}
 ${SYMBOOLMAPPING}
 
 Geef exact dit formaat terug (ALTIJD 4 elementen, ook als leeg):
-{"anak":[[{"b":1,"o":0,"s":";"}, {"b":1,"o":6,"s":"F"}, {"b":1,"o":6,"s":"C"}, {"b":1,"o":9,"s":"C"}, {"b":2,"o":0,"s":"X"}],[{"b":1,"o":0,"s":"C"}],[],[]]}
+{"anak":[[{"b":1,"o":0,"s":"J"},{"b":1,"o":3,"s":"F"},{"b":2,"o":0,"s":";"},{"b":2,"o":3,"s":"F"},{"b":3,"o":0,"s":"J"},{"b":3,"o":3,"s":"F"},{"b":4,"o":0,"s":";"},{"b":4,"o":3,"s":"F"}],[],[],[]]}
 
-Voorbeeld: b=1 o=6 en b=1 o=9 zijn twee 16e noten op de 2e helft van tel 1.
+Typisch patroon: elke tel heeft 2 P-symbolen met 2 balken → eerste op o=0, tweede op o=3.
+Bottom sub-rij in dezelfde maat: · DD · D D tt · → beat2: C op o=0 en o=3; beat3: C op o=0, C op o=6; beat4: C op o=0, N op o=6, N op o=9.
 Waarbij: b=beat(1-4), o=offset(0,3,6,9), s=symboolcode.
+LET OP: Zowel TOP als BOTTOM sub-rij symbolen gaan in dezelfde anak[] array.
 Lege maten → []. Rust-punten (·) nooit opnemen.
 ";" en ":" altijd tussen aanhalingstekens: {"s":";"} {"s":":"}
 `.trim();
@@ -165,7 +175,12 @@ const notesToSlots = (notes) => {
   const slots = emptySlots();
   for (const n of (Array.isArray(notes) ? notes : [])) {
     const idx = (n.b - 1) * 12 + (n.o || 0);
-    if (idx >= 0 && idx < 48) slots[idx] = symToSlot(n.s);
+    if (idx >= 0 && idx < 48) {
+      const s = symToSlot(n.s);
+      // Merge top+bottom — niet overschrijven als al gevuld (beide sub-rijen in één array)
+      if (s.top)    slots[idx].top    = s.top;
+      if (s.bottom) slots[idx].bottom = s.bottom;
+    }
   }
   return slots;
 };
