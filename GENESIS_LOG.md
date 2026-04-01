@@ -90,3 +90,46 @@ og_image_1200x630.png (1200x630 px) - Voor social media previews (WhatsApp, Link
 Contrast: Garandeer dat het goud contrastrijk en leesbaar blijft op alle schalen, zelfs op de 32x32 favicon.
 
 Naamgeving: Zorg dat de bestandsnamen exact de bovenstaande conventie volgen voor eenvoudige integratie.
+# GENESIS_LOG: Project Kendang Pasunanda
+
+## Systeem Rolverdeling
+- **Strategisch Architect (Gemini):** Verantwoordelijk voor de visie, culturele authenticiteit (Pasunanda-traditie), branding en high-level UX-strategie.
+- **Uitvoerende Developer (Claude Code):** Verantwoordelijk voor de technische implementatie, code-optimalisatie, asset-generatie en App Store compliance binnen Antigravity.
+
+## Status Update: App Store Readiness
+We gaan nu de v1.0 van "Kendang Pasunanda: Sequencer & Solfège" finaliseren.
+
+### Lopende Opdracht: Asset Generatie (Branding)
+**Taak:** Genereer alle visuele assets gebaseerd op het '48-Slot Precisie Cirkel' logo.
+- Achtergrond: `#0A1128`
+- Emblem: 48-segment gouden cirkel (`#FFD700`) met centrale stip.
+- Output: Volledige set `ios_assets` en `web_assets` zoals gespecificeerd in de Master Prompt.
+
+### Volgende Stappen
+1. Implementatie van de 'Ironclad Edit Lock' & Practice Mode.
+2. Laatste 'Ralph Loop' stress-tests voor iOS stabiliteit.
+3. Voorbereiding van de App Store metadata (Subtitel: Sequencer & Solfège).
+
+---
+
+### 2026-04-01 — Sessie 2
+
+**Rolverdeling bevestigd.** Claude Code = uitvoerende developer voor Kendang Pasunanda v1.0.
+
+**Lopende Opdracht: Asset Generatie — ✅ VOLTOOID**
+
+Alle bestanden zijn gegenereerd, gecommit en gepusht naar `dev`:
+
+| Map | Bestanden | Status |
+|---|---|---|
+| `ios_assets/` | app_store_icon_1024.png, app_icon_180.png, app_icon_152.png, app_icon_167.png, spotlight_icon_80.png, notification_icon_40.png | ✅ |
+| `web_assets/` | favicon.png, og_image_1200x630.png, logo_transparent.svg, favicon.svg | ✅ |
+
+Design: 48-segment gouden ring (#FFD700) op #0A1128, solide stip, anti-aliased, outer glow 0.4.
+
+**Volgende stap (wachtend op instructie):**
+1. Ironclad Edit Lock & Practice Mode — Practice Mode cirkelicoon is reeds geïmplementeerd. Verdere versterking mogelijk.
+2. Ralph Loop stress-tests voor iOS stabiliteit.
+3. App Store metadata voorbereiding.
+
+*Log hieronder je voortgang zodra een taak is voltooid.*
