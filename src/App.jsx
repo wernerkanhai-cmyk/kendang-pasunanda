@@ -280,6 +280,15 @@ function App() {
     }
   };
 
+  const handleOverwriteSong = (s) => {
+    const entry = { ...s, date: new Date().toLocaleDateString('nl-NL'), patterns: JSON.parse(JSON.stringify(song)) };
+    setSavedSongs(prev => prev.map(saved => saved.id === s.id ? entry : saved));
+    setSongName(s.name);
+    setSongFolder(s.folder || 'Algemeen');
+    setCurrentSongId(s.id);
+    setShowSongMenu(false);
+  };
+
   const handleNewSong = () => {
     const newSongName = `Song ${savedSongs.length + 2}`;
     const fresh = createEmptyPattern(t('defaultSectionName'));
@@ -1657,6 +1666,31 @@ function App() {
                   <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
                   >{t('libraryBtn')}</button>
+
+                  {savedSongs.length > 0 && (() => {
+                    const byFolder = savedSongs.reduce((acc, s) => {
+                      const f = s.folder || 'Algemeen';
+                      if (!acc[f]) acc[f] = [];
+                      acc[f].push(s);
+                      return acc;
+                    }, {});
+                    return (
+                      <div style={{ borderTop: '1px solid #334155', paddingTop: '0.4rem', maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                        {Object.keys(byFolder).sort().map(folder => (
+                          <div key={folder}>
+                            <div style={{ color: '#475569', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.2rem 0.1rem 0.1rem' }}>📁 {folder}</div>
+                            {byFolder[folder].map(s => (
+                              <button key={s.id}
+                                onClick={() => handleOverwriteSong(s)}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', background: s.id === currentSongId ? 'rgba(59,130,246,0.2)' : 'none', color: s.id === currentSongId ? '#93c5fd' : '#94a3b8', border: 'none', borderRadius: '4px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                                title={`Overschrijf "${s.name}"`}
+                              >{s.id === currentSongId ? '▶ ' : ''}{s.name}</button>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                   {FACTORY_PRESETS.length > 0 && (
                     <select defaultValue=""
                       onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; setShowSongMenu(false); } }}
