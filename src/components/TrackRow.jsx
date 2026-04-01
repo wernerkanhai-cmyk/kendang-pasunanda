@@ -502,20 +502,20 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                     left: '6px',
                     zIndex: 20,
                     pointerEvents: 'none',
-                    ...(t.below
+                    ...(trackId === 'indung'
                       ? { top: '50%', marginTop: '12px' }
                       : { bottom: '50%', marginBottom: '40px' }),
                   }}
                 >
                   <svg width="108" height="24" viewBox="0 0 108 24" overflow="visible">
-                    {t.below ? (
+                    {trackId === 'indung' ? (
                       <path d="M 6 6 Q 54 22 102 6" fill="none" stroke="currentColor" strokeWidth="1.5" />
                     ) : (
                       <path d="M 6 18 Q 54 2 102 18" fill="none" stroke="currentColor" strokeWidth="1.5" />
                     )}
                     <text
                       x="54"
-                      y={t.below ? '20' : '10'}
+                      y={trackId === 'indung' ? '20' : '10'}
                       textAnchor="middle"
                       fontSize="10"
                       fill="currentColor"
