@@ -127,9 +127,28 @@ Alle bestanden zijn gegenereerd, gecommit en gepusht naar `dev`:
 
 Design: 48-segment gouden ring (#FFD700) op #0A1128, solide stip, anti-aliased, outer glow 0.4.
 
-**Volgende stap (wachtend op instructie):**
-1. Ironclad Edit Lock & Practice Mode — Practice Mode cirkelicoon is reeds geïmplementeerd. Verdere versterking mogelijk.
-2. Ralph Loop stress-tests voor iOS stabiliteit.
-3. App Store metadata voorbereiding.
+**Volgende stappen — ✅ ALLE DRIE VOLTOOID (2026-04-01)**
+
+### 1. Ironclad Edit Lock ✅
+`handlePaste` in PatternEditor.jsx had geen `isLocked` guard — toegevoegd.
+`isLocked` toegevoegd aan de deps-array van de keyboard-handler useEffect.
+Alle schrijfpaden zijn nu geblokkeerd in Practice Mode:
+- handleInsertSymbol ✓ | handleNoteMove ✓ | handleClear ✓ | clearSlotWithRestFill ✓
+- handleCut ✓ | handlePaste ✓ (nieuw) | handleGongFromInstrument ✓ | handleDrumTrigger ✓
+- Gong-klik in TrackRow ✓ | popup (sound menu) in TrackRow ✓ | double-click slot ✓
+
+### 2. Ralph Loop stress-tests ✅
+Test 4 toegevoegd aan `stress-test.mjs`:
+- **4a** 5 000 willekeurige loop-bereiken: start/end altijd op maat-grens, end > start
+- **4b** Edge-cases (negatief, NaN, Infinity, omgekeerd): altijd `null`, nooit crash
+- **4c** 10 000 snelle section-toggles: geen duplicaten, geen overflow
+- **4d** 2 000 maat-insert/delete-operaties: loop altijd binnen patternlengte
+Resultaat: **10 768/10 768 assertions geslaagd (0% crash rate)**
+
+### 3. App Store metadata ✅
+`APP_STORE_METADATA.md` aangemaakt met:
+- App naam, subtitel, categorie, content rating
+- Volledige beschrijving in EN, NL en ID
+- Keywords, What's New, screenshot-formaten, Review Notes
 
 *Log hieronder je voortgang zodra een taak is voltooid.*

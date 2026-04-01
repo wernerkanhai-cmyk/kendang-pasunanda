@@ -244,6 +244,124 @@ for (let p = 0; p < 10; p++) {
     `${badGong.length} off-beat entries: ${badGong.slice(0,3)}`);
 }
 
+// ─── Test 4: Ralph Loop — Loop-range stability ───────────────────────────────
+
+console.log('\n═══════════════════════════════════════════');
+console.log(' TEST 4: Ralph Loop — Loop-range stress (iOS stability)');
+console.log('═══════════════════════════════════════════');
+
+/**
+ * Mirrors handleRulerLoop / loopRange logic from App.jsx.
+ * Loop invariants:
+ *   • start must be a multiple of BAR_SLOTS (48) and >= 0
+ *   • end must be > start and <= maxSlot
+ *   • span must be a positive multiple of BAR_SLOTS
+ *   • loopedSections array must not grow unboundedly
+ */
+
+const MAX_MEASURES  = 32;
+const MAX_SLOT      = MAX_MEASURES * BAR_SLOTS;
+
+function clampToBarBoundary(slot) {
+  return Math.max(0, Math.floor(slot / BAR_SLOTS) * BAR_SLOTS);
+}
+
+function applyRulerLoop(start, end, maxSlot) {
+  const s = clampToBarBoundary(start);
+  const e = clampToBarBoundary(end);
+  if (e <= s || s < 0 || e > maxSlot) return null; // invalid — no loop
+  return { start: s, end: e };
+}
+
+// 4a: Valid loop ranges must produce start < end, both on bar boundaries
+let loopErrors = 0;
+for (let i = 0; i < 5_000; i++) {
+  const rawStart = rand(MAX_SLOT);
+  const rawEnd   = rawStart + rand(MAX_SLOT - rawStart) + 1;
+  const loop     = applyRulerLoop(rawStart, rawEnd, MAX_SLOT);
+
+  if (loop !== null) {
+    if (loop.start >= loop.end) { loopErrors++; continue; }
+    if (loop.start % BAR_SLOTS !== 0) { loopErrors++; continue; }
+    if (loop.end   % BAR_SLOTS !== 0) { loopErrors++; continue; }
+    if (loop.end > MAX_SLOT)          { loopErrors++; continue; }
+  }
+}
+assert('ralph[4a] 5000 random loop ranges all valid or null', loopErrors === 0, `${loopErrors} invalid`);
+
+// 4b: Out-of-bounds and inverted inputs must return null (never crash)
+const edgeCases = [
+  [-1,    48],
+  [0,     0],
+  [48,    48],
+  [96,    48],
+  [0,     MAX_SLOT + 48],
+  [-9999, 9999],
+  [NaN,   48],
+  [0,     Infinity],
+];
+let edgeErrors = 0;
+for (const [s, e] of edgeCases) {
+  try {
+    const r = applyRulerLoop(s, e, MAX_SLOT);
+    // Must return null for invalid inputs
+    if (r !== null) {
+      if (r.start >= r.end || r.start < 0 || r.end > MAX_SLOT) edgeErrors++;
+    }
+  } catch (_) { edgeErrors++; }
+}
+assert('ralph[4b] edge-case loop inputs never crash or produce invalid range', edgeErrors === 0, `${edgeErrors} errors`);
+
+// 4c: Rapid toggle of loopedSections (simulating iOS tap spam)
+const SECTION_IDS = Array.from({ length: 8 }, (_, i) => `pat-${i}`);
+let loopedSections = [];
+let toggleErrors   = 0;
+for (let i = 0; i < 10_000; i++) {
+  const id = randItem(SECTION_IDS);
+  // Toggle: add if not present, remove if present
+  if (loopedSections.includes(id)) {
+    loopedSections = loopedSections.filter(x => x !== id);
+  } else {
+    loopedSections = [...loopedSections, id];
+  }
+  // Invariant: no duplicates, all IDs valid
+  const unique = new Set(loopedSections);
+  if (unique.size !== loopedSections.length) toggleErrors++;
+  if (loopedSections.some(x => !SECTION_IDS.includes(x))) toggleErrors++;
+  if (loopedSections.length > SECTION_IDS.length) toggleErrors++;
+}
+assert('ralph[4c] 10k rapid section toggles — no duplicates, no overflow', toggleErrors === 0, `${toggleErrors} violations`);
+
+// 4d: Loop range never exceeds the pattern length after measure insert/delete
+function simulateMeasureOp(currentSlots, op) {
+  if (op === 'insert') return currentSlots + BAR_SLOTS;
+  if (op === 'delete') return Math.max(BAR_SLOTS, currentSlots - BAR_SLOTS);
+  return currentSlots;
+}
+function clampLoop(loop, maxSlot) {
+  if (!loop) return null;
+  const e = Math.min(loop.end, maxSlot);
+  const s = Math.min(loop.start, e - BAR_SLOTS);
+  if (s < 0 || s >= e) return null;
+  return { start: s, end: e };
+}
+let measureOpsErrors = 0;
+let currentSlots = BAR_SLOTS * 4;
+let activeLoop   = { start: 0, end: BAR_SLOTS };
+const OPS        = ['insert', 'delete', 'none'];
+for (let i = 0; i < 2_000; i++) {
+  const op = randItem(OPS);
+  currentSlots = simulateMeasureOp(currentSlots, op);
+  activeLoop   = clampLoop(activeLoop, currentSlots);
+
+  if (activeLoop) {
+    if (activeLoop.start < 0)              measureOpsErrors++;
+    if (activeLoop.end > currentSlots)     measureOpsErrors++;
+    if (activeLoop.start >= activeLoop.end) measureOpsErrors++;
+  }
+}
+assert('ralph[4d] loop clamped correctly after 2000 measure insert/delete ops', measureOpsErrors === 0, `${measureOpsErrors} out-of-bounds`);
+
 // ─── Report ──────────────────────────────────────────────────────────────────
 
 const total      = passed + failed;

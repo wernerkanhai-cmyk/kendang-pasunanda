@@ -324,7 +324,7 @@ const [showBeheer, setShowBeheer] = useState(true);
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isActive, activeSlot, pattern, isPlaying]); // Essential dependencies so handleClear gets fresh state!
+  }, [isActive, activeSlot, pattern, isPlaying, isLocked]); // isLocked ensures handleClear sees latest lock state
 
   const handleCopy = () => {
     const range = getActiveRange() || selectedRange.current;
@@ -409,6 +409,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   };
 
   const handlePaste = () => {
+    if (isLocked) return;
     const range = getActiveRange() || selectedRange.current;
     if (!clipboard || !range) return;
     // Plak naar de actieve track (clipboard.trackId bepaalt de bron, range.trackId de bestemming)
