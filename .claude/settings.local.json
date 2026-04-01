@@ -27,7 +27,36 @@
       "Bash(git -C /Users/wernerkanhai/Documents/KendangPasunanda ls-files public/audio/)",
       "Bash(git rm:*)",
       "Bash(gh browse:*)",
-      "Bash(git worktree:*)"
+      "Bash(git worktree:*)",
+      "Bash(git revert:*)",
+      "Bash(python3:*)",
+      "Bash(grep -l \"togglePlay\\\\|toggleRecord\" /Users/wernerkanhai/Documents/KendangPasunanda/src/components/*.jsx)",
+      "Bash(node -e \"const p=require\\(''./package.json''\\); console.log\\(''type:'', p.type\\)\")",
+      "Bash(node stress-test.mjs)",
+      "Bash(node -e \"const p=require\\(''./package.json''\\); p.scripts[''stress-test'']=''node stress-test.mjs''; require\\(''fs''\\).writeFileSync\\(''package.json'', JSON.stringify\\(p, null, 2\\)+''\\\\n''\\)\")",
+      "Bash(gh repo:*)",
+      "Bash(vercel whoami:*)",
+      "Bash(vercel ls:*)",
+      "Bash(vercel alias:*)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(jq -e '.hooks.PostToolUse[] | select\\(.matcher == \"\"Bash\"\"\\) | .hooks[] | select\\(.type == \"\"command\"\"\\) | .command' /Users/wernerkanhai/Documents/KendangPasunanda/.claude/settings.local.json)",
+      "Bash(grep -rn \"Load failed\\\\|load failed\" /Users/wernerkanhai/Documents/KendangPasunanda/ --include=*.jsx --include=*.js --include=*.json --exclude-dir=node_modules --exclude-dir=dist)",
+      "Bash(npx --yes eslint src --ext .js,.jsx --rule '{\"\"\"\"no-unused-vars\"\"\"\": [\"\"\"\"warn\"\"\"\", {\"\"\"\"vars\"\"\"\":\"\"\"\"all\"\"\"\",\"\"\"\"args\"\"\"\":\"\"\"\"none\"\"\"\"}]}')",
+      "Bash(npx eslint@8 --no-eslintrc -c '{}' --rule '{\"\"\"\"no-unused-vars\"\"\"\":\"\"\"\"warn\"\"\"\"}' src/components/DrumPad.jsx)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -q 'push origin dev' && (DEPLOY=$(vercel ls 2>/dev/null | grep 'kendang-pasunanda' | head -1 | sed 's|https://||'); [ -n \"$DEPLOY\" ] && vercel alias set \"$DEPLOY\" kendang-dev.vercel.app 2>&1 | tail -1 || echo 'vercel alias: no deployment found') &"
+          }
+        ]
+      }
     ]
   }
 }

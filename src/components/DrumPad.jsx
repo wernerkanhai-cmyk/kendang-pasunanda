@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import ensembleImg from '../assets/drums_ensemble.png';
 import gongImg from '../assets/Gong.png';
 import './DrumPad.css';

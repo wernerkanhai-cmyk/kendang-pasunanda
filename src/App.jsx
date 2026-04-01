@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Fragment } from 'react';
 import './App.css';
 import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots, SYMBOL_REST, sanitizePattern } from './engine/patternLogic';
 import PatternEditor from './components/PatternEditor';
@@ -2135,7 +2135,7 @@ function App() {
               const measureOffset = offset;
               offset += Math.ceil(pattern.anak.length / 48);
               return (
-                <React.Fragment key={pattern.id}>
+                <Fragment key={pattern.id}>
                   {idx > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0', padding: '0 1rem' }}>
                       <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.04)' }} />
@@ -2224,7 +2224,7 @@ function App() {
                       onClearRulerLoop={handleClearRulerLoop}
                     />
                   </div>
-                </React.Fragment>
+                </Fragment>
               );
             });
           })()}

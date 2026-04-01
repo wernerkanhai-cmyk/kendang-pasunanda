@@ -1,4 +1,3 @@
-import React from 'react';
 import { DEFAULT_SOUND_SETTINGS, SYMBOL_TO_SOUND } from '../engine/SamplePlayer';
 import { useT } from '../i18n';
 
