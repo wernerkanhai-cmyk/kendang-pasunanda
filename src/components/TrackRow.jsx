@@ -176,21 +176,27 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
 
   // Per-hand beat triplet detection: 3 notes at positions 0, 4, 8 within a 12-slot beat,
   // checked per hand independently (so a note in the other hand doesn't block detection).
-  // gridResolution=6 (8th grid) means available positions are 0 and 6 — not enough for 3;
-  // this only fires when the grid is fine enough (≤3 per step) to place notes at 0, 4, 8.
+  // `below`: arc goes below when the symbol is NOT a strict pos-above symbol (TOP_HAND_SYMBOLS).
+  // D and other pos-line symbols fall back to slot.top but render on the center line → arc below.
   const handTriplets = useMemo(() => {
     const found = [];
     for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
       for (const hand of ['top', 'bottom']) {
         const notes = [];
+        let firstSym = null;
         for (let i = 0; i < 12; i++) {
           const s = slots[beatStart + i];
           if (!s) continue;
           const v = s[hand];
-          if (v !== '' && v !== SYMBOL_REST) notes.push(i);
+          if (v !== '' && v !== SYMBOL_REST) {
+            notes.push(i);
+            if (firstSym === null) firstSym = v;
+          }
         }
         if (notes.length === 3 && notes[0] === 0 && notes[1] === 4 && notes[2] === 8) {
-          found.push({ start: beatStart, hand });
+          // Arc goes above only for strict pos-above (TOP_HAND_SYMBOLS) symbols
+          const below = !TOP_HAND_SYMBOLS.includes(firstSym);
+          found.push({ start: beatStart, hand, below });
         }
       }
     }
@@ -490,20 +496,20 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                     left: '6px',
                     zIndex: 20,
                     pointerEvents: 'none',
-                    ...(t.hand === 'top'
-                      ? { bottom: '50%', marginBottom: '40px' }
-                      : { top: '50%', marginTop: '35px' }),
+                    ...(t.below
+                      ? { top: '50%', marginTop: '35px' }
+                      : { bottom: '50%', marginBottom: '40px' }),
                   }}
                 >
                   <svg width="108" height="24" viewBox="0 0 108 24" overflow="visible">
-                    {t.hand === 'top' ? (
-                      <path d="M 6 18 Q 54 2 102 18" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    ) : (
+                    {t.below ? (
                       <path d="M 6 6 Q 54 22 102 6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    ) : (
+                      <path d="M 6 18 Q 54 2 102 18" fill="none" stroke="currentColor" strokeWidth="1.5" />
                     )}
                     <text
                       x="54"
-                      y={t.hand === 'top' ? '10' : '20'}
+                      y={t.below ? '20' : '10'}
                       textAnchor="middle"
                       fontSize="10"
                       fill="currentColor"
