@@ -587,29 +587,54 @@ const [showBeheer, setShowBeheer] = useState(true);
         {/* Snippet Library Controls — kept for isNamingSnippet inline form */}
         <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: showBeheer && !isLocked ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
            {isNamingSnippet ? (
-              <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', padding: '2px', borderRadius: '4px', gap: '4px' }}>
-                <input 
-                  autoFocus
-                  type="text" 
-                  value={snippetName}
-                  onChange={(e) => setSnippetName(e.target.value)}
-                  onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder={t('snippetNamePlaceholder')}
-                  style={{ background: 'transparent', color: '#fff', border: 'none', outline: 'none', width: '80px', fontSize: '0.8rem', padding: '0 4px' }}
-                />
-                <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }}></div>
-                <input
-                  type="text"
-                  value={snippetFolder}
-                  onChange={(e) => setSnippetFolder(e.target.value)}
-                  onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder={t('snippetFolderPlaceholder')}
-                  style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', width: '70px', fontSize: '0.8rem', padding: '0 4px' }}
-                />
-                <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
-                <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✕</button>
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', padding: '2px', borderRadius: '4px', gap: '4px' }}>
+                  <input
+                    autoFocus
+                    type="text"
+                    value={snippetName}
+                    onChange={(e) => setSnippetName(e.target.value)}
+                    onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder={t('snippetNamePlaceholder')}
+                    style={{ background: 'transparent', color: '#fff', border: 'none', outline: 'none', width: '80px', fontSize: '0.8rem', padding: '0 4px' }}
+                  />
+                  <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }} />
+                  <input
+                    type="text"
+                    value={snippetFolder}
+                    onChange={(e) => setSnippetFolder(e.target.value)}
+                    onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder={t('snippetFolderPlaceholder')}
+                    style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', width: '70px', fontSize: '0.8rem', padding: '0 4px' }}
+                  />
+                  <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
+                  <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✕</button>
+                </div>
+                {savedSnippets.length > 0 && (() => {
+                  const byFolder = savedSnippets.reduce((acc, s) => {
+                    const f = s.folder || 'Algemeen';
+                    if (!acc[f]) acc[f] = [];
+                    acc[f].push(s);
+                    return acc;
+                  }, {});
+                  return (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', zIndex: 200, minWidth: '200px', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} onClick={(e) => e.stopPropagation()}>
+                      {Object.keys(byFolder).sort().map(f => (
+                        <div key={f}>
+                          <div style={{ color: '#475569', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.25rem 0.5rem 0.1rem' }}>📁 {f}</div>
+                          {byFolder[f].map(snip => (
+                            <button key={snip.id}
+                              onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setSnippetName(snip.name); setSnippetFolder(snip.folder || 'Algemeen'); }}
+                              style={{ display: 'block', width: '100%', textAlign: 'left', background: snip.name === snippetName && (snip.folder || 'Algemeen') === snippetFolder ? 'rgba(59,130,246,0.2)' : 'none', color: '#94a3b8', border: 'none', padding: '0.2rem 0.75rem', fontSize: '0.78rem', cursor: 'pointer' }}
+                            >{snip.name}</button>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
            ) : (
               <button 
