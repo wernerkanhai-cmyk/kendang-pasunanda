@@ -148,31 +148,9 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
 
   const gongBeats = useMemo(() => deduplicateGongByBeat(gong), [gong]);
 
-  // Triplet Detection Logic
-  // A beat has 12 slots (indices 0 to 11).
-  // A standard triplet sits at intervals of 4 slots: 0, 4, 8.
-  // We scan every 12-slot chunk. If there are exactly three non-empty symbols
-  // at relative indices 0, 4, 8, and the rest are empty, we mark it as a triplet.
-  const triplets = useMemo(() => {
-    const found = [];
-    for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
-      let notesInBeat = [];
-      for (let i = 0; i < 12; i++) {
-        const slot = slots[beatStart + i];
-        const hasTop = slot.top !== '' && slot.top !== SYMBOL_REST;
-        const hasBottom = slot.bottom !== '' && slot.bottom !== SYMBOL_REST;
-        if (hasTop || hasBottom) {
-          notesInBeat.push(i);
-        }
-      }
-
-      if (notesInBeat.length === 3 &&
-          notesInBeat[0] === 0 && notesInBeat[1] === 4 && notesInBeat[2] === 8) {
-        found.push(beatStart);
-      }
-    }
-    return found;
-  }, [slots]);
+  // Triplet detection is handled entirely by handTriplets below (per-hand, per-track).
+  // This combined-hands version is kept as an empty stub to avoid breaking any future refs.
+  const triplets = [];
 
   // Per-hand beat triplet detection.
   // Triplet positions within a 12-slot beat: {0, 4, 8} (= 4-slot step grid = 8T).
