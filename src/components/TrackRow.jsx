@@ -165,10 +165,34 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
           notesInBeat.push(i);
         }
       }
-      
-      if (notesInBeat.length === 3 && 
+
+      if (notesInBeat.length === 3 &&
           notesInBeat[0] === 0 && notesInBeat[1] === 4 && notesInBeat[2] === 8) {
-        found.push(beatStart); 
+        found.push(beatStart);
+      }
+    }
+    return found;
+  }, [slots]);
+
+  // Sub-beat triplet detection: 3 notes at positions 0, 2, 4 within a 6-slot 1/8 block,
+  // per hand. Renders a small arc bracket (spanning one 8th-note block) below/above the notes.
+  const halfTriplets = useMemo(() => {
+    const found = [];
+    for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
+      for (const halfOff of [0, 6]) {
+        const blockStart = beatStart + halfOff;
+        for (const hand of ['top', 'bottom']) {
+          const notes = [];
+          for (let i = 0; i < 6; i++) {
+            const s = slots[blockStart + i];
+            if (!s) continue;
+            const v = s[hand];
+            if (v !== '' && v !== SYMBOL_REST) notes.push(i);
+          }
+          if (notes.length === 3 && notes[0] === 0 && notes[1] === 2 && notes[2] === 4) {
+            found.push({ start: blockStart, hand });
+          }
+        }
       }
     }
     return found;
@@ -396,6 +420,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
           const isActive = activeRange && index >= activeRange.start && index < activeRange.end;
           const isLoopRange = loopRange && index >= loopRange.start && index < loopRange.end;
           const isTripletStart = triplets.includes(index);
+          const halfTripletsHere = halfTriplets.filter(t => t.start === index);
           
           const isRestTop = slot.top === SYMBOL_REST;
           const posClassTop = getVerticalPositionClass(slot.top, 'top');
@@ -455,6 +480,38 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                   </svg>
                 </div>
               )}
+
+              {/* Sub-beat (1/8-block) triplet arc: 3 notes at 0,2,4 within a 6-slot block */}
+              {halfTripletsHere.map((t, hi) => (
+                <div
+                  key={`ht-${hi}`}
+                  className={`color-${trackId}`}
+                  style={{
+                    position: 'absolute',
+                    left: '3px',
+                    zIndex: 20,
+                    pointerEvents: 'none',
+                    ...(t.hand === 'top'
+                      ? { bottom: '50%', marginBottom: '40px' }
+                      : { top: '50%', marginTop: '26px' }),
+                  }}
+                >
+                  <svg width="60" height="20" viewBox="0 0 60 20" overflow="visible">
+                    {t.hand === 'top' ? (
+                      <path d="M 3 14 Q 30 2 57 14" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    ) : (
+                      <path d="M 3 6 Q 30 18 57 6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    )}
+                    <text
+                      x="30"
+                      y={t.hand === 'top' ? '10' : '14'}
+                      textAnchor="middle"
+                      fontSize="9"
+                      fill="currentColor"
+                    >3</text>
+                  </svg>
+                </div>
+              ))}
 
               {/* Data symbols (notes and data rests) */}
               {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
