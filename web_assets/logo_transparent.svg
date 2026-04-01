@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Golden Indung — transparent background, 48-segment ring -->
+  <defs>
+    <filter id="glow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="0" stdDeviation="1.5"
+        flood-color="#FFD700" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="38"
+    stroke="#FFD700" stroke-width="2.2"
+    stroke-dasharray="3.979 0.995"
+    fill="none"
+    filter="url(#glow)"/>
+  <circle cx="50" cy="50" r="6.8"
+    fill="#FFD700"
+    filter="url(#glow)"/>
+</svg>
