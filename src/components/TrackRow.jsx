@@ -174,10 +174,12 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
     return found;
   }, [slots]);
 
-  // Per-hand beat triplet detection: 3 notes at positions 0, 4, 8 within a 12-slot beat,
-  // checked per hand independently (so a note in the other hand doesn't block detection).
-  // `below`: arc goes below when the symbol is NOT a strict pos-above symbol (TOP_HAND_SYMBOLS).
-  // D and other pos-line symbols fall back to slot.top but render on the center line → arc below.
+  // Per-hand beat triplet detection.
+  // Triplet positions within a 12-slot beat: {0, 4, 8} (= 4-slot step grid = 8T).
+  // Rule: ALL notes for this hand in the beat must be at triplet positions,
+  //       AND at least one note is at position 4 or 8 (single note at 0 = quarter, no arc).
+  // Partial fills (e.g. only position 8) still get the arc — the missing slots are implied rests.
+  const TRIPLET_OFFSETS = new Set([0, 4, 8]);
   const handTriplets = useMemo(() => {
     const found = [];
     for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
@@ -193,11 +195,14 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
             if (firstSym === null) firstSym = v;
           }
         }
-        if (notes.length === 3 && notes[0] === 0 && notes[1] === 4 && notes[2] === 8) {
-          // Arc goes above only for strict pos-above (TOP_HAND_SYMBOLS) symbols
-          const below = !TOP_HAND_SYMBOLS.includes(firstSym);
-          found.push({ start: beatStart, hand, below });
-        }
+        if (notes.length === 0) continue;
+        // All notes must be on triplet positions
+        if (!notes.every(n => TRIPLET_OFFSETS.has(n))) continue;
+        // At least one note at 4 or 8 (not just a lone quarter at 0)
+        if (!notes.some(n => n === 4 || n === 8)) continue;
+        // Arc direction: below for pos-line / pos-below symbols (D, etc.), above for TOP_HAND_SYMBOLS
+        const below = !TOP_HAND_SYMBOLS.includes(firstSym);
+        found.push({ start: beatStart, hand, below });
       }
     }
     return found;
@@ -319,7 +324,8 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
          }
 
          if (activeIndices.length === 0) continue;
-         if (activeIndices.length === 3 && activeIndices[0] === 0 && activeIndices[1] === 4 && activeIndices[2] === 8) continue; // Triplet overrides this
+         // Skip beam rendering for triplet beats (all notes on {0,4,8} with at least one at 4 or 8)
+         if (activeIndices.every(n => TRIPLET_OFFSETS.has(n)) && activeIndices.some(n => n === 4 || n === 8)) continue;
 
          const firstNote = activeIndices[0];
          const lastNote  = activeIndices[activeIndices.length - 1];
