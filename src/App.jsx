@@ -128,6 +128,8 @@ function App() {
   const [showSongLibrary, setShowSongLibrary] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showImportMenu, setShowImportMenu] = useState(false);
+  const [renamingFolder, setRenamingFolder] = useState(null); // folder name being renamed
+  const [renameFolderInput, setRenameFolderInput] = useState('');
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [showSongMenu, setShowSongMenu] = useState(false);
@@ -307,6 +309,14 @@ function App() {
   const handleDeleteSong = (id) => {
     setSavedSongs(prev => prev.filter(s => s.id !== id));
     if (currentSongId === id) setCurrentSongId(null);
+  };
+
+  const handleRenameFolder = (oldName, newName) => {
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName) { setRenamingFolder(null); return; }
+    setSavedSongs(prev => prev.map(s => s.folder === oldName ? { ...s, folder: trimmed } : s));
+    if (songFolder === oldName) setSongFolder(trimmed);
+    setRenamingFolder(null);
   };
 
   const handleExportSong = (s) => {
@@ -2020,8 +2030,26 @@ function App() {
                     );
                     return folders.map(folder => (
                       <div key={folder}>
-                        <div style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0.25rem 0', borderBottom: '1px solid #334155', marginBottom: '0.25rem' }}>
-                          📁 {folder}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #334155', marginBottom: '0.25rem' }}>
+                          {renamingFolder === folder ? (
+                            <input
+                              autoFocus
+                              value={renameFolderInput}
+                              onChange={e => setRenameFolderInput(e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter') handleRenameFolder(folder, renameFolderInput); if (e.key === 'Escape') setRenamingFolder(null); }}
+                              onBlur={() => handleRenameFolder(folder, renameFolderInput)}
+                              style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3b82f6', borderRadius: '4px', padding: '0.1rem 0.4rem', fontSize: '0.75rem', fontWeight: 'bold' }}
+                            />
+                          ) : (
+                            <>
+                              <span style={{ flex: 1, color: '#94a3b8', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em' }}>📁 {folder}</span>
+                              <button
+                                onClick={() => { setRenamingFolder(folder); setRenameFolderInput(folder); }}
+                                style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
+                                title="Mapnaam wijzigen"
+                              >✏</button>
+                            </>
+                          )}
                         </div>
                         {byFolder[folder].map(s => (
                           <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : 'transparent' }}>
