@@ -56,6 +56,7 @@ function App() {
   const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
   const [metronomeVolume, setMetronomeVolume] = useState(0.7);
   const [isLocked, setIsLocked] = useState(false);
+  const [isPulsing, setIsPulsing] = useState(false);
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
 
@@ -1723,7 +1724,7 @@ function App() {
         </div>
 
         {/* ── Gecentreerd: volume knobs + schakelaar ───────────────────── */}
-        <div className="header-center">
+        <div className="header-center" style={{ opacity: isLocked ? 0.4 : 1, transition: 'opacity 0.3s' }}>
           {/* Track volume knobs A + I */}
           {['anak', 'indung'].map(track => {
             const color = track === 'anak' ? '#222' : '#cc0000';
@@ -1817,16 +1818,25 @@ function App() {
 
           {/* ── Practice Mode lock ─────────────────────────────────────── */}
           <button
-            onClick={() => setIsLocked(l => !l)}
+            className={`practice-mode-btn${isPulsing ? ' pulsing' : ''}`}
+            onClick={() => { setIsLocked(l => !l); setIsPulsing(true); }}
+            onAnimationEnd={() => setIsPulsing(false)}
             style={{
-              background: isLocked ? 'rgba(212,175,55,0.2)' : 'transparent',
-              color: isLocked ? '#d4af37' : '#64748b',
+              background: isLocked ? 'rgba(212,175,55,0.15)' : 'transparent',
+              color: isLocked ? '#d4af37' : '#888888',
               border: `1px solid ${isLocked ? '#d4af37' : '#475569'}`,
-              borderRadius: '6px', padding: '0.6rem 0.75rem', cursor: 'pointer', fontSize: '1rem',
+              borderRadius: '6px', padding: '0.55rem 0.7rem', cursor: 'pointer',
               boxShadow: isLocked ? '0 0 8px rgba(212,175,55,0.4)' : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0,
             }}
-            title={isLocked ? 'Practice Mode aan — klik om te bewerken' : 'Schakel Practice Mode in'}
-          >{isLocked ? '🔒' : '🔓'}</button>
+            title={isLocked ? 'Practice Mode aan — klik om te bewerken' : 'Enter Practice Mode'}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"
+              style={{ filter: isLocked ? 'drop-shadow(0 0 5px rgba(255,215,0,0.6))' : 'none', transition: 'filter 0.25s' }}>
+              <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth={isLocked ? 2.5 : 1.5} />
+              <circle cx="9" cy="9" r="2.5" fill="currentColor" />
+            </svg>
+          </button>
 
           {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
           <div style={{ position: 'relative' }}>
