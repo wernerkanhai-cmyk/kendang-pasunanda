@@ -174,24 +174,23 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
     return found;
   }, [slots]);
 
-  // Sub-beat triplet detection: 3 notes at positions 0, 2, 4 within a 6-slot 1/8 block,
-  // per hand. Renders a small arc bracket (spanning one 8th-note block) below/above the notes.
-  const halfTriplets = useMemo(() => {
+  // Per-hand beat triplet detection: 3 notes at positions 0, 4, 8 within a 12-slot beat,
+  // checked per hand independently (so a note in the other hand doesn't block detection).
+  // gridResolution=6 (8th grid) means available positions are 0 and 6 — not enough for 3;
+  // this only fires when the grid is fine enough (≤3 per step) to place notes at 0, 4, 8.
+  const handTriplets = useMemo(() => {
     const found = [];
     for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
-      for (const halfOff of [0, 6]) {
-        const blockStart = beatStart + halfOff;
-        for (const hand of ['top', 'bottom']) {
-          const notes = [];
-          for (let i = 0; i < 6; i++) {
-            const s = slots[blockStart + i];
-            if (!s) continue;
-            const v = s[hand];
-            if (v !== '' && v !== SYMBOL_REST) notes.push(i);
-          }
-          if (notes.length === 3 && notes[0] === 0 && notes[1] === 2 && notes[2] === 4) {
-            found.push({ start: blockStart, hand });
-          }
+      for (const hand of ['top', 'bottom']) {
+        const notes = [];
+        for (let i = 0; i < 12; i++) {
+          const s = slots[beatStart + i];
+          if (!s) continue;
+          const v = s[hand];
+          if (v !== '' && v !== SYMBOL_REST) notes.push(i);
+        }
+        if (notes.length === 3 && notes[0] === 0 && notes[1] === 4 && notes[2] === 8) {
+          found.push({ start: beatStart, hand });
         }
       }
     }
@@ -420,7 +419,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
           const isActive = activeRange && index >= activeRange.start && index < activeRange.end;
           const isLoopRange = loopRange && index >= loopRange.start && index < loopRange.end;
           const isTripletStart = triplets.includes(index);
-          const halfTripletsHere = halfTriplets.filter(t => t.start === index);
+          const handTripletsHere = handTriplets.filter(t => t.start === index);
           
           const isRestTop = slot.top === SYMBOL_REST;
           const posClassTop = getVerticalPositionClass(slot.top, 'top');
@@ -481,32 +480,32 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                 </div>
               )}
 
-              {/* Sub-beat (1/8-block) triplet arc: 3 notes at 0,2,4 within a 6-slot block */}
-              {halfTripletsHere.map((t, hi) => (
+              {/* Per-hand beat triplet arc: 3 notes at 0,4,8 within a 12-slot beat */}
+              {handTripletsHere.map((t, hi) => (
                 <div
                   key={`ht-${hi}`}
                   className={`color-${trackId}`}
                   style={{
                     position: 'absolute',
-                    left: '3px',
+                    left: '6px',
                     zIndex: 20,
                     pointerEvents: 'none',
                     ...(t.hand === 'top'
                       ? { bottom: '50%', marginBottom: '40px' }
-                      : { top: '50%', marginTop: '26px' }),
+                      : { top: '50%', marginTop: '35px' }),
                   }}
                 >
-                  <svg width="60" height="20" viewBox="0 0 60 20" overflow="visible">
+                  <svg width="108" height="24" viewBox="0 0 108 24" overflow="visible">
                     {t.hand === 'top' ? (
-                      <path d="M 3 14 Q 30 2 57 14" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M 6 18 Q 54 2 102 18" fill="none" stroke="currentColor" strokeWidth="1.5" />
                     ) : (
-                      <path d="M 3 6 Q 30 18 57 6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M 6 6 Q 54 22 102 6" fill="none" stroke="currentColor" strokeWidth="1.5" />
                     )}
                     <text
-                      x="30"
-                      y={t.hand === 'top' ? '10' : '14'}
+                      x="54"
+                      y={t.hand === 'top' ? '10' : '20'}
                       textAnchor="middle"
-                      fontSize="9"
+                      fontSize="10"
                       fill="currentColor"
                     >3</text>
                   </svg>
