@@ -503,7 +503,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                     zIndex: 20,
                     pointerEvents: 'none',
                     ...(t.below
-                      ? { top: '50%', marginTop: '35px' }
+                      ? { top: '50%', marginTop: '12px' }
                       : { bottom: '50%', marginBottom: '40px' }),
                   }}
                 >
