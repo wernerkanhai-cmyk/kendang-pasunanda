@@ -10,6 +10,8 @@ import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
 
+const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
+const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
 
 function App() {
   const t = useT();
@@ -124,6 +126,8 @@ function App() {
   const [songName, setSongName] = useState('Song 1');
   const [songFolder, setSongFolder] = useState('Algemeen');
   const [showSongLibrary, setShowSongLibrary] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showImportMenu, setShowImportMenu] = useState(false);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [showSongMenu, setShowSongMenu] = useState(false);
@@ -306,7 +310,7 @@ function App() {
   };
 
   const handleExportSong = (s) => {
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(s))));
+    const encoded = encodeData(s);
     const blob = new Blob([encoded], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -316,14 +320,24 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportCurrentSong = () => {
+    const entry = {
+      id: currentSongId || Date.now().toString(),
+      name: songName.trim() || 'Naamloos',
+      date: new Date().toLocaleDateString(),
+      patterns: song,
+    };
+    handleExportSong(entry);
+    setShowExportMenu(false);
+  };
+
   const handleImportSong = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const decoded = decodeURIComponent(escape(atob(ev.target.result)));
-        const imported = JSON.parse(decoded);
+        const imported = decodeData(ev.target.result);
         // Accepteer zowel losse song als array van songs
         const songs = Array.isArray(imported) ? imported : [imported];
         const valid = songs.filter(s => s.name && Array.isArray(s.patterns));
@@ -345,7 +359,7 @@ function App() {
   };
 
   const handleExportLibrary = () => {
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(savedSongs))));
+    const encoded = encodeData(savedSongs);
     const blob = new Blob([encoded], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -361,8 +375,7 @@ function App() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const decoded = decodeURIComponent(escape(atob(ev.target.result)));
-        const imported = JSON.parse(decoded);
+        const imported = decodeData(ev.target.result);
         if (!Array.isArray(imported)) throw new Error();
         const valid = imported.filter(s => s.id && s.name);
         if (valid.length === 0) throw new Error();
@@ -1309,10 +1322,6 @@ function App() {
     }
   };
 
-  const handleGongSample = () => {
-    samplerRef.current?.playGong();
-  };
-
   const handleGongFromInstrument = () => {
     if (isLocked) return;
     samplerRef.current?.playGong();
@@ -1478,7 +1487,7 @@ function App() {
   };
 
   const handleExportSnippets = () => {
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(savedSnippets))));
+    const encoded = encodeData(savedSnippets);
     const blob = new Blob([encoded], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1494,8 +1503,7 @@ function App() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const decoded = decodeURIComponent(escape(atob(ev.target.result)));
-        const imported = JSON.parse(decoded);
+        const imported = decodeData(ev.target.result);
         if (!Array.isArray(imported)) throw new Error();
         setSavedSnippets(prev => {
           const existingIds = new Set(prev.map(s => s.id));
@@ -1939,27 +1947,49 @@ function App() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <button
-                      onClick={handleExportLibrary}
-                      disabled={savedSongs.length === 0}
-                      style={{ background: savedSongs.length > 0 ? '#1e293b' : 'transparent', color: savedSongs.length > 0 ? '#38bdf8' : '#475569', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: savedSongs.length > 0 ? 'pointer' : 'default' }}
-                      title="Download bibliotheek als .json bestand"
-                    >{t('exportLib')}</button>
-                    <label
-                      style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
-                      title={t('importSong')}
-                    >
-                      {t('importSong')}
-                      <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSong} />
-                    </label>
-                    <label
-                      style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
-                      title={t('importLib')}
-                    >
-                      {t('importLib')}
-                      <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImportLibrary} />
-                    </label>
-                    <button onClick={() => setShowSongLibrary(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+
+                    {/* Export dropdown */}
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => { setShowExportMenu(v => !v); setShowImportMenu(false); }}
+                        style={{ background: '#1e293b', color: '#38bdf8', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
+                      >{t('exportBtn')} ▾</button>
+                      {showExportMenu && (
+                        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', overflow: 'hidden', zIndex: 100, minWidth: '130px' }}>
+                          <button
+                            onClick={handleExportCurrentSong}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: '#e2e8f0', border: 'none', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                          >{t('exportSong')}</button>
+                          <button
+                            onClick={() => { handleExportLibrary(); setShowExportMenu(false); }}
+                            disabled={savedSongs.length === 0}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: savedSongs.length > 0 ? '#e2e8f0' : '#475569', border: 'none', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: savedSongs.length > 0 ? 'pointer' : 'default' }}
+                          >{t('exportLib')}</button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Import dropdown */}
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => { setShowImportMenu(v => !v); setShowExportMenu(false); }}
+                        style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
+                      >{t('importBtn')} ▾</button>
+                      {showImportMenu && (
+                        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', overflow: 'hidden', zIndex: 100, minWidth: '130px' }}>
+                          <label style={{ display: 'block', color: '#e2e8f0', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer' }}>
+                            {t('importSong')}
+                            <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={(e) => { handleImportSong(e); setShowImportMenu(false); }} />
+                          </label>
+                          <label style={{ display: 'block', color: '#e2e8f0', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer' }}>
+                            {t('importLib')}
+                            <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={(e) => { handleImportLibrary(e); setShowImportMenu(false); }} />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    <button onClick={() => { setShowSongLibrary(false); setShowExportMenu(false); setShowImportMenu(false); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
                 <input
