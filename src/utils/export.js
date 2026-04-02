@@ -208,10 +208,12 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       const arcW  = SLOT_W * 7;
       const arcX  = rowX + arc.beatStart * SLOT_W + SLOT_W * 0.5;
       const cx    = arcX + arcW / 2;
-      // Place arc just below the symbol baseline
+      // Place arc just below the symbol:
+      // top-hand:    textBaseline='bottom' → baseline at nullY-symTop → arc 6px below that
+      // bottom-hand: textBaseline='top'    → top of text at nullY+symBot, text runs down SYM_SIZE px → arc 6px below bottom of text
       const arcY  = arc.hand === 'top'
-        ? nullY - symTop + 6   // 6px below the top-symbol baseline
-        : nullY + symBot + 6;  // 6px below the bottom-symbol baseline
+        ? nullY - symTop + 6
+        : nullY + symBot + SYM_SIZE + 6;
       ctx.beginPath();
       ctx.moveTo(arcX, arcY);
       ctx.quadraticCurveTo(cx, arcY + 10, arcX + arcW, arcY);
