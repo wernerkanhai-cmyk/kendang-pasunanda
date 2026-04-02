@@ -34,6 +34,8 @@ const SLOT_W          = USABLE_W / SLOTS_PER_ROW;      // ~12.1 px
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
+const TRIPLET_OFFSETS = new Set([0, 4, 8]);
+
 // Returns beam descriptors: { startIdx, span, level, position }
 // Synced with TrackRow.jsx beam logic
 function calculateBeams(slots) {
@@ -50,8 +52,9 @@ function calculateBeams(slots) {
       }
 
       if (activeIndices.length === 0) continue;
-      if (activeIndices.length === 3 &&
-          activeIndices[0] === 0 && activeIndices[1] === 4 && activeIndices[2] === 8) continue;
+      // Skip beams for triplet beats (all notes on {0,4,8} with ≥1 note at 4 or 8)
+      if (activeIndices.every(n => TRIPLET_OFFSETS.has(n)) &&
+          activeIndices.some(n => n === 4 || n === 8)) continue;
 
       const firstNote = activeIndices[0];
       const lastNote  = activeIndices[activeIndices.length - 1];
@@ -70,6 +73,29 @@ function calculateBeams(slots) {
       if (has16th && l1Span > 0) {
         results.push({ startIdx: beatStart + l1Start, span: l1Span, level: 2, position });
       }
+    }
+  }
+  return results;
+}
+
+// Returns triplet arc descriptors: { beatStart, hand }
+// Synced with TrackRow.jsx handTriplets logic
+function calculateTripletArcs(slots) {
+  const SYMBOL_REST = '.';
+  const results = [];
+  for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
+    for (const hand of ['top', 'bottom']) {
+      const notes = [];
+      for (let i = 0; i < 12; i++) {
+        const s = slots[beatStart + i];
+        if (!s) continue;
+        const v = s[hand];
+        if (v !== '' && v !== SYMBOL_REST) notes.push(i);
+      }
+      if (notes.length === 0) continue;
+      if (!notes.every(n => TRIPLET_OFFSETS.has(n))) continue;
+      if (!notes.some(n => n === 4 || n === 8)) continue;
+      results.push({ beatStart, hand });
     }
   }
   return results;
@@ -137,8 +163,9 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     }
   }
 
-  // ── 5. Helper: draw symbols + beams for one track ────────────────────────────
-  function drawTrack(slots, nullY, baseColor) {
+  // ── 5. Helper: draw symbols + beams + triplet arcs for one track ─────────────
+  // symTop / symBottom: distance in px from nullY to symbol baseline (positive = away from line)
+  function drawTrack(slots, nullY, baseColor, symTop, symBot) {
     const SYMBOL_REST = '.';
     const BARS_LOCAL  = BARS_PER_ROW;
     const BAR_SLOTS   = SLOTS_PER_BAR;
@@ -173,46 +200,59 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       ctx.stroke();
     }
 
+    // ── Triplet arcs ─────────────────────────────────────────────────────────
+    const arcs = calculateTripletArcs(slots);
+    ctx.strokeStyle = baseColor;
+    ctx.lineWidth   = 1.5;
+    for (const arc of arcs) {
+      const arcW  = SLOT_W * 7;
+      const arcX  = rowX + arc.beatStart * SLOT_W + SLOT_W * 0.5;
+      const cx    = arcX + arcW / 2;
+      // Place arc just below the symbol baseline
+      const arcY  = arc.hand === 'top'
+        ? nullY - symTop + 6   // 6px below the top-symbol baseline
+        : nullY + symBot + 6;  // 6px below the bottom-symbol baseline
+      ctx.beginPath();
+      ctx.moveTo(arcX, arcY);
+      ctx.quadraticCurveTo(cx, arcY + 10, arcX + arcW, arcY);
+      ctx.stroke();
+    }
+
     // ── Real symbols (data rests skipped — rendered separately below) ─────────
+    ctx.font = `${SYM_SIZE}px Kendang, monospace`;
+    ctx.fillStyle = baseColor;
     for (let i = 0; i < SLOTS_PER_ROW; i++) {
       const slot = slots[i];
       if (!slot) continue;
       const x = rowX + i * SLOT_W + 2;
 
       if (slot.top !== '' && slot.top !== SYMBOL_REST) {
-        ctx.font = `${SYM_SIZE}px Kendang, monospace`;
-        ctx.fillStyle = baseColor;
-        ctx.globalAlpha = 1.0;
+        ctx.globalAlpha  = 1.0;
         ctx.textBaseline = 'bottom';
-        ctx.fillText(slot.top, x, nullY - cfg.symAbove);
+        ctx.fillText(slot.top, x, nullY - symTop);
       }
       if (slot.bottom !== '' && slot.bottom !== SYMBOL_REST) {
-        ctx.font = `${SYM_SIZE}px Kendang, monospace`;
-        ctx.fillStyle = baseColor;
-        ctx.globalAlpha = 1.0;
+        ctx.globalAlpha  = 1.0;
         ctx.textBaseline = 'top';
-        ctx.fillText(slot.bottom, x, nullY + cfg.symBelow);
+        ctx.fillText(slot.bottom, x, nullY + symBot);
       }
       ctx.globalAlpha = 1.0;
     }
 
     // ── Rest dots: quarter rests + implied rests (same rules as screen) ───────
-    // Top hand: textBaseline='bottom', y = nullY - symAbove  (same as note symbols)
-    // Bottom hand: textBaseline='top',  y = nullY + symBelow  (same as note symbols)
     ctx.font      = `${SYM_SIZE}px Kendang, monospace`;
     ctx.fillStyle = baseColor;
     ctx.textAlign = 'center';
-    const dotY    = { top: nullY - cfg.symAbove, bottom: nullY + cfg.symBelow };
-    const dotBase = { top: 'bottom',             bottom: 'top' };
+    const dotY    = { top: nullY - symTop, bottom: nullY + symBot };
+    const dotBase = { top: 'bottom',       bottom: 'top' };
 
     for (let barIdx = 0; barIdx < BARS_LOCAL; barIdx++) {
       const barStart = barIdx * BAR_SLOTS;
       const lastNote = lastNoteInBar[barIdx];
 
-      if (lastNote < 0) continue; // volledig lege maat → geen stippen
+      if (lastNote < 0) continue;
       for (let beatOff = 0; beatOff < BAR_SLOTS; beatOff += 12) {
         const beatStart = barStart + beatOff;
-
         const slot0 = slots[beatStart];
         const slot6 = slots[beatStart + 6];
         const slot9 = slots[beatStart + 9];
@@ -226,15 +266,11 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
           ctx.globalAlpha  = 1.0;
 
           if (!beatHasNoteForHand) {
-            // Quarter rest: deze hand heeft niets in dit tel → stip op de beatpositie
             ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W / 2, dotY[hand]);
           } else {
-            // Implied rests per hand
-            // Rule 1: beat-start dot when pos 0 is empty for this hand
             if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
               ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W / 2, dotY[hand]);
             }
-            // Rule 2: pos-6 dot when pos 9 has a note and pos 6 is empty
             if (slot6 && slot9 &&
                 (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
                  slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST) {
@@ -249,8 +285,11 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     ctx.textAlign   = 'left';
   }
 
-  drawTrack(slots_anak,   nullY_anak,   '#000000');
-  drawTrack(slots_indung, nullY_indung, '#cc0000');
+  // Per-track symbol offsets — mirrored from TrackRow.css
+  // anak:   top=12px above nullY,  bottom uses default
+  // indung: top=16px above nullY,  bottom=9px below nullY
+  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak);
+  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung);
 
   // ── 6. Gong boxes (transparent rect + center line, anak=black, indung=red) ───
   const deduplicatedGong = deduplicateGongByBeat(gong || []);
@@ -289,10 +328,16 @@ export const DEFAULT_PDF_SETTINGS = {
   beamTop2:    -40,  // beam level 2 above null line
   beamBottom1:  12,  // beam level 1 below null line
   beamBottom2:  18,  // beam level 2 below null line
-  symAbove:      6,  // symbol gap above null line
-  symBelow:      5,  // symbol gap below null line
-  dotTopOffset:    -18,  // empty-beat dot top position (above null line)
-  dotBottomOffset:  -5,  // empty-beat dot bottom position (below null line)
+  // Per-track symbol offsets (px from null line) — mirrored from TrackRow.css
+  symAboveAnak:   12,  // anak top symbols (.theme-anak .pos-above: margin-bottom: 12px)
+  symBelowAnak:    5,  // anak bottom symbols (default)
+  symAboveIndung: 16,  // indung top symbols (.theme-indung .pos-above: margin-bottom: 16px)
+  symBelowIndung:  9,  // indung bottom symbols (.theme-indung .pos-below: margin-top: 9px)
+  // Legacy keys kept for backwards compat with any stored settings
+  symAbove:      6,
+  symBelow:      5,
+  dotTopOffset:    -18,
+  dotBottomOffset:  -5,
 };
 
 // ─── Main export function ──────────────────────────────────────────────────────
