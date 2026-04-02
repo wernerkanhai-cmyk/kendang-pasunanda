@@ -172,17 +172,23 @@
   bottom: auto;
 }
 
-/* ── Unified offset system: symbols, dots and arcs all at 12px from center line ── */
-/* Anak top row (pos-above): symbols + dots 12px above center */
+/* ── Unified offset system ── */
+/* Anak top row: symbols + dots 12px above center */
 .theme-anak .pos-above,
 .theme-anak .slot-rest.pos-above {
   margin-bottom: 12px;
 }
 
-/* Indung bottom row (pos-below): symbols + dots 12px below center — mirror of anak */
+/* Indung bottom row: symbols + dots 12px below center */
 .theme-indung .pos-below,
 .theme-indung .slot-rest.pos-below {
   margin-top: 12px;
+}
+
+/* Indung top row: symbols + dots 16px above center */
+.theme-indung .pos-above,
+.theme-indung .slot-rest.pos-above {
+  margin-bottom: 16px;
 }
 
 /* Rhythmic Beams (8ths / 16ths) */
