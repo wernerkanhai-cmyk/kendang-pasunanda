@@ -488,7 +488,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                       pointerEvents: 'none',
                       ...(isIndung
                         ? { top: '50%', marginTop: '18px' }
-                        : { bottom: '50%', marginBottom: '6px' }),
+                        : { bottom: '50%', marginBottom: '0px' }),
                     }}
                   >
                     <svg width={arcW} height="14" viewBox={`0 0 ${arcW} 14`} overflow="visible">

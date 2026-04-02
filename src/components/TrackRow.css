@@ -132,7 +132,12 @@
 /* Positions anchored to the center line */
 .pos-above {
   bottom: 50%;
-  margin-bottom: 6px; /* Anak text sits on the line */
+  margin-bottom: 6px;
+}
+
+/* Anak top row: symbols 6px higher so they clear the beams */
+.theme-anak .pos-above {
+  margin-bottom: 12px;
 }
 
 .pos-below {
