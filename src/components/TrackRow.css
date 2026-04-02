@@ -179,10 +179,10 @@
   margin-bottom: 12px;
 }
 
-/* Indung bottom row: symbols + dots 12px below center */
+/* Indung bottom row: symbols + dots 9px below center */
 .theme-indung .pos-below,
 .theme-indung .slot-rest.pos-below {
-  margin-top: 12px;
+  margin-top: 9px;
 }
 
 /* Indung top row: symbols + dots 16px above center */
