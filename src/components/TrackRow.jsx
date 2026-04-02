@@ -470,37 +470,46 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                 </div>
               )}
 
-              {/* Per-hand beat triplet arc: 3 notes at 0,4,8 within a 12-slot beat */}
-              {handTripletsHere.map((t, hi) => (
-                <div
-                  key={`ht-${hi}`}
-                  className={`color-${trackId}`}
-                  style={{
-                    position: 'absolute',
-                    left: '6px',
-                    zIndex: 20,
-                    pointerEvents: 'none',
-                    ...(trackId === 'indung'
-                      ? { top: '50%', marginTop: '12px' }
-                      : { bottom: '50%', marginBottom: '40px' }),
-                  }}
-                >
-                  <svg width="108" height="24" viewBox="0 0 108 24" overflow="visible">
-                    {trackId === 'indung' ? (
-                      <path d="M 6 6 Q 54 22 102 6" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    ) : (
-                      <path d="M 6 18 Q 54 2 102 18" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    )}
-                    <text
-                      x="54"
-                      y={trackId === 'indung' ? '20' : '10'}
-                      textAnchor="middle"
-                      fontSize="10"
-                      fill="currentColor"
-                    >3</text>
-                  </svg>
-                </div>
-              ))}
+              {/* Per-hand beat triplet arc: centered on middle note (offset 4), spans 7 slots */}
+              {handTripletsHere.map((t, hi) => {
+                const arcW = slotWidth * 7;
+                // Center arc on middle note (offset 4 from beat start).
+                // Arc left edge = offset4_center - arcW/2 = 4*sw + sw/2 - arcW/2 = 0.5*sw
+                const arcLeft = slotWidth * 0.5;
+                const cx = arcW / 2;
+                const isIndung = trackId === 'indung';
+                return (
+                  <div
+                    key={`ht-${hi}`}
+                    className={`color-${trackId}`}
+                    style={{
+                      position: 'absolute',
+                      left: arcLeft,
+                      width: arcW,
+                      zIndex: 20,
+                      pointerEvents: 'none',
+                      ...(isIndung
+                        ? { top: '50%', marginTop: '12px' }
+                        : { bottom: '50%', marginBottom: '40px' }),
+                    }}
+                  >
+                    <svg width={arcW} height="24" viewBox={`0 0 ${arcW} 24`} overflow="visible">
+                      {isIndung ? (
+                        <path d={`M 3 6 Q ${cx} 22 ${arcW - 3} 6`} fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      ) : (
+                        <path d={`M 3 18 Q ${cx} 2 ${arcW - 3} 18`} fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      )}
+                      <text
+                        x={cx}
+                        y={isIndung ? '20' : '10'}
+                        textAnchor="middle"
+                        fontSize="10"
+                        fill="currentColor"
+                      >3</text>
+                    </svg>
+                  </div>
+                );
+              })}
 
               {/* Data symbols (notes and data rests) */}
               {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
