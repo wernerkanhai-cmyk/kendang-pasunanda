@@ -135,14 +135,9 @@
   margin-bottom: 6px;
 }
 
-/* Anak top row: symbols 6px higher so they clear the beams */
-.theme-anak .pos-above {
-  margin-bottom: 12px;
-}
-
 .pos-below {
   top: 50%;
-  margin-top: 10px; /* Push Indung text down to fit beams between line and text */
+  margin-top: 10px;
 }
 
 .pos-line {
@@ -168,13 +163,26 @@
 
 .slot-rest.pos-above {
   bottom: 50%;
-  margin-bottom: 6px; /* Zelfde als .pos-above noot-symbolen */
+  margin-bottom: 6px;
 }
 
 .slot-rest.pos-below {
   top: 50%;
-  margin-top: 10px; /* Zelfde als .pos-below noot-symbolen */
+  margin-top: 10px;
   bottom: auto;
+}
+
+/* ── Unified offset system: symbols, dots and arcs all at 12px from center line ── */
+/* Anak top row (pos-above): symbols + dots 12px above center */
+.theme-anak .pos-above,
+.theme-anak .slot-rest.pos-above {
+  margin-bottom: 12px;
+}
+
+/* Indung bottom row (pos-below): symbols + dots 12px below center — mirror of anak */
+.theme-indung .pos-below,
+.theme-indung .slot-rest.pos-below {
+  margin-top: 12px;
 }
 
 /* Rhythmic Beams (8ths / 16ths) */
