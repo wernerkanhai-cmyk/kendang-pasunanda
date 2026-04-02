@@ -486,7 +486,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                       width: arcW,
                       zIndex: 20,
                       pointerEvents: 'none',
-                      ...(isIndung
+                      ...(t.hand === 'bottom'
                         ? { top: '50%', marginTop: '24px' }
                         : { bottom: '50%', marginBottom: '-6px' }),
                     }}
