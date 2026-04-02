@@ -212,7 +212,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       // top-hand:    textBaseline='bottom' → baseline at nullY-symTop → arc 6px below that
       // bottom-hand: textBaseline='top'    → top of text at nullY+symBot, text runs down SYM_SIZE px → arc 6px below bottom of text
       const arcY  = arc.hand === 'top'
-        ? nullY - symTop + 6
+        ? nullY - symTop + 2
         : nullY + symBot + SYM_SIZE + 20;
       ctx.beginPath();
       ctx.moveTo(arcX, arcY);
