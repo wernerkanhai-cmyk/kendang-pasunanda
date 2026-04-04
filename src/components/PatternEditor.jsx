@@ -1127,7 +1127,6 @@ const [showBeheer, setShowBeheer] = useState(true);
                 gong={pattern.gong || []}
                 onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('anak', slotIndex, symbol)}
                 onClearSlot={(slotIndex) => clearSlotWithRestFill('anak', slotIndex)}
-                onGongToggle={(beatStart) => onGongToggle?.(pattern.id, beatStart)}
                 isLocked={isLocked}
               />
             </div>
@@ -1183,7 +1182,6 @@ const [showBeheer, setShowBeheer] = useState(true);
                 gong={pattern.gong || []}
                 onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('indung', slotIndex, symbol)}
                 onClearSlot={(slotIndex) => clearSlotWithRestFill('indung', slotIndex)}
-                onGongToggle={(beatStart) => onGongToggle?.(pattern.id, beatStart)}
                 isLocked={isLocked}
               />
             </div>
