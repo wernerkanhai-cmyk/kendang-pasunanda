@@ -69,6 +69,7 @@ export class SamplePlayer {
     this.audioCtx = null;
     this.buffers    = {};  // kendang buffers: key → AudioBuffer
     this.voxBuffers = {};  // vox buffers: key → AudioBuffer
+    this.transientOffsets = {}; // key → seconds offset tot eerste transient
     this.settings   = {};
     this.sampleSet  = 'kendang'; // 'kendang' | 'vox'
     this._voxLoadPromise = null; // Promise die resolved als vox klaar is
@@ -180,12 +181,37 @@ export class SamplePlayer {
     }
   }
 
+  /**
+   * Zoek de eerste transient in een AudioBuffer.
+   * Scant alle kanalen sample voor sample tot de amplitude > threshold.
+   * Geeft de offset in seconden terug (met 1ms veiligheidsmarge).
+   */
+  _findTransient(buffer, threshold = 0.02) {
+    const sr = buffer.sampleRate;
+    const channelData = [];
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      channelData.push(buffer.getChannelData(c));
+    }
+    for (let i = 0; i < buffer.length; i++) {
+      for (const data of channelData) {
+        if (Math.abs(data[i]) > threshold) {
+          // 1ms veiligheidsmarge — zodat de attack niet wordt afgeknipt
+          const margin = Math.floor(sr * 0.001);
+          return Math.max(0, (i - margin) / sr);
+        }
+      }
+    }
+    return 0;
+  }
+
   async _load(key, url, target) {
     try {
       const res = await fetch(url);
       if (!res.ok) { errorLog.warn('SamplePlayer', '404 loading sample', url); return; }
       const arr = await res.arrayBuffer();
-      target[key] = await this.audioCtx.decodeAudioData(arr);
+      const buf = await this.audioCtx.decodeAudioData(arr);
+      target[key] = buf;
+      this.transientOffsets[key] = this._findTransient(buf);
     } catch (e) {
       errorLog.error('SamplePlayer', 'decode error', `${url} — ${e?.message}`);
     }
@@ -272,7 +298,8 @@ export class SamplePlayer {
       }
 
       const t = when > 0 ? when : this.audioCtx.currentTime + 0.003;
-      src.start(t);
+      const offset = this.transientOffsets[key] ?? 0;
+      src.start(t, offset);
     };
 
     if (this.audioCtx.state === 'suspended') {
