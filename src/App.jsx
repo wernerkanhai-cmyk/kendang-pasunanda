@@ -779,9 +779,26 @@ function App() {
     ];
     UNLOCK_EVENTS.forEach(([type, opts]) => window.addEventListener(type, unlockAudio, opts));
 
+    // bfcache-fix: als de browser de pagina herstelt uit de back-forward cache
+    // loopt de scheduler-timer gewoon door. Stop alles zodra dat gedetecteerd wordt.
+    const onPageShow = (e) => {
+      if (e.persisted) {
+        schedulerRef.current?.pause();
+        setIsPlaying(false);
+        setIsRecording(false);
+        setPrecount(0);
+        setLoopingPatternId(null);
+        loopingPatternIdRef.current = null;
+        loopRangeRef.current = null;
+        setLoopRange(null);
+      }
+    };
+    window.addEventListener('pageshow', onPageShow);
+
     return () => {
       schedulerRef.current.stop();
       UNLOCK_EVENTS.forEach(([type]) => window.removeEventListener(type, unlockAudio));
+      window.removeEventListener('pageshow', onPageShow);
     };
   }, []); // Run once on mount
 
