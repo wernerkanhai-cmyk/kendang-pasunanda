@@ -80,6 +80,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
   const [metronomeMenuPos, setMetronomeMenuPos] = useState({ top: 0, left: 0 });
   const metronomeBtnRef = useRef(null);
+  const metronomeHoldRef = useRef(null); // timeout id voor long-press detectie
   const [touchSelectMode, setTouchSelectMode] = useState(false);
   const [rulerDrag, setRulerDrag] = useState(null); // { start, current } in measure indices
   const [handleDrag, setHandleDrag] = useState(null); // { side: 'start'|'end', start: slot, end: slot }
@@ -947,13 +948,32 @@ const [showBeheer, setShowBeheer] = useState(true);
           <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
           <div ref={metronomeBtnRef} style={{ position: 'relative' }}>
             <button
-              onClick={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
-                if (metronomeBtnRef.current) {
-                  const r = metronomeBtnRef.current.getBoundingClientRect();
-                  setMetronomeMenuPos({ top: r.bottom + 4, left: r.left });
+                metronomeHoldRef.current = setTimeout(() => {
+                  metronomeHoldRef.current = null;
+                  // Lang indrukken → menu openen
+                  if (metronomeBtnRef.current) {
+                    const r = metronomeBtnRef.current.getBoundingClientRect();
+                    setMetronomeMenuPos({ top: r.bottom + 4, left: r.left });
+                  }
+                  setShowMetronomeMenu(true);
+                }, 400);
+              }}
+              onPointerUp={(e) => {
+                e.stopPropagation();
+                if (metronomeHoldRef.current) {
+                  clearTimeout(metronomeHoldRef.current);
+                  metronomeHoldRef.current = null;
+                  // Kort drukken → toggle aan/uit
+                  setMetronomeMode(v => v ? '' : 'on');
                 }
-                setShowMetronomeMenu(v => !v);
+              }}
+              onPointerLeave={() => {
+                if (metronomeHoldRef.current) {
+                  clearTimeout(metronomeHoldRef.current);
+                  metronomeHoldRef.current = null;
+                }
               }}
               style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#64748b', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', height: '1.7rem', boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
               title={t('metronome')}
