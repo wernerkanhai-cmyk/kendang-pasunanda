@@ -47,7 +47,6 @@ const PatternEditor = ({
   insertMeasure,
   deleteMeasure,
   deleteMeasuresFromEnd,
-  onGongToggle,
   measureOffset = 0,
   loopingPatternId,
   onLoopPattern,
@@ -458,7 +457,7 @@ const [showBeheer, setShowBeheer] = useState(true);
     e.preventDefault();
     setRulerDrag({ start: measureIdx, current: measureIdx });
     const onMove = (ev) => {
-      const ruler = e.currentTarget?.closest?.('.measure-ruler');
+      const ruler = e.currentTarget?.closest('.measure-ruler');
       if (!ruler) return;
       const rect = ruler.getBoundingClientRect();
       const x = ev.clientX - rect.left - SOLO_BTN_W;

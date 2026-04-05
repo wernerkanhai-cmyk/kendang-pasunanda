@@ -1253,8 +1253,8 @@ function App() {
     const globalCurrent = schedulerRef.current.currentSlot;
     let targetGlobal;
     if (isDoubleClick) {
-      // 2× klikken → begin van de song
-      targetGlobal = 0;
+      // 2× klikken → begin van de huidige loop (of slot 0 als geen loop actief)
+      targetGlobal = schedulerRef.current.loopStart;
     } else {
       // 1× klikken → 1 maat terug
       targetGlobal = Math.max(0, globalCurrent - 48);
@@ -2317,7 +2317,6 @@ function App() {
                       insertMeasure={() => insertMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
                       deleteMeasure={() => deleteMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
                       deleteMeasuresFromEnd={(count) => deleteMeasuresFromEnd(pattern.id, count)}
-                      onGongToggle={handleGongToggle}
                       measureOffset={measureOffset}
                       loopingPatternId={loopingPatternId}
                       onLoopPattern={handleLoopPattern}

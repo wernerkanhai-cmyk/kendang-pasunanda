@@ -98,7 +98,7 @@ export class AudioScheduler {
   setPendingLoopAfterCurrentMeasure(start, end) {
     this.pendingLoop = { start, end };
     const barSize = 48;
-    const endOfCurrentBar = Math.ceil((this.currentSlot + 1) / barSize) * barSize;
+    const endOfCurrentBar = (Math.floor(this.currentSlot / barSize) + 1) * barSize;
     this.totalSlots = Math.max(endOfCurrentBar, this.loopStart + barSize);
   }
 
