@@ -44,6 +44,7 @@ function App() {
   const [bpm, setBpm] = useState(60);
   const [realtimeBpm, setRealtimeBpm] = useState(null); // null = not playing or no automation
   const [isPlaying, setIsPlaying] = useState(false);
+  const [stepBackCount, setStepBackCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [precount, setPrecount] = useState(0);
   const [loopingPatternId, setLoopingPatternId] = useState(null);
@@ -1333,6 +1334,7 @@ function App() {
     }
     const { patternId, localSlot } = globalToLocal(targetGlobal, song);
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+    setStepBackCount(c => c + 1);
   };
 
   const toggleRecord = async () => {
@@ -2291,6 +2293,7 @@ function App() {
                       togglePlay={togglePlay}
                       rewind={rewind}
                       stepBack={stepBack}
+                      stepBackCount={stepBackCount}
                       precount={precount}
                       gridResolution={gridResolution}
                       magneticInput={magneticInput}

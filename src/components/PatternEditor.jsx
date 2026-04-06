@@ -29,6 +29,7 @@ const PatternEditor = ({
   togglePlay,
   rewind,
   stepBack,
+  stepBackCount,
   gridResolution,
   magneticInput,
   setGridResolution,
@@ -183,14 +184,22 @@ const [showBeheer, setShowBeheer] = useState(true);
         const currentSlot = activeSlot.startIndex;
         const measureIndex = Math.floor(currentSlot / 48);
         const pageIndex = Math.floor(measureIndex / 8);
-        
+
         const targetScrollLeft = pageIndex * 8 * 48 * slotWidth;
-        
+
         if (Math.abs(timelineRef.current.scrollLeft - targetScrollLeft) > 5) {
             timelineRef.current.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
         }
     }
   }, [activeSlot, isPlaying, isActive]);
+
+  // Scroll playhead into view after stepBack
+  useEffect(() => {
+    if (!stepBackCount || !isActive || !activeSlot || !timelineRef.current) return;
+    const currentSlot = activeSlot.startIndex;
+    const targetScrollLeft = Math.floor(currentSlot / 48) * 48 * slotWidth;
+    timelineRef.current.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+  }, [stepBackCount]);
   
   const handleNameChange = (e) => {
     updatePattern({ ...pattern, name: e.target.value });
