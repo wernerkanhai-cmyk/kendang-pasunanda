@@ -380,7 +380,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
          const beatStartVal = position === 'top' ? slots[beatStart].top : slots[beatStart].bottom;
          const hasBeatStartRest = beatStartVal === SYMBOL_REST || impliedRests.has(`${beatStart}-${position}`);
          const l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
-         const l1Span  = lastNote - l1Start;
+         // Extend the level-1 beam 1 slot further if the second 8th-block has only one note
+         const secondHalfNotes = activeIndices.filter(i => i >= 6);
+         const l1End = (secondHalfNotes.length === 1) ? Math.min(lastNote + 1, 11) : lastNote;
+         const l1Span  = l1End - l1Start;
          if (l1Span > 0) {
            handResults.push({ startIdx: beatStart + l1Start, span: l1Span, level: 1, position });
          }
