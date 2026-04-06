@@ -276,7 +276,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
               <button onClick={clearTrack}
                 style={{ padding: '1px 6px', fontSize: '0.62rem', background: '#1e293b', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '3px', cursor: 'pointer' }}>{t('clearTempo')}</button>
             )}
-            <span style={{ fontSize: '0.58rem', color: '#334155', marginLeft: '2px', lineHeight: '16px', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '0.58rem', color: '#d4af37', marginLeft: '2px', lineHeight: '16px', whiteSpace: 'nowrap', fontStyle: 'italic' }}>
               {t('tempoHint')}
             </span>
           </div>
