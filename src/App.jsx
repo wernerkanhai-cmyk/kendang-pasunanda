@@ -1334,6 +1334,7 @@ function App() {
     }
     const { patternId, localSlot } = globalToLocal(targetGlobal, song);
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+    setActivePatternId(patternId);
     setStepBackCount(c => c + 1);
   };
 
