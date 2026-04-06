@@ -189,13 +189,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
   //
   // 8T  (8th-note triplets):    3 notes per beat (12 slots), offsets {0, 4, 8}
   // 16T (16th-note triplets):   3 notes per half-beat (6 slots), offsets {0, 2, 4}
-  // 4T  (quarter-note triplets): 3 notes per 2-beat group (24 slots), offsets {0, 8, 16}
   //
   // Rule: ALL notes for this hand in the group must be at triplet positions,
   //       AND at least one note is NOT at the first position (avoids false positives).
   const TRIPLET_8T  = new Set([0, 4, 8]);
   const TRIPLET_16T = new Set([0, 2, 4]);
-  const TRIPLET_4T  = new Set([0, 8, 16]);
   const handTriplets = useMemo(() => {
     const found = [];
     const detect = (groupSize, offsets, type, nonFirstOffsets) => {
@@ -247,8 +245,6 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
         found.push({ start: beatStart, hand, below, type: '8T' });
       }
     }
-    // Detect 4T (24-slot groups)
-    detect(24, TRIPLET_4T, '4T', [8, 16]);
     return found;
   }, [slots]);
 
@@ -374,9 +370,6 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
          // Skip if both half-beats are 16T
          if (handTriplets.some(t => t.hand === hand && t.start === beatStart && t.type === '16T')
           && handTriplets.some(t => t.hand === hand && t.start === beatStart + 6 && t.type === '16T')) continue;
-         // Skip if this beat is part of a 4T group
-         const groupStart4T = Math.floor(beatStart / 24) * 24;
-         if (handTriplets.some(t => t.hand === hand && t.start === groupStart4T && t.type === '4T')) continue;
 
          const firstNote = activeIndices[0];
          const lastNote  = activeIndices[activeIndices.length - 1];
@@ -545,7 +538,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
 
               {/* Per-hand triplet arc: 8T spans 7 slots, 16T spans 3 slots, 4T spans 15 slots */}
               {handTripletsHere.map((t, hi) => {
-                const spanSlots = t.type === '16T' ? 3 : t.type === '4T' ? 15 : 7;
+                const spanSlots = t.type === '16T' ? 3 : 7;
                 const arcW = slotWidth * spanSlots;
                 const arcLeft = slotWidth * 0.5;
                 const cx = arcW / 2;
