@@ -125,6 +125,16 @@ function App() {
     document.getElementById(`timeline-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [stepBackCount]);
 
+  // When leaving practice mode, scroll the editor to the position where practice was
+  useEffect(() => {
+    if (isLocked) return;
+    // small delay so DOM has rendered the edit view
+    const id = setTimeout(() => {
+      document.getElementById(`timeline-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+    return () => clearTimeout(id);
+  }, [isLocked]);
+
   // Saved Songs Library
   const [savedSongs, setSavedSongs] = useState(() => {
     const saved = localStorage.getItem('kendangSavedSongs');
