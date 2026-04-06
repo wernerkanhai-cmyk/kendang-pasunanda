@@ -839,6 +839,7 @@ const [showBeheer, setShowBeheer] = useState(true);
 
                  <button
                    onClick={(e) => { e.stopPropagation(); stepBack(); }}
+                   onDoubleClick={(e) => { e.stopPropagation(); rewind(); }}
                    style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                    title={t('rewindOneMeasure')}
                  >◀</button>
