@@ -265,18 +265,12 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
         )}
 
         {open && enabled && (
-          <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }} onClick={e => e.stopPropagation()}>
-            <button onClick={applyStatic}
-              style={{ padding: '1px 6px', fontSize: '0.62rem', background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', borderRadius: '3px', cursor: 'pointer' }}
-              title={t('staticTempoTooltip')}>{t('staticTempo')}</button>
-            <button onClick={applyGradual}
-              style={{ padding: '1px 6px', fontSize: '0.62rem', background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', borderRadius: '3px', cursor: 'pointer' }}
-              title={t('gradualTempoTooltip')}>{t('gradualTempo')}</button>
-            {isActive && (
+          {isActive && (
+            <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }} onClick={e => e.stopPropagation()}>
               <button onClick={clearTrack}
                 style={{ padding: '1px 6px', fontSize: '0.62rem', background: '#1e293b', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '3px', cursor: 'pointer' }}>{t('clearTempo')}</button>
-            )}
-          </div>
+            </div>
+          )}
         )}
       </div>
 
