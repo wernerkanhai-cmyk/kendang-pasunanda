@@ -194,7 +194,7 @@
 /* Rhythmic Beams (8ths / 16ths) */
 .rhythmic-beam {
   position: absolute;
-  height: 2px;
+  height: 1px;
   background-color: #000000;
   z-index: 10;
   pointer-events: none;
