@@ -148,13 +148,13 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
       window.removeEventListener('pointerup', onEnd);
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onEnd);
-      // Alleen zoom openen bij pure tap (geen beweging)
+      // Pure tap: toggle zoom panel open/dicht
       if (!wasMoved && slot != null && svgRef.current) {
         const node = tempoTrackRef.current.find(n => n.slot === slot);
         if (node) {
           const rect = svgRef.current.getBoundingClientRect();
           const screenX = rect.left + (node.slot * slotWidth / totalWidth) * rect.width;
-          setZoomedNode({ slot: node.slot, bpm: node.bpm, left: screenX, top: rect.top });
+          setZoomedNode(prev => prev?.slot === slot ? null : { slot: node.slot, bpm: node.bpm, left: screenX, top: rect.top });
         }
       }
     };
@@ -163,15 +163,6 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
     window.addEventListener('pointerup', onEnd);
     window.addEventListener('touchmove', onMove, { passive: false });
     window.addEventListener('touchend', onEnd);
-  };
-
-  // Open zoom on single-click of existing node
-  const openZoom = (e, node) => {
-    e.stopPropagation();
-    const rect = svgRef.current.getBoundingClientRect();
-    const screenX = rect.left + (node.slot * slotWidth / totalWidth) * rect.width;
-    const screenY = rect.top;
-    setZoomedNode({ slot: node.slot, bpm: node.bpm, left: screenX, top: screenY });
   };
 
   // Drag in zoom panel
@@ -323,7 +314,6 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
                 transform={`translate(${node.slot * slotWidth},${bpmToY(node.bpm)})`}
                 style={{ cursor: 'grab' }}
                 onPointerDown={(e) => { if (e.button === 0 || e.pointerType === 'touch') startDrag(e, node.slot); }}
-                onClick={(e) => { e.stopPropagation(); openZoom(e, node); }}
                 onDoubleClick={(e) => deleteNode(e, node.slot)}
                 onContextMenu={(e) => deleteNode(e, node.slot)}
               >
