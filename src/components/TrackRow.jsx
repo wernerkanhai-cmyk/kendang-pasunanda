@@ -391,12 +391,14 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
          //   · · t  (rest@0, rest@6, note@9) → single: 0→9, double: 6→9
          //   · t t  (rest@0, note@6, note@9) → single: 0→9, double: 6→9  [if 6 is 16th]
          //   P P    (note@0, note@3)          → single: 0→3, double: 0→3
-         const has16th = activeIndices.some(i => i % 6 !== 0);
-         if (has16th && l1Span > 0) {
-           const firstSixteenth = activeIndices.find(i => i % 6 !== 0);
-           const l2Start = Math.floor(firstSixteenth / 6) * 6;
-           const l2Span = Math.max(lastNote - l2Start, 3);
-           handResults.push({ startIdx: beatStart + l2Start, span: l2Span, level: 2, position });
+         // Level 2 only covers 8th-blocks that actually contain a 16th note.
+         // An 8th-aligned note (offset 0 or 6) after/before a 16th keeps only the single beam.
+         const sixteenths = activeIndices.filter(i => i % 6 !== 0);
+         if (sixteenths.length > 0 && l1Span > 0) {
+           const blocks = new Set(sixteenths.map(i => Math.floor(i / 6)));
+           blocks.forEach(blockIdx => {
+             handResults.push({ startIdx: beatStart + blockIdx * 6, span: 3, level: 2, position });
+           });
          }
        }
        return handResults;
