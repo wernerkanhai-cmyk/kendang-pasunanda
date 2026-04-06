@@ -119,10 +119,10 @@ function App() {
     if (activePatternId) localStorage.setItem('kendangCurrentPatternId', activePatternId);
   }, [activePatternId]);
 
-  // Scroll active pattern block to top of screen on rewind
+  // Scroll active pattern timeline into view on rewind
   useEffect(() => {
     if (!stepBackCount) return;
-    document.getElementById(`block-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(`timeline-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [stepBackCount]);
 
   // Saved Songs Library

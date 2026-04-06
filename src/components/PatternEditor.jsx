@@ -1082,7 +1082,7 @@ const [showBeheer, setShowBeheer] = useState(true);
         </div>
       )}
 
-      <div className="timeline-wrapper" ref={timelineRef} style={{ overflowX: timelineOverflows ? 'auto' : 'hidden', ...(isLocked ? { boxShadow: '0 0 16px rgba(212,175,55,0.15)', borderTop: '1px solid rgba(212,175,55,0.2)' } : {}) }}>
+      <div id={`timeline-${pattern.id}`} className="timeline-wrapper" ref={timelineRef} style={{ overflowX: timelineOverflows ? 'auto' : 'hidden', ...(isLocked ? { boxShadow: '0 0 16px rgba(212,175,55,0.15)', borderTop: '1px solid rgba(212,175,55,0.2)' } : {}) }}>
         {/* Measure Ruler */}
         {(() => {
           const displayLoop = handleDrag ?? loopRangeObj;
