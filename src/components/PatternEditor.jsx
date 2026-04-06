@@ -1127,12 +1127,12 @@ const [showBeheer, setShowBeheer] = useState(true);
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
-              onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onToggleSolo('anak'); }}
+              onPointerDown={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
               style={{
-                flexShrink: 0, width: '7px', height: '7px', marginRight: '5px', padding: '3px',
+                flexShrink: 0, width: '7px', height: '7px', marginRight: '5px', padding: '8px',
                 background: soloTrack === 'anak' ? '#475569' : '#22c55e',
                 border: 'none', borderRadius: '50%',
-                cursor: 'pointer', padding: 0,
+                cursor: 'pointer', boxSizing: 'content-box',
                 boxShadow: soloTrack === 'anak' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 6px 2px rgba(34,197,94,0.7), 0 0 12px 4px rgba(34,197,94,0.3)',
               }}
               title={soloTrack === 'anak' ? 'Anak gedempt — klik om aan te zetten' : 'Anak aan — klik om te dempen'}
@@ -1181,12 +1181,12 @@ const [showBeheer, setShowBeheer] = useState(true);
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
-              onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onToggleSolo('indung'); }}
+              onPointerDown={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
               style={{
-                flexShrink: 0, width: '7px', height: '7px', marginRight: '5px', padding: '3px',
+                flexShrink: 0, width: '7px', height: '7px', marginRight: '5px', padding: '8px',
                 background: soloTrack === 'indung' ? '#475569' : '#22c55e',
                 border: 'none', borderRadius: '50%',
-                cursor: 'pointer', padding: 0,
+                cursor: 'pointer', boxSizing: 'content-box',
                 boxShadow: soloTrack === 'indung' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 6px 2px rgba(34,197,94,0.7), 0 0 12px 4px rgba(34,197,94,0.3)',
               }}
               title={soloTrack === 'indung' ? 'Indung gedempt — klik om aan te zetten' : 'Indung aan — klik om te dempen'}
