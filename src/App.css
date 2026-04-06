@@ -125,6 +125,12 @@
   will-change: transform;            /* promote to GPU composite layer for 60fps scroll */
 }
 
+/* Bij iOS pinch-zoom: tijdlijn statisch houden — niet horizontaal scrolbaar */
+body.viewport-zoomed .timeline-wrapper {
+  overflow-x: hidden;
+  touch-action: pan-y;
+}
+
 .sequencer-section {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
