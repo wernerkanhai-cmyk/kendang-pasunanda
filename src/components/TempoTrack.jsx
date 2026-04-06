@@ -128,14 +128,18 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
       const { x, y } = getSvgPos(ev);
       const newSlot = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
       const newBpm = yToBpm(y);
+      const prevSlot = d.origSlot;
       const cur = tempoTrackRef.current;
       const newTrack = cur.map(n =>
-        n.slot === d.origSlot ? { slot: newSlot, bpm: newBpm } : n
+        n.slot === prevSlot ? { slot: newSlot, bpm: newBpm } : n
       );
-      d.origSlot = newSlot;
       newTrack.sort((a, b) => a.slot - b.slot);
+      // Direct updaten zodat volgende pointermove event de node op de juiste slot vindt,
+      // ongeacht of React al heeft ge-rerenderd.
+      tempoTrackRef.current = newTrack;
+      d.origSlot = newSlot;
       onUpdate(pattern.id, newTrack);
-      if (zoomedNode?.slot === d.origSlot) {
+      if (zoomedNode?.slot === prevSlot) {
         setZoomedNode(prev => prev ? { ...prev, slot: newSlot, bpm: newBpm } : null);
       }
     };
