@@ -118,12 +118,13 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
   const startDrag = (e, origSlot) => {
     e.stopPropagation();
     e.preventDefault();
-    dragRef.current = { origSlot };
+    dragRef.current = { origSlot, moved: false };
 
     const onMove = (ev) => {
       ev.preventDefault();
       const d = dragRef.current;
       if (!d || !svgRef.current) return;
+      d.moved = true;
       const { x, y } = getSvgPos(ev);
       const newSlot = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
       const newBpm = yToBpm(y);
@@ -139,12 +140,23 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
       }
     };
 
-    const onEnd = () => {
+    const onEnd = (ev) => {
+      const wasMoved = dragRef.current?.moved;
+      const slot = dragRef.current?.origSlot;
       dragRef.current = null;
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onEnd);
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onEnd);
+      // Alleen zoom openen bij pure tap (geen beweging)
+      if (!wasMoved && slot != null && svgRef.current) {
+        const node = tempoTrackRef.current.find(n => n.slot === slot);
+        if (node) {
+          const rect = svgRef.current.getBoundingClientRect();
+          const screenX = rect.left + (node.slot * slotWidth / totalWidth) * rect.width;
+          setZoomedNode({ slot: node.slot, bpm: node.bpm, left: screenX, top: rect.top });
+        }
+      }
     };
 
     window.addEventListener('pointermove', onMove);
