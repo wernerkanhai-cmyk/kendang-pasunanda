@@ -34,13 +34,32 @@ const SLOT_W          = USABLE_W / SLOTS_PER_ROW;      // ~12.1 px
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-const TRIPLET_OFFSETS = new Set([0, 4, 8]);
+const TRIPLET_OFFSETS  = new Set([0, 4, 8]);
+const TRIPLET_16T_OFFS = new Set([0, 2, 4]);
 
 // Returns beam descriptors: { startIdx, span, level, position }
 // Synced with TrackRow.jsx beam logic
 function calculateBeams(slots) {
   const SYMBOL_REST = '.';
   const results = [];
+
+  // Detect 16T half-beat triplets per hand to suppress beams across both halves
+  const has16T = (beatStart, hand) => {
+    const check = (offset) => {
+      const notes = [];
+      for (let i = 0; i < 6; i++) {
+        const s = slots[beatStart + offset + i];
+        if (!s) continue;
+        const v = hand === 'top' ? s.top : s.bottom;
+        if (v !== '' && v !== SYMBOL_REST) notes.push(i);
+      }
+      if (notes.length === 0) return false;
+      if (!notes.every(n => TRIPLET_16T_OFFS.has(n))) return false;
+      return notes.some(n => n === 2 || n === 4);
+    };
+    return check(0) && check(6);
+  };
+
   for (const position of ['top', 'bottom']) {
     for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
       const activeIndices = [];
@@ -52,9 +71,11 @@ function calculateBeams(slots) {
       }
 
       if (activeIndices.length === 0) continue;
-      // Skip beams for triplet beats (all notes on {0,4,8} with ≥1 note at 4 or 8)
+      // Skip beams for 8T triplet beats
       if (activeIndices.every(n => TRIPLET_OFFSETS.has(n)) &&
           activeIndices.some(n => n === 4 || n === 8)) continue;
+      // Skip if both half-beats are 16T triplets
+      if (has16T(beatStart, position)) continue;
 
       const firstNote = activeIndices[0];
       const lastNote  = activeIndices[activeIndices.length - 1];
@@ -63,26 +84,57 @@ function calculateBeams(slots) {
       const beatStartVal = position === 'top' ? slots[beatStart]?.top : slots[beatStart]?.bottom;
       const hasBeatStartRest = beatStartVal === SYMBOL_REST;
       const l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
-      const l1Span  = lastNote - l1Start;
+
+      // Extend l1 1 slot if 2nd half has only one note; align with rightmost l2 endpoint.
+      const secondHalfNotes = activeIndices.filter(i => i >= 6);
+      let l1End = (secondHalfNotes.length === 1) ? Math.min(lastNote + 1, 11) : lastNote;
+      const sixteenthsForL1 = activeIndices.filter(i => i % 6 !== 0);
+      if (sixteenthsForL1.length > 0) {
+        const maxBlock = Math.max(...sixteenthsForL1.map(i => Math.floor(i / 6)));
+        const l2RightSlot = maxBlock * 6 + 4;
+        if (l2RightSlot > l1End) l1End = Math.min(l2RightSlot, 11);
+      }
+      const l1Span = l1End - l1Start;
       if (l1Span > 0) {
         results.push({ startIdx: beatStart + l1Start, span: l1Span, level: 1, position });
       }
 
-      // Level 2: draw when any note is at a 16th-note position (offset % 6 ≠ 0)
-      const has16th = activeIndices.some(i => i % 6 !== 0);
-      if (has16th && l1Span > 0) {
-        results.push({ startIdx: beatStart + l1Start, span: l1Span, level: 2, position });
+      // Level 2: only the 8th-block(s) actually containing a 16th note, span=4
+      if (sixteenthsForL1.length > 0 && l1Span > 0) {
+        const blocks = new Set(sixteenthsForL1.map(i => Math.floor(i / 6)));
+        blocks.forEach(blockIdx => {
+          results.push({ startIdx: beatStart + blockIdx * 6, span: 4, level: 2, position });
+        });
       }
     }
   }
   return results;
 }
 
-// Returns triplet arc descriptors: { beatStart, hand }
+// Returns triplet arc descriptors: { start, hand, type }
 // Synced with TrackRow.jsx handTriplets logic
 function calculateTripletArcs(slots) {
   const SYMBOL_REST = '.';
   const results = [];
+
+  // 16T (6-slot half-beat groups)
+  for (let groupStart = 0; groupStart < slots.length; groupStart += 6) {
+    for (const hand of ['top', 'bottom']) {
+      const notes = [];
+      for (let i = 0; i < 6; i++) {
+        const s = slots[groupStart + i];
+        if (!s) continue;
+        const v = s[hand];
+        if (v !== '' && v !== SYMBOL_REST) notes.push(i);
+      }
+      if (notes.length === 0) continue;
+      if (!notes.every(n => TRIPLET_16T_OFFS.has(n))) continue;
+      if (!notes.some(n => n === 2 || n === 4)) continue;
+      results.push({ start: groupStart, hand, type: '16T' });
+    }
+  }
+
+  // 8T (12-slot beat groups), skip if both halves already 16T
   for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
     for (const hand of ['top', 'bottom']) {
       const notes = [];
@@ -95,7 +147,10 @@ function calculateTripletArcs(slots) {
       if (notes.length === 0) continue;
       if (!notes.every(n => TRIPLET_OFFSETS.has(n))) continue;
       if (!notes.some(n => n === 4 || n === 8)) continue;
-      results.push({ beatStart, hand });
+      const both16T = results.some(r => r.type === '16T' && r.start === beatStart && r.hand === hand)
+                   && results.some(r => r.type === '16T' && r.start === beatStart + 6 && r.hand === hand);
+      if (both16T) continue;
+      results.push({ start: beatStart, hand, type: '8T' });
     }
   }
   return results;
@@ -205,8 +260,9 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     ctx.strokeStyle = baseColor;
     ctx.lineWidth   = 1.5;
     for (const arc of arcs) {
-      const arcW  = SLOT_W * 7;
-      const arcX  = rowX + arc.beatStart * SLOT_W + SLOT_W * 0.5;
+      const spanSlots = arc.type === '16T' ? 3 : 7;
+      const arcW  = SLOT_W * spanSlots;
+      const arcX  = rowX + arc.start * SLOT_W + SLOT_W * 0.5;
       const cx    = arcX + arcW / 2;
       // Place arc just below the symbol:
       // top-hand:    textBaseline='bottom' → baseline at nullY-symTop → arc 6px below that
