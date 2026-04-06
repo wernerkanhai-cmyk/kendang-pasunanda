@@ -142,6 +142,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   const totalSlots = pattern.anak.length;
 
   const [slotWidth, setSlotWidth] = useState(12);
+  const [containerWidth, setContainerWidth] = useState(0);
   const baseSlotWidthRef = useRef(12);
   useEffect(() => {
     if (!timelineRef.current) return;
@@ -149,11 +150,16 @@ const [showBeheer, setShowBeheer] = useState(true);
       const w = entries[0].contentRect.width;
       baseSlotWidthRef.current = w / 192;
       setSlotWidth(Math.max(4, baseSlotWidthRef.current));
+      setContainerWidth(w);
     });
     ro.observe(timelineRef.current);
     return () => ro.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalSlots]);
+
+  // Overflow alleen toestaan als de content daadwerkelijk breder is dan de container.
+  // Zo voorkomt iOS de rubber-band/bounce als er niets te scrollen valt.
+  const timelineOverflows = totalSlots * slotWidth > containerWidth + 1;
 
   // Keep selectedRange ref tracking the LAST MULTI-SLOT selection.
   // Only update it when a genuine range is selected (start !== end).
@@ -1064,7 +1070,7 @@ const [showBeheer, setShowBeheer] = useState(true);
         </div>
       )}
 
-      <div className="timeline-wrapper" ref={timelineRef} style={isLocked ? { boxShadow: '0 0 16px rgba(212,175,55,0.15)', borderTop: '1px solid rgba(212,175,55,0.2)' } : {}}>
+      <div className="timeline-wrapper" ref={timelineRef} style={{ overflowX: timelineOverflows ? 'auto' : 'hidden', ...(isLocked ? { boxShadow: '0 0 16px rgba(212,175,55,0.15)', borderTop: '1px solid rgba(212,175,55,0.2)' } : {}) }}>
         {/* Measure Ruler */}
         {(() => {
           const displayLoop = handleDrag ?? loopRangeObj;
