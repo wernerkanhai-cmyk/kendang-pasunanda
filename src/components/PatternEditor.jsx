@@ -1133,7 +1133,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                 background: soloTrack === 'anak' ? '#475569' : '#22c55e',
                 border: 'none', borderRadius: '50%',
                 cursor: 'pointer', padding: 0,
-                boxShadow: soloTrack === 'anak' ? 'none' : '0 0 4px rgba(34,197,94,0.6)',
+                boxShadow: soloTrack === 'anak' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 6px 2px rgba(34,197,94,0.7), 0 0 12px 4px rgba(34,197,94,0.3)',
               }}
               title={soloTrack === 'anak' ? 'Anak gedempt — klik om aan te zetten' : 'Anak aan — klik om te dempen'}
             />
