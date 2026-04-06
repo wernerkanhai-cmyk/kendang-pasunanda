@@ -400,7 +400,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
          if (sixteenths.length > 0 && l1Span > 0) {
            const blocks = new Set(sixteenths.map(i => Math.floor(i / 6)));
            blocks.forEach(blockIdx => {
-             handResults.push({ startIdx: beatStart + blockIdx * 6, span: 3, level: 2, position });
+             handResults.push({ startIdx: beatStart + blockIdx * 6, span: 4, level: 2, position });
            });
          }
        }
