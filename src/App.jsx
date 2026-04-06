@@ -243,7 +243,6 @@ function App() {
   // Ref to track tapping speed without stale closures for smart resolution
   const drumTapRef = useRef({ time: 0, slotIndex: 0, trackId: '' });
   const lastRewindTimeRef = useRef(0);
-  const stepBackTargetRef = useRef(null);
   const currentAudioSlotRef = useRef(0); // Werkelijke afspeelslot (gesynchroniseerd met onTick)
   const playStartWallTimeRef = useRef(0); // Date.now() op moment dat slot 0 klinkt
 
@@ -1305,24 +1304,10 @@ function App() {
 
   const stepBack = (resolution = 48) => {
     if (!schedulerRef.current) return;
-    const now = Date.now();
-    const timeSinceLast = now - lastRewindTimeRef.current;
-    const isDoubleClick = timeSinceLast < 500;
-    lastRewindTimeRef.current = now;
-
-    let targetGlobal;
-    if (isDoubleClick) {
-      targetGlobal = 0;
-      stepBackTargetRef.current = null;
-    } else {
-      const globalCurrent = schedulerRef.current.currentSlot;
-      if (stepBackTargetRef.current !== null && timeSinceLast < 800) {
-        targetGlobal = Math.max(0, stepBackTargetRef.current - resolution);
-      } else {
-        targetGlobal = Math.floor(globalCurrent / resolution) * resolution;
-      }
-      stepBackTargetRef.current = targetGlobal;
-    }
+    const globalCurrent = schedulerRef.current.currentSlot;
+    // Snap naar het vorige raster-punt; als we al op een raster-punt staan, een stap terug
+    const snapped = Math.floor(globalCurrent / resolution) * resolution;
+    const targetGlobal = Math.max(0, snapped < globalCurrent ? snapped : snapped - resolution);
 
     if (isPlaying) {
       schedulerRef.current.seekTo(targetGlobal);
