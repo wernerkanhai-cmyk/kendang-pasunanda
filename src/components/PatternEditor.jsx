@@ -1175,10 +1175,8 @@ const [showBeheer, setShowBeheer] = useState(true);
             <div style={{ flexShrink: 0, width: '24px' }} />
           </div>
 
-          {/* The thin central line connecting Anak and Indung visually */}
-          <div style={{ height: '14px', background: 'var(--border-subtle)', width: '100%', margin: '4px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ paddingLeft: SOLO_BTN_W + 4 + 'px', fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, userSelect: 'none', pointerEvents: 'none' }}>Indung</span>
-            {/* Section loop knop — ter hoogte van de middenbalk */}
+          {/* Thin separator + loop button — no background bar */}
+          <div style={{ height: '4px', width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
               style={{
@@ -1196,7 +1194,8 @@ const [showBeheer, setShowBeheer] = useState(true);
             >⟳</button>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+            <span style={{ position: 'absolute', top: 2, left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, zIndex: 5, userSelect: 'none', pointerEvents: 'none' }}>Indung</span>
             <button
               onPointerDown={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
               style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
