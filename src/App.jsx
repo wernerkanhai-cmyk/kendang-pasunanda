@@ -119,6 +119,12 @@ function App() {
     if (activePatternId) localStorage.setItem('kendangCurrentPatternId', activePatternId);
   }, [activePatternId]);
 
+  // Scroll active pattern block to top of screen on rewind
+  useEffect(() => {
+    if (!stepBackCount) return;
+    document.getElementById(`block-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [stepBackCount]);
+
   // Saved Songs Library
   const [savedSongs, setSavedSongs] = useState(() => {
     const saved = localStorage.getItem('kendangSavedSongs');
