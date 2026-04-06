@@ -346,8 +346,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   // Per-track symbol offsets — mirrored from TrackRow.css
   // anak:   top=12px above nullY,  bottom uses default
   // indung: top=16px above nullY,  bottom=9px below nullY
-  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak,   3);
-  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung, 4);
+  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak,   5);
+  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung, 7);
 
   // ── 6. Gong boxes (transparent rect + center line, anak=black, indung=red) ───
   const deduplicatedGong = deduplicateGongByBeat(gong || []);
