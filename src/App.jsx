@@ -802,25 +802,6 @@ function App() {
     };
   }, []); // Run once on mount
 
-  // Blokkeer horizontaal scrollen van de tijdlijn als de iOS-browser is ingezoomd.
-  // visualViewport.scale > 1 betekent dat de gebruiker de pagina heeft vergroot via iOS pinch-zoom.
-  // In die toestand zet een CSS-klasse op <body>, die in App.css overflow-x op hidden zet.
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      document.body.classList.toggle('viewport-zoomed', vv.scale > 1.01);
-    };
-    vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
-    update();
-    return () => {
-      vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
-      document.body.classList.remove('viewport-zoomed');
-    };
-  }, []);
-
   // Cursor: AudioContext-clock interval — exact dezelfde klok als de audio scheduler
   useEffect(() => {
     if (!isPlaying) return;
