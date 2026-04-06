@@ -2257,7 +2257,7 @@ function App() {
               offset += Math.ceil(pattern.anak.length / 48);
               return (
                 <Fragment key={pattern.id}>
-                  {idx > 0 && (
+                  {idx > 0 && !isLocked && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0', padding: '0 1rem' }}>
                       <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.04)' }} />
                       <button
