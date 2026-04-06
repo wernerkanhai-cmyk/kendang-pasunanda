@@ -89,6 +89,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
   const handleTouchStart = (e, slotIndex, hand, symbol) => {
     e.stopPropagation();
     touchMovedRef.current = false;
+    // Clean up any lingering ghost from a previous touch cycle
+    if (ghostRef.current) {
+      ghostRef.current.remove();
+      ghostRef.current = null;
+    }
     const touch = e.touches[0];
     const span = e.currentTarget;
     const rect = span.getBoundingClientRect();
@@ -149,11 +154,27 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
       setDragOverSlot(null);
     };
 
+    const handleTouchCancel = () => {
+      if (ghostRef.current) {
+        ghostRef.current.remove();
+        ghostRef.current = null;
+      }
+      touchDragRef.current = null;
+      setDragOverSlot(null);
+    };
+
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchcancel', handleTouchCancel);
     return () => {
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchCancel);
+      // Clean up any ghost left over when component unmounts
+      if (ghostRef.current) {
+        ghostRef.current.remove();
+        ghostRef.current = null;
+      }
     };
   }, [onNoteMove, trackId]);
   // A standard bar is 48 slots. A beat is 12 slots. A 16th note step is 3 slots.
