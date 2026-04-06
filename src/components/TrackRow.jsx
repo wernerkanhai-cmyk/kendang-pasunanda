@@ -185,14 +185,44 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
   // This combined-hands version is kept as an empty stub to avoid breaking any future refs.
   const triplets = [];
 
-  // Per-hand beat triplet detection.
-  // Triplet positions within a 12-slot beat: {0, 4, 8} (= 4-slot step grid = 8T).
-  // Rule: ALL notes for this hand in the beat must be at triplet positions,
-  //       AND at least one note is at position 4 or 8 (single note at 0 = quarter, no arc).
-  // Partial fills (e.g. only position 8) still get the arc — the missing slots are implied rests.
-  const TRIPLET_OFFSETS = new Set([0, 4, 8]);
+  // Per-hand triplet detection for 8T, 16T, and 4T.
+  //
+  // 8T  (8th-note triplets):    3 notes per beat (12 slots), offsets {0, 4, 8}
+  // 16T (16th-note triplets):   3 notes per half-beat (6 slots), offsets {0, 2, 4}
+  // 4T  (quarter-note triplets): 3 notes per 2-beat group (24 slots), offsets {0, 8, 16}
+  //
+  // Rule: ALL notes for this hand in the group must be at triplet positions,
+  //       AND at least one note is NOT at the first position (avoids false positives).
+  const TRIPLET_8T  = new Set([0, 4, 8]);
+  const TRIPLET_16T = new Set([0, 2, 4]);
+  const TRIPLET_4T  = new Set([0, 8, 16]);
   const handTriplets = useMemo(() => {
     const found = [];
+    const detect = (groupSize, offsets, type, nonFirstOffsets) => {
+      for (let groupStart = 0; groupStart < slots.length; groupStart += groupSize) {
+        for (const hand of ['top', 'bottom']) {
+          const notes = [];
+          let firstSym = null;
+          for (let i = 0; i < groupSize && (groupStart + i) < slots.length; i++) {
+            const s = slots[groupStart + i];
+            if (!s) continue;
+            const v = s[hand];
+            if (v !== '' && v !== SYMBOL_REST) {
+              notes.push(i);
+              if (firstSym === null) firstSym = v;
+            }
+          }
+          if (notes.length === 0) continue;
+          if (!notes.every(n => offsets.has(n))) continue;
+          if (!notes.some(n => nonFirstOffsets.includes(n))) continue;
+          const below = !TOP_HAND_SYMBOLS.includes(firstSym);
+          found.push({ start: groupStart, hand, below, type });
+        }
+      }
+    };
+    // Detect 16T first (6-slot groups) — more specific, checked before 8T
+    detect(6,  TRIPLET_16T, '16T', [2, 4]);
+    // Detect 8T (12-slot groups) — skip beats already claimed by 16T
     for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
       for (const hand of ['top', 'bottom']) {
         const notes = [];
@@ -207,15 +237,18 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
           }
         }
         if (notes.length === 0) continue;
-        // All notes must be on triplet positions
-        if (!notes.every(n => TRIPLET_OFFSETS.has(n))) continue;
-        // At least one note at 4 or 8 (not just a lone quarter at 0)
+        if (!notes.every(n => TRIPLET_8T.has(n))) continue;
         if (!notes.some(n => n === 4 || n === 8)) continue;
-        // Arc direction: below for pos-line / pos-below symbols (D, etc.), above for TOP_HAND_SYMBOLS
+        // Skip if both half-beats are already detected as 16T
+        const has16T_first  = found.some(t => t.type === '16T' && t.start === beatStart && t.hand === hand);
+        const has16T_second = found.some(t => t.type === '16T' && t.start === beatStart + 6 && t.hand === hand);
+        if (has16T_first && has16T_second) continue;
         const below = !TOP_HAND_SYMBOLS.includes(firstSym);
-        found.push({ start: beatStart, hand, below });
+        found.push({ start: beatStart, hand, below, type: '8T' });
       }
     }
+    // Detect 4T (24-slot groups)
+    detect(24, TRIPLET_4T, '4T', [8, 16]);
     return found;
   }, [slots]);
 
@@ -335,8 +368,15 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
          }
 
          if (activeIndices.length === 0) continue;
-         // Skip beam rendering for triplet beats (all notes on {0,4,8} with at least one at 4 or 8)
-         if (activeIndices.every(n => TRIPLET_OFFSETS.has(n)) && activeIndices.some(n => n === 4 || n === 8)) continue;
+         // Skip beam rendering for triplet beats (8T, 16T, or 4T)
+         const hand = position;
+         if (handTriplets.some(t => t.hand === hand && t.start === beatStart && t.type === '8T')) continue;
+         // Skip if both half-beats are 16T
+         if (handTriplets.some(t => t.hand === hand && t.start === beatStart && t.type === '16T')
+          && handTriplets.some(t => t.hand === hand && t.start === beatStart + 6 && t.type === '16T')) continue;
+         // Skip if this beat is part of a 4T group
+         const groupStart4T = Math.floor(beatStart / 24) * 24;
+         if (handTriplets.some(t => t.hand === hand && t.start === groupStart4T && t.type === '4T')) continue;
 
          const firstNote = activeIndices[0];
          const lastNote  = activeIndices[activeIndices.length - 1];
@@ -503,9 +543,10 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                 </div>
               )}
 
-              {/* Per-hand beat triplet arc: centered on middle note (offset 4), spans 7 slots */}
+              {/* Per-hand triplet arc: 8T spans 7 slots, 16T spans 3 slots, 4T spans 15 slots */}
               {handTripletsHere.map((t, hi) => {
-                const arcW = slotWidth * 7;
+                const spanSlots = t.type === '16T' ? 3 : t.type === '4T' ? 15 : 7;
+                const arcW = slotWidth * spanSlots;
                 const arcLeft = slotWidth * 0.5;
                 const cx = arcW / 2;
                 const isIndung = trackId === 'indung';
