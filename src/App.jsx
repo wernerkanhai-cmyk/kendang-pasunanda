@@ -1302,12 +1302,10 @@ function App() {
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
-  const stepBack = (resolution = 48) => {
+  const stepBack = () => {
     if (!schedulerRef.current) return;
     const globalCurrent = schedulerRef.current.currentSlot;
-    // Snap naar het vorige raster-punt; als we al op een raster-punt staan, een stap terug
-    const snapped = Math.floor(globalCurrent / resolution) * resolution;
-    const targetGlobal = Math.max(0, snapped < globalCurrent ? snapped : snapped - resolution);
+    const targetGlobal = Math.floor(globalCurrent / 48) * 48;
 
     if (isPlaying) {
       schedulerRef.current.seekTo(targetGlobal);
