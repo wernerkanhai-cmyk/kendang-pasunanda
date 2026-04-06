@@ -220,7 +220,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
   // ── 5. Helper: draw symbols + beams + triplet arcs for one track ─────────────
   // symTop / symBottom: distance in px from nullY to symbol baseline (positive = away from line)
-  function drawTrack(slots, nullY, baseColor, symTop, symBot) {
+  function drawTrack(slots, nullY, baseColor, symTop, symBot, topBeamShift = 0) {
     const SYMBOL_REST = '.';
     const BARS_LOCAL  = BARS_PER_ROW;
     const BAR_SLOTS   = SLOTS_PER_BAR;
@@ -246,7 +246,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       const bx = rowX + beam.startIdx * SLOT_W;
       const bw = (beam.span + 1) * SLOT_W;
       const by = nullY + (beam.position === 'top'
-        ? (beam.level === 1 ? cfg.beamTop1    : cfg.beamTop2)
+        ? (beam.level === 1 ? cfg.beamTop1    : cfg.beamTop2) - topBeamShift
         : (beam.level === 1 ? cfg.beamBottom1 : cfg.beamBottom2));
       ctx.strokeStyle = baseColor;
       ctx.beginPath();
@@ -346,8 +346,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   // Per-track symbol offsets — mirrored from TrackRow.css
   // anak:   top=12px above nullY,  bottom uses default
   // indung: top=16px above nullY,  bottom=9px below nullY
-  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak);
-  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung);
+  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak,   3);
+  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung, 4);
 
   // ── 6. Gong boxes (transparent rect + center line, anak=black, indung=red) ───
   const deduplicatedGong = deduplicateGongByBeat(gong || []);
