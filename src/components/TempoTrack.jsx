@@ -121,6 +121,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
     dragRef.current = { origSlot };
 
     const onMove = (ev) => {
+      ev.preventDefault();
       const d = dragRef.current;
       if (!d || !svgRef.current) return;
       const { x, y } = getSvgPos(ev);
@@ -140,14 +141,14 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
 
     const onEnd = () => {
       dragRef.current = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onEnd);
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onEnd);
     };
 
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onEnd);
     window.addEventListener('touchmove', onMove, { passive: false });
     window.addEventListener('touchend', onEnd);
   };
@@ -188,14 +189,14 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
 
     const onEnd = () => {
       zoomDragRef.current = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onEnd);
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onEnd);
     };
 
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onEnd);
     window.addEventListener('touchmove', onMove, { passive: false });
     window.addEventListener('touchend', onEnd);
   };
@@ -288,7 +289,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
             preserveAspectRatio="none"
             width="100%"
             height={TRACK_HEIGHT}
-            style={{ display: 'block', cursor: enabled ? 'crosshair' : 'default' }}
+            style={{ display: 'block', cursor: enabled ? 'crosshair' : 'default', touchAction: 'none' }}
             onDoubleClick={handleDoubleClick}
           >
             {gridBpms.map(b => (
@@ -309,8 +310,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
                 key={node.slot}
                 transform={`translate(${node.slot * slotWidth},${bpmToY(node.bpm)})`}
                 style={{ cursor: 'grab' }}
-                onMouseDown={(e) => { if (e.button === 0) startDrag(e, node.slot); }}
-                onTouchStart={(e) => startDrag(e, node.slot)}
+                onPointerDown={(e) => { if (e.button === 0 || e.pointerType === 'touch') startDrag(e, node.slot); }}
                 onClick={(e) => { e.stopPropagation(); openZoom(e, node); }}
                 onDoubleClick={(e) => deleteNode(e, node.slot)}
                 onContextMenu={(e) => deleteNode(e, node.slot)}
@@ -361,8 +361,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
                   width={ZOOM_WIDTH}
                   height={ZOOM_HEIGHT}
                   style={{ display: 'block', cursor: 'ns-resize', touchAction: 'none' }}
-                  onMouseDown={startZoomDrag}
-                  onTouchStart={startZoomDrag}
+                  onPointerDown={startZoomDrag}
                 >
                   {/* background */}
                   <rect x={0} y={0} width={ZOOM_WIDTH} height={ZOOM_HEIGHT} fill="rgba(212,175,55,0.05)" rx={3} />
