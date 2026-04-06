@@ -1129,7 +1129,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
               style={{
-                flexShrink: 0, width: '7px', height: '7px', marginRight: '5px', alignSelf: 'flex-end', marginBottom: '6px',
+                flexShrink: 0, width: '7px', height: '7px', marginRight: '5px',
                 background: soloTrack === 'anak' ? '#475569' : '#22c55e',
                 border: 'none', borderRadius: '50%',
                 cursor: 'pointer', padding: 0,
@@ -1183,7 +1183,7 @@ const [showBeheer, setShowBeheer] = useState(true);
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
               style={{
-                flexShrink: 0, width: '7px', height: '7px', marginRight: '5px', alignSelf: 'flex-start', marginTop: '6px',
+                flexShrink: 0, width: '7px', height: '7px', marginRight: '5px',
                 background: soloTrack === 'indung' ? '#475569' : '#22c55e',
                 border: 'none', borderRadius: '50%',
                 cursor: 'pointer', padding: 0,
