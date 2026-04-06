@@ -1303,7 +1303,7 @@ function App() {
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
-  const stepBack = () => {
+  const stepBack = (resolution = 48) => {
     if (!schedulerRef.current) return;
     const now = Date.now();
     const timeSinceLast = now - lastRewindTimeRef.current;
@@ -1317,9 +1317,9 @@ function App() {
     } else {
       const globalCurrent = schedulerRef.current.currentSlot;
       if (stepBackTargetRef.current !== null && timeSinceLast < 800) {
-        targetGlobal = Math.max(0, stepBackTargetRef.current - 48);
+        targetGlobal = Math.max(0, stepBackTargetRef.current - resolution);
       } else {
-        targetGlobal = Math.floor(globalCurrent / 48) * 48;
+        targetGlobal = Math.floor(globalCurrent / resolution) * resolution;
       }
       stepBackTargetRef.current = targetGlobal;
     }
