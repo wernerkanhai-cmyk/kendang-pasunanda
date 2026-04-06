@@ -51,8 +51,8 @@ function App() {
   const [loopRange, setLoopRange] = useState(null); // { patternId, startSlot, endSlot } local slots
   const loopRangeRef = useRef(null);
   const [loopedSections, setLoopedSections] = useState([]); // patternIds die in de section-loop zitten
-  const [soloTrack, setSoloTrack] = useState(null); // null | 'anak' | 'indung'
-  const soloTrackRef = useRef(null);
+  const [mutedTrack, setMutedTrack] = useState(null); // null | 'anak' | 'indung'
+  const mutedTrackRef = useRef(null);
   const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
   const [metronomeVolume, setMetronomeVolume] = useState(0.7);
   const [isLocked, setIsLocked] = useState(false);
@@ -743,7 +743,7 @@ function App() {
         if (!resolved) return;
         const { tickPattern, localSlot } = resolved;
         ['anak', 'indung'].forEach(track => {
-          if (soloTrackRef.current && soloTrackRef.current !== track) return;
+          if (mutedTrackRef.current === track) return;
           const slot = tickPattern[track][localSlot];
           if (slot) {
             const tvol = (trackVolumesRef.current[track] ?? 1.0) * (sampleSetRef.current === 'vox' ? voxVolumeRef.current : 1.0);
@@ -924,9 +924,9 @@ function App() {
   };
 
   const toggleSolo = (track) => {
-    const next = soloTrackRef.current === track ? null : track;
-    soloTrackRef.current = next;
-    setSoloTrack(next);
+    const next = mutedTrackRef.current === track ? null : track;
+    mutedTrackRef.current = next;
+    setMutedTrack(next);
   };
 
   // Sync metronoomvolume live naar de scheduler
@@ -2323,7 +2323,7 @@ function App() {
                       loopingPatternId={loopingPatternId}
                       onLoopPattern={handleLoopPattern}
                       loopRange={loopRange}
-                      soloTrack={soloTrack}
+                      soloTrack={mutedTrack}
                       onToggleSolo={toggleSolo}
                       metronomeMode={metronomeMode}
                       setMetronomeMode={setMetronomeMode}

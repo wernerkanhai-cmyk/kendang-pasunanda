@@ -1130,14 +1130,14 @@ const [showBeheer, setShowBeheer] = useState(true);
               onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
               style={{
                 flexShrink: 0, width: '20px', height: '20px', marginRight: '4px', marginBottom: '70px',
-                background: soloTrack === 'anak' ? '#f97316' : 'transparent',
-                color: soloTrack === 'anak' ? '#fff' : '#f97316',
-                border: '1px solid #f97316', borderRadius: '3px',
+                background: soloTrack === 'anak' ? '#ef4444' : 'transparent',
+                color: soloTrack === 'anak' ? '#fff' : '#64748b',
+                border: `1px solid ${soloTrack === 'anak' ? '#ef4444' : '#475569'}`, borderRadius: '3px',
                 cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
-              title={t('soloAnak')}
-            >S</button>
+              title="Mute anak"
+            >M</button>
             <div style={{ flex: 1 }}>
               <TrackRow
                 trackId="anak"
@@ -1185,14 +1185,14 @@ const [showBeheer, setShowBeheer] = useState(true);
               onClick={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
               style={{
                 flexShrink: 0, width: '20px', height: '20px', marginRight: '4px', marginBottom: '70px',
-                background: soloTrack === 'indung' ? '#f97316' : 'transparent',
-                color: soloTrack === 'indung' ? '#fff' : '#f97316',
-                border: '1px solid #f97316', borderRadius: '3px',
+                background: soloTrack === 'indung' ? '#ef4444' : 'transparent',
+                color: soloTrack === 'indung' ? '#fff' : '#64748b',
+                border: `1px solid ${soloTrack === 'indung' ? '#ef4444' : '#475569'}`, borderRadius: '3px',
                 cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
-              title={t('soloIndung')}
-            >S</button>
+              title="Mute indung"
+            >M</button>
             <div style={{ flex: 1 }}>
               <TrackRow
                 trackId="indung"
