@@ -797,24 +797,35 @@ function App() {
 
     // bfcache-fix: als de browser de pagina herstelt uit de back-forward cache
     // loopt de scheduler-timer gewoon door. Stop alles zodra dat gedetecteerd wordt.
-    const onPageShow = (e) => {
-      if (e.persisted) {
-        schedulerRef.current?.pause();
-        setIsPlaying(false);
-        setIsRecording(false);
-        setPrecount(0);
-        setLoopingPatternId(null);
-        loopingPatternIdRef.current = null;
-        loopRangeRef.current = null;
-        setLoopRange(null);
-      }
+    const resetPlayback = () => {
+      schedulerRef.current?.pause();
+      setIsPlaying(false);
+      setIsRecording(false);
+      setPrecount(0);
+      setLoopingPatternId(null);
+      loopingPatternIdRef.current = null;
+      loopRangeRef.current = null;
+      setLoopRange(null);
     };
+
+    // bfcache + iPad PWA standalone reopens — always reset, not only when persisted
+    const onPageShow = () => resetPlayback();
     window.addEventListener('pageshow', onPageShow);
+
+    // iOS PWA suspend/resume — when the app becomes visible again, kill any stale scheduler
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') resetPlayback();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    // First mount: ensure scheduler isn't carrying over state from a previous session
+    resetPlayback();
 
     return () => {
       schedulerRef.current.stop();
       UNLOCK_EVENTS.forEach(([type]) => window.removeEventListener(type, unlockAudio));
       window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []); // Run once on mount
 
