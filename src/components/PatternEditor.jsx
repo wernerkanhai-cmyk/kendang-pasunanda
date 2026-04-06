@@ -540,11 +540,14 @@ const [showBeheer, setShowBeheer] = useState(true);
   const handlePlayheadPointerDown = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    // Pointer capture: alle volgende pointer events komen naar dit element,
+    // ook als de vinger/muis snel buiten het driehoekje beweegt.
+    e.currentTarget.setPointerCapture(e.pointerId);
     const onMove = (ev) => {
       if (!tracksContainerRef.current) return;
       const rect = tracksContainerRef.current.getBoundingClientRect();
       const x = ev.clientX - rect.left - SOLO_BTN_W;
-      const raw  = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
+      const raw = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
       const slot = snapSlot(raw);
       if (isPlaying) {
         onSeek?.(pattern.id, slot);
@@ -1223,18 +1226,27 @@ const [showBeheer, setShowBeheer] = useState(true);
             <div
               style={{
                 position: 'absolute',
-                top: -10,
-                left: isLocked ? -6 : -5,
-                width: 0,
-                height: 0,
+                top: -18,
+                left: isLocked ? -14 : -13,
+                width: isLocked ? 28 : 26,
+                height: 20,
+                cursor: 'ew-resize',
+                pointerEvents: 'all',
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                touchAction: 'none',
+              }}
+              onPointerDown={handlePlayheadPointerDown}
+            >
+              <div style={{
+                width: 0, height: 0,
                 borderLeft: `${isLocked ? 7 : 6}px solid transparent`,
                 borderRight: `${isLocked ? 7 : 6}px solid transparent`,
                 borderTop: `10px solid ${isLocked ? '#d4af37' : '#3b82f6'}`,
-                cursor: 'ew-resize',
-                pointerEvents: 'all',
-              }}
-              onPointerDown={handlePlayheadPointerDown}
-            />
+                pointerEvents: 'none',
+              }} />
+            </div>
           </div>
         )}
 
