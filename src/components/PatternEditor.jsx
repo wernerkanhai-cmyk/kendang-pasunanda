@@ -1127,7 +1127,7 @@ const [showBeheer, setShowBeheer] = useState(true);
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
-              onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
+              onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onToggleSolo('anak'); }}
               style={{
                 flexShrink: 0, width: '7px', height: '7px', marginRight: '5px', padding: '3px',
                 background: soloTrack === 'anak' ? '#475569' : '#22c55e',
@@ -1181,7 +1181,7 @@ const [showBeheer, setShowBeheer] = useState(true);
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
-              onClick={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
+              onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onToggleSolo('indung'); }}
               style={{
                 flexShrink: 0, width: '7px', height: '7px', marginRight: '5px', padding: '3px',
                 background: soloTrack === 'indung' ? '#475569' : '#22c55e',
