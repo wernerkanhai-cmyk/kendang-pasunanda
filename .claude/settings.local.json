@@ -43,7 +43,10 @@
       "Bash(jq -e '.hooks.PostToolUse[] | select\\(.matcher == \"\"Bash\"\"\\) | .hooks[] | select\\(.type == \"\"command\"\"\\) | .command' /Users/wernerkanhai/Documents/KendangPasunanda/.claude/settings.local.json)",
       "Bash(grep -rn \"Load failed\\\\|load failed\" /Users/wernerkanhai/Documents/KendangPasunanda/ --include=*.jsx --include=*.js --include=*.json --exclude-dir=node_modules --exclude-dir=dist)",
       "Bash(npx --yes eslint src --ext .js,.jsx --rule '{\"\"\"\"no-unused-vars\"\"\"\": [\"\"\"\"warn\"\"\"\", {\"\"\"\"vars\"\"\"\":\"\"\"\"all\"\"\"\",\"\"\"\"args\"\"\"\":\"\"\"\"none\"\"\"\"}]}')",
-      "Bash(npx eslint@8 --no-eslintrc -c '{}' --rule '{\"\"\"\"no-unused-vars\"\"\"\":\"\"\"\"warn\"\"\"\"}' src/components/DrumPad.jsx)"
+      "Bash(npx eslint@8 --no-eslintrc -c '{}' --rule '{\"\"\"\"no-unused-vars\"\"\"\":\"\"\"\"warn\"\"\"\"}' src/components/DrumPad.jsx)",
+      "Bash(rg \"^\\\\s+/ \" /Users/wernerkanhai/Documents/KendangPasunanda/src --include=\"*.jsx\" --include=\"*.js\" -l)",
+      "Bash(grep -v \"=>\\\\|/>$\\\\|, $\\\\|{$\\\\|\\($\\\\|import\\\\|export\")",
+      "Bash(wait)"
     ]
   },
   "hooks": {

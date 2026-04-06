@@ -95,8 +95,26 @@ export class SamplePlayer {
     if (!this.audioCtx) {
       this.audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     }
+    if (!this.masterGain) {
+      this.masterGain = this.audioCtx.createGain();
+      this.masterGain.connect(this.audioCtx.destination);
+    }
     if (this.audioCtx.state === 'suspended') {
       this.audioCtx.resume();
+    }
+  }
+
+  /** Master output node — route all audio through this so it can be silenced. */
+  getMasterDestination() {
+    if (!this.masterGain) this._initCtx();
+    return this.masterGain;
+  }
+
+  /** Disconnect the master gain so any pending/queued audio is silenced. */
+  silenceAll() {
+    if (this.masterGain) {
+      try { this.masterGain.disconnect(); } catch (_) {}
+      this.masterGain = null;
     }
   }
 
@@ -288,13 +306,14 @@ export class SamplePlayer {
       src.buffer = buf;
       if (pitchValue !== 1.0) src.playbackRate.value = pitchValue;
 
+      const dest = this.getMasterDestination();
       if (gainValue !== 1.0) {
         const gain = this.audioCtx.createGain();
         gain.gain.value = gainValue;
         src.connect(gain);
-        gain.connect(this.audioCtx.destination);
+        gain.connect(dest);
       } else {
-        src.connect(this.audioCtx.destination);
+        src.connect(dest);
       }
 
       const t = when > 0 ? when : this.audioCtx.currentTime + 0.003;

@@ -771,6 +771,7 @@ function App() {
     );
     // Koppel direct — geen race condition met .then()
     schedulerRef.current.setAudioContext(sharedCtx);
+    schedulerRef.current.setDestinationGetter(() => samplerRef.current?.getMasterDestination());
     schedulerRef.current.setBpm(bpm);
 
     // Safari/iOS vereist dat het eerste audio-node synchroon binnen de gesture handler wordt gestart.
@@ -799,6 +800,8 @@ function App() {
     // loopt de scheduler-timer gewoon door. Stop alles zodra dat gedetecteerd wordt.
     const resetPlayback = () => {
       schedulerRef.current?.pause();
+      // Cut off any audio that was queued in the AudioContext before suspend.
+      samplerRef.current?.silenceAll();
       setIsPlaying(false);
       setIsRecording(false);
       setPrecount(0);

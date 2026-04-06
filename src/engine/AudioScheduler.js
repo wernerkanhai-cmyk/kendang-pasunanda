@@ -30,6 +30,19 @@ export class AudioScheduler {
     this.audioCtx = ctx;
   }
 
+  // Optional getter for the routing destination (e.g. master gain). If not set, audio
+  // is routed to audioCtx.destination directly.
+  setDestinationGetter(fn) {
+    this._getDestination = fn;
+  }
+  _dest() {
+    if (this._getDestination) {
+      const d = this._getDestination();
+      if (d) return d;
+    }
+    return this.audioCtx.destination;
+  }
+
   // Optional callback: (globalSlot) => bpm — for per-slot tempo automation
   setTempoCallback(fn) {
     this.getTempoAt = fn;
@@ -133,7 +146,7 @@ export class AudioScheduler {
     const osc  = this.audioCtx.createOscillator();
     const gain = this.audioCtx.createGain();
     osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
+    gain.connect(this._dest());
     osc.frequency.value = 440;
     gain.gain.setValueAtTime(Math.max(0.001, this.clickVolume), t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
@@ -147,7 +160,7 @@ export class AudioScheduler {
       const osc = this.audioCtx.createOscillator();
       const gain = this.audioCtx.createGain();
       osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
+      gain.connect(this._dest());
       osc.frequency.value = (slotNumber % 48 === 0) ? 880 : 440;
       gain.gain.setValueAtTime(Math.max(0.001, this.clickVolume), time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
@@ -205,7 +218,7 @@ export class AudioScheduler {
       const osc = this.audioCtx.createOscillator();
       const gain = this.audioCtx.createGain();
       osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
+      gain.connect(this._dest());
       osc.frequency.value = i === 0 ? 1000 : 500;
       gain.gain.setValueAtTime(0.5, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
