@@ -1083,11 +1083,14 @@ const [showBeheer, setShowBeheer] = useState(true);
                 const isDragging = rulerDrag && i >= Math.min(rulerDrag.start, rulerDrag.current) && i <= Math.max(rulerDrag.start, rulerDrag.current);
                 return (
                   <div key={i}
-                    style={{ width: mw + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'crosshair', color: isDragging ? '#d4af37' : '#64748b', background: isDragging ? 'rgba(212,175,55,0.2)' : 'transparent' }}
+                    style={{ width: mw + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'crosshair', color: isDragging ? '#d4af37' : '#64748b', background: isDragging ? 'rgba(212,175,55,0.2)' : 'transparent', display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden' }}
                     onPointerDown={(e) => handleRulerPointerDown(e, i)}
                     onDoubleClick={() => handleRulerDoubleClick(i)}
                   >
                     {i + 1 + measureOffset}
+                    {isLocked && i === 0 && (
+                      <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '0.65rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pattern.name}</span>
+                    )}
                   </div>
                 );
               })}
