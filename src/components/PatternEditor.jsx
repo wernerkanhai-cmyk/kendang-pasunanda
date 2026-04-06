@@ -1175,8 +1175,8 @@ const [showBeheer, setShowBeheer] = useState(true);
             <div style={{ flexShrink: 0, width: '24px' }} />
           </div>
 
-          {/* Thin separator + loop button — no background bar */}
-          <div style={{ height: '4px', width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          {/* Transparent separator (preserves spacing) + loop button */}
+          <div style={{ height: '14px', width: '100%', margin: '4px 0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
               style={{
