@@ -1131,7 +1131,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               title={soloTrack === 'anak' ? 'Anak gedempt — klik om aan te zetten' : 'Anak aan — klik om te dempen'}
             >
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === 'anak' ? '#475569' : '#22c55e', boxShadow: soloTrack === 'anak' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === 'anak' ? '#475569' : '#22c55e', boxShadow: soloTrack === 'anak' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
             </button>
             <div style={{ flex: 1 }}>
               <TrackRow
@@ -1181,7 +1181,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               title={soloTrack === 'indung' ? 'Indung gedempt — klik om aan te zetten' : 'Indung aan — klik om te dempen'}
             >
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === 'indung' ? '#475569' : '#22c55e', boxShadow: soloTrack === 'indung' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === 'indung' ? '#475569' : '#22c55e', boxShadow: soloTrack === 'indung' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
             </button>
             <div style={{ flex: 1 }}>
               <TrackRow
