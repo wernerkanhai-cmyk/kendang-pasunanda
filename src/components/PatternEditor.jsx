@@ -1128,15 +1128,11 @@ const [showBeheer, setShowBeheer] = useState(true);
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
               onPointerDown={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
-              style={{
-                flexShrink: 0, width: '3px', height: '3px', marginRight: '5px', padding: '8px', backgroundClip: 'content-box',
-                background: soloTrack === 'anak' ? '#475569' : '#22c55e',
-                border: 'none', borderRadius: '50%',
-                cursor: 'pointer', boxSizing: 'content-box',
-                boxShadow: soloTrack === 'anak' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 6px 2px rgba(34,197,94,0.7), 0 0 12px 4px rgba(34,197,94,0.3)',
-              }}
+              style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               title={soloTrack === 'anak' ? 'Anak gedempt — klik om aan te zetten' : 'Anak aan — klik om te dempen'}
-            />
+            >
+              <div style={{ width: '3px', height: '3px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === 'anak' ? '#475569' : '#22c55e', boxShadow: soloTrack === 'anak' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
+            </button>
             <div style={{ flex: 1 }}>
               <TrackRow
                 trackId="anak"
@@ -1182,15 +1178,11 @@ const [showBeheer, setShowBeheer] = useState(true);
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button
               onPointerDown={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
-              style={{
-                flexShrink: 0, width: '3px', height: '3px', marginRight: '5px', padding: '8px', backgroundClip: 'content-box',
-                background: soloTrack === 'indung' ? '#475569' : '#22c55e',
-                border: 'none', borderRadius: '50%',
-                cursor: 'pointer', boxSizing: 'content-box',
-                boxShadow: soloTrack === 'indung' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 6px 2px rgba(34,197,94,0.7), 0 0 12px 4px rgba(34,197,94,0.3)',
-              }}
+              style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               title={soloTrack === 'indung' ? 'Indung gedempt — klik om aan te zetten' : 'Indung aan — klik om te dempen'}
-            />
+            >
+              <div style={{ width: '3px', height: '3px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === 'indung' ? '#475569' : '#22c55e', boxShadow: soloTrack === 'indung' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
+            </button>
             <div style={{ flex: 1 }}>
               <TrackRow
                 trackId="indung"
