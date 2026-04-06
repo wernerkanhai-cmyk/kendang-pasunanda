@@ -137,6 +137,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
   const [bpmEditing, setBpmEditing] = useState(false);
+  const [transportMinimized, setTransportMinimized] = useState(false);
   const [bpmInput, setBpmInput] = useState('');
   const bpmDragRef = useRef(null); // { startY, moved }
   const totalMeasures = Math.ceil(pattern.anak.length / 48);
@@ -772,6 +773,7 @@ const [showBeheer, setShowBeheer] = useState(true);
            {isActive && ReactDOM.createPortal(
               <div
                 className="transport-controls"
+                onDoubleClick={(e) => { e.stopPropagation(); setTransportMinimized(v => !v); }}
                 style={{
                   position: 'fixed',
                   ...(transportPos
@@ -791,6 +793,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                   onMouseDown={(e) => { e.preventDefault(); startTransportDrag(e.clientX, e.clientY); }}
                   onTouchStart={(e) => { e.preventDefault(); startTransportDrag(e.touches[0].clientX, e.touches[0].clientY); }}
                 >⠿</div>
+                 {!transportMinimized && <>
                  {/* Tempo */}
                  <div style={{ border: '1px solid #475569', borderRadius: '4px', height: '2.2rem', display: 'flex', alignItems: 'center', padding: '0 0.4rem', gap: '3px', boxSizing: 'border-box', background: 'transparent' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -845,6 +848,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                       </span>
                     )}
                  </div>
+                 </>}
 
                  <button
                    onClick={(e) => { e.stopPropagation(); stepBack(); }}
@@ -860,6 +864,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                    title={t('playPause')}
                  >{isPlaying ? '⏸' : '▶'}</button>
 
+                 {!transportMinimized && <>
                  <button
                    onClick={(e) => { e.stopPropagation(); onLoopPattern(pattern.id); }}
                    style={{ background: loopingPatternId === pattern.id ? '#f97316' : 'transparent', color: loopingPatternId === pattern.id ? '#fff' : '#94a3b8', border: `1px solid ${loopingPatternId === pattern.id ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
@@ -939,6 +944,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                      document.body
                    )}
                  </div>
+                 </>}
               </div>,
               document.body
            )}
