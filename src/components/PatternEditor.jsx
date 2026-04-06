@@ -1221,42 +1221,39 @@ const [showBeheer, setShowBeheer] = useState(true);
 
         {/* Playhead */}
         {playheadSlot !== null && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: SOLO_BTN_W + playheadSlot * slotWidth,
-            width: isLocked ? 4 : 2,
-            background: isLocked ? 'rgba(212,175,55,0.9)' : 'rgba(59,130,246,0.85)',
-            zIndex: 30,
-            pointerEvents: 'none',
-            boxShadow: isLocked ? '0 0 6px rgba(212,175,55,0.6)' : 'none',
-          }}>
-            {/* Draggable triangle handle */}
-            <div
-              style={{
-                position: 'absolute',
-                top: -18,
-                left: isLocked ? -14 : -13,
-                width: isLocked ? 28 : 26,
-                height: 20,
-                cursor: 'ew-resize',
-                pointerEvents: 'all',
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'center',
-                touchAction: 'none',
-              }}
-              onPointerDown={handlePlayheadPointerDown}
-            >
-              <div style={{
-                width: 0, height: 0,
-                borderLeft: `${isLocked ? 7 : 6}px solid transparent`,
-                borderRight: `${isLocked ? 7 : 6}px solid transparent`,
-                borderTop: `10px solid ${isLocked ? '#d4af37' : '#3b82f6'}`,
-                pointerEvents: 'none',
-              }} />
-            </div>
+          <div
+            style={{
+              position: 'absolute',
+              top: -18,
+              bottom: 0,
+              left: SOLO_BTN_W + playheadSlot * slotWidth - 10,
+              width: 20,
+              zIndex: 30,
+              cursor: 'ew-resize',
+              pointerEvents: 'all',
+              touchAction: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+            onPointerDown={handlePlayheadPointerDown}
+          >
+            {/* Triangle handle */}
+            <div style={{
+              width: 0, height: 0, flexShrink: 0,
+              borderLeft: `${isLocked ? 7 : 6}px solid transparent`,
+              borderRight: `${isLocked ? 7 : 6}px solid transparent`,
+              borderTop: `10px solid ${isLocked ? '#d4af37' : '#3b82f6'}`,
+              pointerEvents: 'none',
+            }} />
+            {/* Vertical line */}
+            <div style={{
+              flex: 1,
+              width: isLocked ? 4 : 2,
+              background: isLocked ? 'rgba(212,175,55,0.9)' : 'rgba(59,130,246,0.85)',
+              boxShadow: isLocked ? '0 0 6px rgba(212,175,55,0.6)' : 'none',
+              pointerEvents: 'none',
+            }} />
           </div>
         )}
 
