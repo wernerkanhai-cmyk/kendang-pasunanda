@@ -1209,6 +1209,7 @@ function App() {
             };
           } else {
             schedulerRef.current.setLoopBounds(globalStart, globalEnd);
+            schedulerRef.current.setCurrentSlot(globalStart);
             slotTimesRef.current = buildSlotTimesMs(globalStart, globalEnd, buildTempoAt(songRef.current, bpm));
           }
         }
@@ -1240,6 +1241,7 @@ function App() {
       };
     } else {
       schedulerRef.current.setLoopBounds(loopStartGlobal, loopEndGlobal);
+      schedulerRef.current.setCurrentSlot(loopStartGlobal);
       slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
     }
   };
