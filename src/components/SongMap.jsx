@@ -4,10 +4,12 @@ import { useT } from '../i18n';
 
 const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActivate, onMoveUp, onMoveDown }) => {
   const t = useT();
-  // Close on outside tap
+  // Close on outside tap — ignore the tap that opened the panel
   useEffect(() => {
     if (!open) return;
+    const openedAt = Date.now();
     const close = (e) => {
+      if (Date.now() - openedAt < 300) return;
       if (!e.target.closest('.songmap-panel')) onClose();
     };
     window.addEventListener('pointerdown', close);
@@ -23,7 +25,6 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
             position: 'fixed', inset: 0, zIndex: 400,
             background: 'rgba(0,0,0,0.4)',
           }}
-          onPointerDown={onClose}
         />
       )}
 
