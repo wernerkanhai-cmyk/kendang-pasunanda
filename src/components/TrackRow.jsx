@@ -25,6 +25,8 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
   const touchDragRef = useRef(null); // { slotIndex, hand, symbol, offsetX, offsetY }
   const ghostRef = useRef(null);
   const touchMovedRef = useRef(false);
+  // Pinch-zoom detectie: tijdstip waarop 2+ vingers tegelijk het scherm raakten
+  const pinchTimeRef = useRef(0);
 
   useEffect(() => {
     if (!popup) return;
@@ -32,6 +34,16 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
     document.addEventListener('pointerdown', close);
     return () => document.removeEventListener('pointerdown', close);
   }, [popup]);
+
+  // Detecteer pinch-zoom: bij 2+ gelijktijdige touches, sla het tijdstip op.
+  // Zo kan onClick de gesynthetiseerde click na een pinch onderdrukken.
+  useEffect(() => {
+    const onTouchStart = (e) => {
+      if (e.touches.length >= 2) pinchTimeRef.current = Date.now();
+    };
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    return () => document.removeEventListener('touchstart', onTouchStart);
+  }, []);
 
   const openPopup = (e, slotIndex) => {
     if (isLocked) return;
@@ -421,7 +433,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
               key={index}
               data-slot-index={index}
               className={`slot-cell ${borderClasses} ${isLoopRange ? 'loop-range' : ''} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
-              onClick={(e) => { e.stopPropagation(); onSlotClick(index, e.shiftKey); }}
+              onClick={(e) => { e.stopPropagation(); if (Date.now() - pinchTimeRef.current < 600) return; onSlotClick(index, e.shiftKey); }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 if (isLocked) return;
@@ -434,8 +446,9 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
               }}
               onContextMenu={(e) => openPopup(e, index)}
               onTouchEnd={(e) => {
-                // Suppress double-tap if a touch drag just completed
+                // Suppress if a touch drag or pinch-zoom just completed
                 if (touchMovedRef.current) return;
+                if (Date.now() - pinchTimeRef.current < 600) return;
                 if (isLocked) return;
                 const now = Date.now();
                 const last = lastTapRef.current;
