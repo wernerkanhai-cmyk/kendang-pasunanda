@@ -1129,15 +1129,14 @@ const [showBeheer, setShowBeheer] = useState(true);
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
               style={{
-                flexShrink: 0, width: '20px', height: '20px', marginRight: '4px', marginBottom: '70px',
-                background: soloTrack === 'anak' ? '#ef4444' : 'transparent',
-                color: soloTrack === 'anak' ? '#fff' : '#64748b',
-                border: `1px solid ${soloTrack === 'anak' ? '#ef4444' : '#475569'}`, borderRadius: '3px',
-                cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, width: '14px', height: '14px', marginRight: '5px', marginBottom: '70px',
+                background: soloTrack === 'anak' ? '#475569' : '#22c55e',
+                border: 'none', borderRadius: '50%',
+                cursor: 'pointer', padding: 0,
+                boxShadow: soloTrack === 'anak' ? 'none' : '0 0 4px rgba(34,197,94,0.6)',
               }}
-              title="Mute anak"
-            >M</button>
+              title={soloTrack === 'anak' ? 'Anak gedempt — klik om aan te zetten' : 'Anak aan — klik om te dempen'}
+            />
             <div style={{ flex: 1 }}>
               <TrackRow
                 trackId="anak"
@@ -1184,15 +1183,14 @@ const [showBeheer, setShowBeheer] = useState(true);
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
               style={{
-                flexShrink: 0, width: '20px', height: '20px', marginRight: '4px', marginBottom: '70px',
-                background: soloTrack === 'indung' ? '#ef4444' : 'transparent',
-                color: soloTrack === 'indung' ? '#fff' : '#64748b',
-                border: `1px solid ${soloTrack === 'indung' ? '#ef4444' : '#475569'}`, borderRadius: '3px',
-                cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, width: '14px', height: '14px', marginRight: '5px', marginBottom: '70px',
+                background: soloTrack === 'indung' ? '#475569' : '#22c55e',
+                border: 'none', borderRadius: '50%',
+                cursor: 'pointer', padding: 0,
+                boxShadow: soloTrack === 'indung' ? 'none' : '0 0 4px rgba(34,197,94,0.6)',
               }}
-              title="Mute indung"
-            >M</button>
+              title={soloTrack === 'indung' ? 'Indung gedempt — klik om aan te zetten' : 'Indung aan — klik om te dempen'}
+            />
             <div style={{ flex: 1 }}>
               <TrackRow
                 trackId="indung"
