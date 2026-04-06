@@ -1304,7 +1304,14 @@ function App() {
 
   const stepBack = () => {
     if (!schedulerRef.current) return;
-    const globalCurrent = schedulerRef.current.currentSlot;
+    let globalCurrent;
+    if (isPlaying) {
+      globalCurrent = schedulerRef.current.currentSlot;
+    } else if (activeSlot) {
+      globalCurrent = localToGlobal(activeSlot.patternId, activeSlot.startIndex, song);
+    } else {
+      globalCurrent = schedulerRef.current.currentSlot;
+    }
     const targetGlobal = Math.floor(globalCurrent / 48) * 48;
 
     if (isPlaying) {
