@@ -1312,7 +1312,8 @@ function App() {
     } else {
       globalCurrent = schedulerRef.current.currentSlot;
     }
-    const targetGlobal = Math.floor(globalCurrent / 48) * 48;
+    const measureStart = Math.floor(globalCurrent / 48) * 48;
+    const targetGlobal = Math.max(0, globalCurrent === measureStart ? measureStart - 48 : measureStart);
 
     if (isPlaying) {
       schedulerRef.current.seekTo(targetGlobal);
