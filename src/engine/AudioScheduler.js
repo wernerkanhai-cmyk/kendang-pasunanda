@@ -102,6 +102,12 @@ export class AudioScheduler {
     this.totalSlots = Math.max(endOfCurrentBar, this.loopStart + barSize);
   }
 
+  // Sla een pending loop op zonder de huidige loop in te korten;
+  // de wissel gebeurt pas wanneer de huidige loop natuurlijk afloopt.
+  setPendingLoopAfterCurrentLoop(start, end) {
+    this.pendingLoop = { start, end };
+  }
+
   // Audio-clock time waarop slot loopStart speelt — voor rAF cursor
   playStartAudioTime = 0;
 

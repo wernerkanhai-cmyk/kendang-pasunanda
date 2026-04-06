@@ -1193,7 +1193,16 @@ function App() {
         setLoopingPatternId(null);
         if (schedulerRef.current) {
           const total = songRef.current.reduce((sum, p) => sum + p.anak.length, 0);
-          schedulerRef.current.setLoopBounds(0, total);
+          if (isPlaying) {
+            // Maak huidige loop af tot het einde van de regel, dan door met de rest van de song
+            const currentLoopEnd = schedulerRef.current.totalSlots;
+            schedulerRef.current.setPendingLoopAfterCurrentLoop(currentLoopEnd, total);
+            schedulerRef.current.onLoopSwitch = (start, end) => {
+              slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
+            };
+          } else {
+            schedulerRef.current.setLoopBounds(0, total);
+          }
         }
       } else {
         // Bepaal globale range: van begin eerste geloopte section t/m einde laatste
