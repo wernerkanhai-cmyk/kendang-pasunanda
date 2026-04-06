@@ -389,7 +389,7 @@ export const DEFAULT_PDF_SETTINGS = {
   // Per-track symbol offsets (px from null line) — mirrored from TrackRow.css
   symAboveAnak:   12,  // anak top symbols (.theme-anak .pos-above: margin-bottom: 12px)
   symBelowAnak:    5,  // anak bottom symbols (default)
-  symAboveIndung: 16,  // indung top symbols (.theme-indung .pos-above: margin-bottom: 16px)
+  symAboveIndung: 14,  // indung top symbols — shifted 2px down vs CSS for visual alignment
   symBelowIndung:  9,  // indung bottom symbols (.theme-indung .pos-below: margin-top: 9px)
   // Legacy keys kept for backwards compat with any stored settings
   symAbove:      6,
