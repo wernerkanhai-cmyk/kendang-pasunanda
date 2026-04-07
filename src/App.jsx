@@ -10,6 +10,7 @@ import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
 import { useSongs } from './hooks/useSongs';
+import { useSnippets } from './hooks/useSnippets';
 import { useAuth } from './context/AuthContext';
 import MigrationDialog from './components/MigrationDialog';
 
@@ -104,15 +105,6 @@ function App() {
   const [autoQuantize, setAutoQuantize] = useState(false); // Q: snap to grid during live recording
   const [inputEnabled, setInputEnabled] = useState(true); // Invoer op tijdlijn aan/uit
 
-  // My Patterns Snippet Library
-  const [savedSnippets, setSavedSnippets] = useState(() => {
-    const saved = localStorage.getItem('kendangSnippets');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem('kendangSnippets', JSON.stringify(savedSnippets));
-  }, [savedSnippets]);
 
   // Persist current working song so it survives page reloads and deploys
   useEffect(() => {
@@ -142,6 +134,18 @@ function App() {
   // localStorage acts as a one-time fallback during migration (phase 6 cleans it up).
   const { user, signOut } = useAuth();
   const { songs: cloudSongs, save: cloudSave, remove: cloudRemove, error: cloudError } = useSongs();
+  const { snippets: cloudSnippets, save: cloudSnippetSave, remove: cloudSnippetRemove } = useSnippets();
+
+  // Snippet library — cloud when signed in, localStorage otherwise
+  const [localSavedSnippets, setLocalSavedSnippets] = useState(() => {
+    const saved = localStorage.getItem('kendangSnippets');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const savedSnippets = user ? cloudSnippets : localSavedSnippets;
+  useEffect(() => {
+    if (user) return;
+    localStorage.setItem('kendangSnippets', JSON.stringify(localSavedSnippets));
+  }, [localSavedSnippets, user]);
 
   // Saved Songs Library — derived from cloud once available, falls back to localStorage.
   const [localSavedSongs, setLocalSavedSongs] = useState(() => {
@@ -1609,22 +1613,48 @@ function App() {
 
 
   // ---- MY PATTERNS / SNIPPET LIBRARY FLOWS ----
-  const handleSaveSnippet = (name, folder, data, replaceId = null) => {
-     const newSnippet = {
-        id: replaceId || Date.now().toString(),
-        name,
-        folder: folder || 'Algemeen',
-        data: JSON.parse(JSON.stringify(data)) // deep copy: { anak, indung }
-     };
-     if (replaceId) {
-        setSavedSnippets(prev => prev.map(s => s.id === replaceId ? newSnippet : s));
-     } else {
-        setSavedSnippets(prev => [...prev, newSnippet]);
-     }
+  const handleSaveSnippet = async (name, folder, data, replaceId = null) => {
+    const payload = {
+      // Old localStorage entries use Date.now() string ids; only forward valid uuids.
+      id: typeof replaceId === 'string' && /^[0-9a-f-]{36}$/i.test(replaceId) ? replaceId : null,
+      name,
+      folder: folder || 'Algemeen',
+      data: JSON.parse(JSON.stringify(data)),
+    };
+    if (user) {
+      try {
+        await cloudSnippetSave(payload);
+        return;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Cloud snippet save failed:', err);
+        alert('Patroon opslaan in cloud mislukt — opgeslagen alleen lokaal.');
+      }
+    }
+    const newSnippet = {
+      id: replaceId || Date.now().toString(),
+      name, folder: payload.folder, data: payload.data,
+    };
+    if (replaceId) {
+      setLocalSavedSnippets(prev => prev.map(s => s.id === replaceId ? newSnippet : s));
+    } else {
+      setLocalSavedSnippets(prev => [...prev, newSnippet]);
+    }
   };
 
-  const handleDeleteSnippet = (snippetId) => {
-     setSavedSnippets(prev => prev.filter(s => s.id !== snippetId));
+  const handleDeleteSnippet = async (snippetId) => {
+    if (user) {
+      try {
+        await cloudSnippetRemove(snippetId);
+        return;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Cloud snippet delete failed:', err);
+        alert('Patroon verwijderen in cloud mislukt.');
+        return;
+      }
+    }
+    setLocalSavedSnippets(prev => prev.filter(s => s.id !== snippetId));
   };
 
   const handleExportSnippets = () => {
@@ -1642,15 +1672,20 @@ function App() {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       try {
         const imported = decodeData(ev.target.result);
         if (!Array.isArray(imported)) throw new Error();
-        setSavedSnippets(prev => {
-          const existingIds = new Set(prev.map(s => s.id));
-          const nieuwen = imported.filter(s => s.id && s.name && !existingIds.has(s.id));
-          return [...prev, ...nieuwen];
-        });
+        const existingNames = new Set(savedSnippets.map(s => `${s.folder || 'Algemeen'}::${s.name}`));
+        const nieuwen = imported.filter(s => s.name && !existingNames.has(`${s.folder || 'Algemeen'}::${s.name}`));
+        if (user) {
+          for (const s of nieuwen) {
+            try { await cloudSnippetSave({ id: null, name: s.name, folder: s.folder, data: s.data }); }
+            catch (err) { console.error('Snippet import failed for', s.name, err); }
+          }
+        } else {
+          setLocalSavedSnippets(prev => [...prev, ...nieuwen.map(s => ({ ...s, id: s.id || Date.now().toString() + Math.random() }))]);
+        }
       } catch {
         alert(t('invalidLibrary'));
       }
