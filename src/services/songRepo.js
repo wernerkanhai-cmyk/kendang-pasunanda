@@ -1,6 +1,13 @@
 import { supabase } from '../lib/supabaseClient';
 
 const SLOTS_PER_MEASURE = 48;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Returns the value if it looks like a UUID, otherwise null. */
+function uuidOrNull(value) {
+  if (typeof value !== 'string') return null;
+  return UUID_RE.test(value) ? value : null;
+}
 
 /**
  * Convert an in-memory song into the JSON shape that the `save_song` Postgres
@@ -19,7 +26,9 @@ const SLOTS_PER_MEASURE = 48;
  */
 export function flattenSongForDb(song) {
   return {
-    id: song?.id ?? null,
+    // Old localStorage entries use Date.now() string ids — those are not valid
+    // uuids so we send null and let the DB generate one.
+    id: uuidOrNull(song?.id),
     title: song?.name ?? 'Untitled',
     folder: song?.folder ?? null,
     bpm: song?.bpm ?? 100,

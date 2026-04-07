@@ -9,7 +9,8 @@ import { FACTORY_PRESETS, FACTORY_CATEGORIES } from './factory/presets';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
-import CloudTestPanel from './components/CloudTestPanel';
+import { useSongs } from './hooks/useSongs';
+import { useAuth } from './context/AuthContext';
 
 const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
 const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
@@ -136,11 +137,22 @@ function App() {
     return () => clearTimeout(id);
   }, [isLocked]);
 
-  // Saved Songs Library
-  const [savedSongs, setSavedSongs] = useState(() => {
+  // Cloud sync — single source of truth for saved songs is Supabase.
+  // localStorage acts as a one-time fallback during migration (phase 6 cleans it up).
+  const { user, signOut } = useAuth();
+  const { songs: cloudSongs, save: cloudSave, remove: cloudRemove, error: cloudError } = useSongs();
+
+  // Saved Songs Library — derived from cloud once available, falls back to localStorage.
+  const [localSavedSongs, setLocalSavedSongs] = useState(() => {
     const saved = localStorage.getItem('kendangSavedSongs');
     return saved ? JSON.parse(saved) : [];
   });
+  const savedSongs = user ? cloudSongs : localSavedSongs;
+  const setSavedSongs = (updater) => {
+    // Only used by import/factory-preset/folder-rename flows that still touch localStorage.
+    // Cloud-side updates go through cloudSave / cloudRemove directly.
+    setLocalSavedSongs(updater);
+  };
   const [currentSongId, setCurrentSongId] = useState(null);
   const [songName, setSongName] = useState('Song 1');
   const [songFolder, setSongFolder] = useState('Algemeen');
@@ -246,8 +258,12 @@ function App() {
   };
 
   useEffect(() => {
-    localStorage.setItem('kendangSavedSongs', JSON.stringify(savedSongs));
-  }, [savedSongs]);
+    // Only mirror to localStorage when there is no logged-in user. When the
+    // user is signed in the cloud is the source of truth and we leave the
+    // legacy localStorage blob untouched until the migration dialog runs.
+    if (user) return;
+    localStorage.setItem('kendangSavedSongs', JSON.stringify(localSavedSongs));
+  }, [localSavedSongs, user]);
 
   // Import library dialog
   const [pendingImport, setPendingImport] = useState(null); // { songs: [] } wacht op mapkeuze
@@ -274,7 +290,7 @@ function App() {
     localStorage.setItem('kendangCursorOffsetMs', String(cursorOffsetMs));
   }, [cursorOffsetMs]);
 
-  const handleSaveSong = () => {
+  const handleSaveSong = async () => {
     const name = songName.trim() || 'Naamloos';
     const folder = songFolder.trim() || 'Algemeen';
 
@@ -282,25 +298,64 @@ function App() {
     const original = currentSongId ? savedSongs.find(s => s.id === currentSongId) : null;
     const isSaveAs = !original || original.name !== name || original.folder !== folder;
 
-    const entry = {
-      id: isSaveAs ? Date.now().toString() : currentSongId,
+    const payload = {
+      id: isSaveAs ? null : currentSongId,
       name,
       folder,
-      date: new Date().toLocaleDateString('nl-NL'),
-      patterns: JSON.parse(JSON.stringify(song))
+      bpm,
+      patterns: JSON.parse(JSON.stringify(song)),
     };
 
+    if (user) {
+      try {
+        const fresh = await cloudSave(payload);
+        setCurrentSongId(fresh.id);
+        return;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Cloud save failed, falling back to localStorage:', err);
+        alert('Opslaan in cloud mislukt — opgeslagen alleen lokaal.');
+      }
+    }
+
+    // Fallback: legacy localStorage path
+    const entry = {
+      id: isSaveAs ? Date.now().toString() : currentSongId,
+      name, folder,
+      date: new Date().toLocaleDateString('nl-NL'),
+      patterns: payload.patterns,
+    };
     if (!isSaveAs) {
-      setSavedSongs(prev => prev.map(s => s.id === currentSongId ? entry : s));
+      setLocalSavedSongs(prev => prev.map(s => s.id === currentSongId ? entry : s));
     } else {
-      setSavedSongs(prev => [...prev, entry]);
+      setLocalSavedSongs(prev => [...prev, entry]);
       setCurrentSongId(entry.id);
     }
   };
 
-  const handleOverwriteSong = (s) => {
+  const handleOverwriteSong = async (s) => {
+    if (user) {
+      try {
+        const fresh = await cloudSave({
+          id: s.id,
+          name: s.name,
+          folder: s.folder || 'Algemeen',
+          bpm,
+          patterns: JSON.parse(JSON.stringify(song)),
+        });
+        setSongName(s.name);
+        setSongFolder(s.folder || 'Algemeen');
+        setCurrentSongId(fresh.id);
+        setShowSongMenu(false);
+        return;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Cloud overwrite failed, falling back to localStorage:', err);
+        alert('Overschrijven in cloud mislukt — opgeslagen alleen lokaal.');
+      }
+    }
     const entry = { ...s, date: new Date().toLocaleDateString('nl-NL'), patterns: JSON.parse(JSON.stringify(song)) };
-    setSavedSongs(prev => prev.map(saved => saved.id === s.id ? entry : saved));
+    setLocalSavedSongs(prev => prev.map(saved => saved.id === s.id ? entry : saved));
     setSongName(s.name);
     setSongFolder(s.folder || 'Algemeen');
     setCurrentSongId(s.id);
@@ -333,8 +388,20 @@ function App() {
     setShowSongLibrary(false);
   };
 
-  const handleDeleteSong = (id) => {
-    setSavedSongs(prev => prev.filter(s => s.id !== id));
+  const handleDeleteSong = async (id) => {
+    if (user) {
+      try {
+        await cloudRemove(id);
+        if (currentSongId === id) setCurrentSongId(null);
+        return;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Cloud delete failed, falling back to localStorage:', err);
+        alert('Verwijderen in cloud mislukt.');
+        return;
+      }
+    }
+    setLocalSavedSongs(prev => prev.filter(s => s.id !== id));
     if (currentSongId === id) setCurrentSongId(null);
   };
 
@@ -1977,6 +2044,18 @@ function App() {
                       <button key={lang.code} onClick={() => setLanguage(lang.code)} style={{ flex: 1, background: language === lang.code ? '#3b82f6' : '#0f172a', color: language === lang.code ? '#fff' : '#94a3b8', border: '1px solid #334155', borderRadius: '5px', padding: '0.3rem 0.4rem', fontSize: '0.75rem', cursor: 'pointer' }}>{lang.label}</button>
                     ))}
                   </div>
+
+                  {user && (
+                    <>
+                      <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
+                      <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Account</div>
+                      <div style={{ color: '#cbd5e1', fontSize: '0.75rem', marginBottom: '0.3rem', wordBreak: 'break-all' }}>{user.email}</div>
+                      <button
+                        onClick={() => { signOut(); setShowToolsMenu(false); }}
+                        style={{ background: '#0f172a', color: '#f87171', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                      >Log uit</button>
+                    </>
+                  )}
                 </div>
               </>
             )}
@@ -2397,9 +2476,6 @@ function App() {
         </div>
         </main>
       </div>
-
-      {/* ── Cloud test panel (TIJDELIJK) ───────────────────────────────── */}
-      <CloudTestPanel song={song} songName={songName} songFolder={songFolder} bpm={bpm} />
 
       {/* ── Handleiding Modal ──────────────────────────────────────────── */}
       {showManual && (
