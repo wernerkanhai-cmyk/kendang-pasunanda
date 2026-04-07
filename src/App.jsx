@@ -11,6 +11,7 @@ import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
 import { useSongs } from './hooks/useSongs';
 import { useAuth } from './context/AuthContext';
+import MigrationDialog from './components/MigrationDialog';
 
 const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
 const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
@@ -2476,6 +2477,9 @@ function App() {
         </div>
         </main>
       </div>
+
+      {/* ── Migration dialog (one-time, when legacy localStorage songs exist) ── */}
+      <MigrationDialog />
 
       {/* ── Handleiding Modal ──────────────────────────────────────────── */}
       {showManual && (
