@@ -9,6 +9,7 @@ import { FACTORY_PRESETS, FACTORY_CATEGORIES } from './factory/presets';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
+import CloudTestPanel from './components/CloudTestPanel';
 
 const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
 const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
@@ -2396,6 +2397,9 @@ function App() {
         </div>
         </main>
       </div>
+
+      {/* ── Cloud test panel (TIJDELIJK) ───────────────────────────────── */}
+      <CloudTestPanel song={song} songName={songName} songFolder={songFolder} bpm={bpm} />
 
       {/* ── Handleiding Modal ──────────────────────────────────────────── */}
       {showManual && (
