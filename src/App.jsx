@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, Fragment } from 'react';
+import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import './App.css';
 import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots, SYMBOL_REST, sanitizePattern } from './engine/patternLogic';
 import PatternEditor from './components/PatternEditor';
@@ -152,7 +152,7 @@ function App() {
     window.addEventListener('offline', onDown);
     return () => { window.removeEventListener('online', onUp); window.removeEventListener('offline', onDown); };
   }, []);
-  const { songs: cloudSongs, save: cloudSave, remove: cloudRemove, error: cloudError } = useSongs();
+  const { songs: cloudSongs, save: cloudSave, remove: cloudRemove } = useSongs();
   const { snippets: cloudSnippets, save: cloudSnippetSave, remove: cloudSnippetRemove } = useSnippets();
 
   // Snippet library — cloud when signed in, localStorage otherwise
@@ -185,8 +185,23 @@ function App() {
   const [renameSongInput, setRenameSongInput] = useState('');
   const [exportSelection, setExportSelection] = useState(() => new Set()); // song ids checked for selective export
   const [collapsedFolders, setCollapsedFolders] = useState(() => new Set()); // folder names that are collapsed in the library
+  const [librarySort, setLibrarySort] = useState(() => {
+    return localStorage.getItem('kendangLibrarySort') || 'name';
+  }); // 'name' | 'recent'
+  useEffect(() => {
+    localStorage.setItem('kendangLibrarySort', librarySort);
+  }, [librarySort]);
   const [templateDialog, setTemplateDialog] = useState(null); // { template, name, folder } when a template is being instantiated
   const [pendingDelete, setPendingDelete] = useState(null); // { type: 'song'|'folder', key } — highlights the active delete button
+  const [toast, setToast] = useState(null); // { message, kind: 'info'|'success'|'error' } — auto-dismisses after a short delay
+  const toastTimerRef = useRef(null);
+  const showToast = (message, kind = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast({ message, kind });
+    toastTimerRef.current = setTimeout(() => setToast(null), 2200);
+  };
+  const lastSavedSnapshotRef = useRef(null); // serialized snapshot of the last save/load — used to flag unsaved changes
+  const isModifiedSinceSave = !!currentSongId && lastSavedSnapshotRef.current !== null && JSON.stringify(song) !== lastSavedSnapshotRef.current;
   const toggleFolderCollapsed = (folder) => {
     setCollapsedFolders(prev => {
       const next = new Set(prev);
@@ -332,30 +347,35 @@ function App() {
   //   to the title so it's findable in the library.
 
   const _persist = async (payload) => {
+    let result;
     if (user) {
       try {
-        const fresh = await cloudSave(payload);
-        return fresh;
+        result = await cloudSave(payload);
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Cloud save failed, falling back to localStorage:', err);
         alert('Opslaan in cloud mislukt — opgeslagen alleen lokaal.');
       }
     }
-    // Fallback: legacy localStorage path
-    const entry = {
-      id: payload.id || Date.now().toString(),
-      name: payload.name,
-      folder: payload.folder,
-      date: new Date().toLocaleDateString('nl-NL'),
-      patterns: payload.patterns,
-    };
-    if (payload.id) {
-      setLocalSavedSongs(prev => prev.map(s => s.id === payload.id ? entry : s));
-    } else {
-      setLocalSavedSongs(prev => [...prev, entry]);
+    if (!result) {
+      // Fallback: legacy localStorage path
+      const entry = {
+        id: payload.id || Date.now().toString(),
+        name: payload.name,
+        folder: payload.folder,
+        date: new Date().toLocaleDateString('nl-NL'),
+        patterns: payload.patterns,
+      };
+      if (payload.id) {
+        setLocalSavedSongs(prev => prev.map(s => s.id === payload.id ? entry : s));
+      } else {
+        setLocalSavedSongs(prev => [...prev, entry]);
+      }
+      result = entry;
     }
-    return entry;
+    // Snapshot the patterns we just persisted so the unsaved-changes indicator resets.
+    lastSavedSnapshotRef.current = JSON.stringify(payload.patterns);
+    return result;
   };
 
   const handleUpdateSong = async () => {
@@ -367,7 +387,10 @@ function App() {
       bpm,
       patterns: JSON.parse(JSON.stringify(song)),
     });
-    if (fresh) setCurrentSongId(fresh.id);
+    if (fresh) {
+      setCurrentSongId(fresh.id);
+      showToast('Opgeslagen ✓');
+    }
   };
 
   const handleSaveAsNew = async () => {
@@ -378,7 +401,10 @@ function App() {
       bpm,
       patterns: JSON.parse(JSON.stringify(song)),
     });
-    if (fresh) setCurrentSongId(fresh.id);
+    if (fresh) {
+      setCurrentSongId(fresh.id);
+      showToast('Nieuwe song opgeslagen ✓');
+    }
   };
 
   const handleSaveAsCopy = async () => {
@@ -394,11 +420,55 @@ function App() {
     if (fresh) {
       setCurrentSongId(fresh.id);
       setSongName(copyName);
+      showToast('Kopie opgeslagen ✓');
     }
   };
 
-  // Legacy alias used by a couple of places that still call handleSaveSong.
-  const handleSaveSong = () => (currentSongId ? handleUpdateSong() : handleSaveAsNew());
+  // ── Auto-save ────────────────────────────────────────────────────────────
+  // When a cloud song is loaded and the user makes changes:
+  //   1. Debounce 5 seconds after the last edit and silently save.
+  //   2. Also flush the latest state when the tab is hidden or the page is
+  //      about to unload, so a refresh or app-switch never loses work.
+  // Auto-save is silent (no toast spam). If it fails the unsaved-changes dot
+  // stays visible so the user knows.
+  const autoSaveStateRef = useRef({ song, songName, songFolder, bpm, currentSongId, isModified: false, user: null });
+  useEffect(() => {
+    autoSaveStateRef.current = { song, songName, songFolder, bpm, currentSongId, isModified: isModifiedSinceSave, user };
+  }, [song, songName, songFolder, bpm, currentSongId, isModifiedSinceSave, user]);
+
+  const flushAutoSave = useCallback(() => {
+    const s = autoSaveStateRef.current;
+    if (!s.user || !s.currentSongId || !s.isModified) return;
+    _persist({
+      id: s.currentSongId,
+      name: (s.songName || '').trim() || 'Naamloos',
+      folder: (s.songFolder || '').trim() || 'Algemeen',
+      bpm: s.bpm,
+      patterns: JSON.parse(JSON.stringify(s.song)),
+    }).catch(err => console.warn('Auto-save failed (will retry):', err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced auto-save: 5s after the last edit
+  useEffect(() => {
+    if (!user || !currentSongId || !isOnline || !isModifiedSinceSave) return;
+    const id = setTimeout(flushAutoSave, 5000);
+    return () => clearTimeout(id);
+  }, [song, currentSongId, isOnline, user, isModifiedSinceSave, flushAutoSave]);
+
+  // Flush on tab hide / page unload
+  useEffect(() => {
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flushAutoSave(); };
+    const onPageHide = () => flushAutoSave();
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('beforeunload', onPageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('beforeunload', onPageHide);
+    };
+  }, [flushAutoSave]);
 
   // Rename a saved song. Reuses _persist so cloud + localStorage stay aligned.
   const handleRenameSong = async (song, newName) => {
@@ -414,6 +484,7 @@ function App() {
     if (fresh && song.id === currentSongId) setSongName(trimmed);
     setRenamingSongId(null);
     setRenameSongInput('');
+    if (fresh) showToast(`Hernoemd naar "${trimmed}"`);
   };
 
   // Move a saved song to a different folder. Reuses _persist so the cloud
@@ -431,41 +502,14 @@ function App() {
     if (fresh && song.id === currentSongId) setSongFolder(folder);
     setMoveSongTarget(null);
     setMoveSongFolderInput('');
-  };
-
-  const handleOverwriteSong = async (s) => {
-    if (user) {
-      try {
-        const fresh = await cloudSave({
-          id: s.id,
-          name: s.name,
-          folder: s.folder || 'Algemeen',
-          bpm,
-          patterns: JSON.parse(JSON.stringify(song)),
-        });
-        setSongName(s.name);
-        setSongFolder(s.folder || 'Algemeen');
-        setCurrentSongId(fresh.id);
-        setShowSongMenu(false);
-        return;
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Cloud overwrite failed, falling back to localStorage:', err);
-        alert('Overschrijven in cloud mislukt — opgeslagen alleen lokaal.');
-      }
-    }
-    const entry = { ...s, date: new Date().toLocaleDateString('nl-NL'), patterns: JSON.parse(JSON.stringify(song)) };
-    setLocalSavedSongs(prev => prev.map(saved => saved.id === s.id ? entry : saved));
-    setSongName(s.name);
-    setSongFolder(s.folder || 'Algemeen');
-    setCurrentSongId(s.id);
-    setShowSongMenu(false);
+    if (fresh) showToast(`Verplaatst naar "${folder}"`);
   };
 
   const handleNewSong = () => {
     const newSongName = `Song ${savedSongs.length + 2}`;
     const fresh = createEmptyPattern(t('defaultSectionName'));
     setSong([fresh]);
+    lastSavedSnapshotRef.current = null;
     setActivePatternId(fresh.id);
     setActiveSlot({ patternId: fresh.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
     setUndoStack([]);
@@ -478,6 +522,7 @@ function App() {
     const toLoad = savedSongs.find(s => s.id === savedId);
     if (!toLoad) return;
     setSong(toLoad.patterns);
+    lastSavedSnapshotRef.current = JSON.stringify(toLoad.patterns);
     setActivePatternId(toLoad.patterns[0].id);
     setActiveSlot({ patternId: toLoad.patterns[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 });
     setUndoStack([]);
@@ -502,6 +547,7 @@ function App() {
       try {
         await cloudRemove(id);
         if (currentSongId === id) setCurrentSongId(null);
+        showToast(`"${name}" verwijderd`);
         return;
       } catch (err) {
         // eslint-disable-next-line no-console
@@ -512,6 +558,7 @@ function App() {
     }
     setLocalSavedSongs(prev => prev.filter(s => s.id !== id));
     if (currentSongId === id) setCurrentSongId(null);
+    showToast(`"${name}" verwijderd`);
   };
 
   const handleDeleteFolder = async (folderName) => {
@@ -535,6 +582,7 @@ function App() {
     setCollapsedFolders(prev => {
       const next = new Set(prev); next.delete(folderName); return next;
     });
+    showToast(`Map "${folderName}" verwijderd (${inFolder.length} song${inFolder.length === 1 ? '' : 's'})`);
   };
 
   const handleRenameFolder = async (oldName, newName) => {
@@ -570,6 +618,31 @@ function App() {
     a.download = `${s.name.replace(/[^a-z0-9]/gi, '_')}.kendang`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteSelection = async () => {
+    const picked = savedSongs.filter(s => exportSelection.has(s.id));
+    if (picked.length === 0) return;
+    setPendingDelete({ type: 'bulk', key: 'selection' });
+    await new Promise(r => setTimeout(r, 50));
+    const ok = window.confirm(`Weet je zeker dat je ${picked.length} song${picked.length === 1 ? '' : 's'} wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`);
+    setPendingDelete(null);
+    if (!ok) return;
+    let removed = 0;
+    if (user) {
+      for (const s of picked) {
+        try { await cloudRemove(s.id); removed++; }
+        catch (err) { console.error('Bulk delete failed for', s.name, err); }
+      }
+    } else {
+      const ids = new Set(picked.map(s => s.id));
+      setLocalSavedSongs(prev => prev.filter(s => !ids.has(s.id)));
+      removed = picked.length;
+    }
+    if (picked.some(s => s.id === currentSongId)) setCurrentSongId(null);
+    setExportSelection(new Set());
+    setShowExportMenu(false);
+    showToast(`${removed} song${removed === 1 ? '' : 's'} verwijderd`);
   };
 
   const handleExportSelection = () => {
@@ -1831,9 +1904,13 @@ function App() {
   };
 
   const handleDeleteSnippet = async (snippetId) => {
+    const target = savedSnippets.find(s => s.id === snippetId);
+    const name = target?.name || 'dit patroon';
+    if (!window.confirm(`Weet je zeker dat je "${name}" wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`)) return;
     if (user) {
       try {
         await cloudSnippetRemove(snippetId);
+        showToast(`Patroon "${name}" verwijderd`);
         return;
       } catch (err) {
         // eslint-disable-next-line no-console
@@ -1843,6 +1920,76 @@ function App() {
       }
     }
     setLocalSavedSnippets(prev => prev.filter(s => s.id !== snippetId));
+    showToast(`Patroon "${name}" verwijderd`);
+  };
+
+  // Silent delete (no confirm) — used by bulk-delete which prompts once up front.
+  const handleDeleteSnippetSilently = async (snippetId) => {
+    if (user) {
+      try { await cloudSnippetRemove(snippetId); }
+      catch (err) { console.error('Snippet bulk delete failed:', err); }
+    } else {
+      setLocalSavedSnippets(prev => prev.filter(s => s.id !== snippetId));
+    }
+  };
+
+  const handleRenameSnippet = async (snippet, newName) => {
+    const trimmed = (newName || '').trim();
+    if (!trimmed || trimmed === snippet.name) return;
+    if (user) {
+      try {
+        await cloudSnippetSave({ id: snippet.id, name: trimmed, folder: snippet.folder || 'Algemeen', data: snippet.data });
+        showToast(`Hernoemd naar "${trimmed}"`);
+      } catch (err) { console.error('Snippet rename failed:', err); alert('Hernoemen mislukt.'); }
+    } else {
+      setLocalSavedSnippets(prev => prev.map(s => s.id === snippet.id ? { ...s, name: trimmed } : s));
+      showToast(`Hernoemd naar "${trimmed}"`);
+    }
+  };
+
+  const handleMoveSnippetToFolder = async (snippet, targetFolder) => {
+    const folder = (targetFolder || '').trim() || 'Algemeen';
+    if ((snippet.folder || 'Algemeen') === folder) return;
+    if (user) {
+      try {
+        await cloudSnippetSave({ id: snippet.id, name: snippet.name, folder, data: snippet.data });
+        showToast(`Verplaatst naar "${folder}"`);
+      } catch (err) { console.error('Snippet move failed:', err); alert('Verplaatsen mislukt.'); }
+    } else {
+      setLocalSavedSnippets(prev => prev.map(s => s.id === snippet.id ? { ...s, folder } : s));
+      showToast(`Verplaatst naar "${folder}"`);
+    }
+  };
+
+  const handleRenameSnippetFolder = async (oldName, newName) => {
+    const trimmed = (newName || '').trim();
+    if (!trimmed || trimmed === oldName) return;
+    const inFolder = savedSnippets.filter(s => (s.folder || 'Algemeen') === oldName);
+    if (user) {
+      for (const s of inFolder) {
+        try { await cloudSnippetSave({ id: s.id, name: s.name, folder: trimmed, data: s.data }); }
+        catch (err) { console.error('Snippet folder rename failed for', s.name, err); }
+      }
+    } else {
+      setLocalSavedSnippets(prev => prev.map(s => (s.folder || 'Algemeen') === oldName ? { ...s, folder: trimmed } : s));
+    }
+    showToast(`Map "${oldName}" → "${trimmed}"`);
+  };
+
+  const handleDeleteSnippetFolder = async (folderName) => {
+    const inFolder = savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName);
+    if (inFolder.length === 0) return;
+    const msg = `Weet je zeker dat je de map "${folderName}" wilt verwijderen?\n\nDit verwijdert ${inFolder.length} patroon${inFolder.length === 1 ? '' : 'en'} permanent.\n\nDeze actie kan niet ongedaan worden gemaakt.`;
+    if (!window.confirm(msg)) return;
+    if (user) {
+      for (const s of inFolder) {
+        try { await cloudSnippetRemove(s.id); }
+        catch (err) { console.error('Snippet folder delete failed for', s.name, err); }
+      }
+    } else {
+      setLocalSavedSnippets(prev => prev.filter(s => (s.folder || 'Algemeen') !== folderName));
+    }
+    showToast(`Map "${folderName}" verwijderd`);
   };
 
   const handleExportSnippets = () => {
@@ -1981,8 +2128,8 @@ function App() {
               id="song-save-btn"
               onClick={() => setShowSongMenu(v => !v)}
               style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
-              title={t('manageSong')}
-            >🎵 {songName || 'Song'}</button>
+              title={isModifiedSinceSave ? `${t('manageSong')} — niet opgeslagen wijzigingen` : t('manageSong')}
+            >🎵 {songName || 'Song'}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 4 }}>•</span>}</button>
 
             {showSongMenu && (
               <>
@@ -2154,7 +2301,20 @@ function App() {
           {/* ── Practice Mode lock ─────────────────────────────────────── */}
           <button
             className={`practice-mode-btn${isPulsing ? ' pulsing' : ''}`}
-            onClick={() => { setIsLocked(l => !l); setIsPulsing(true); }}
+            onClick={() => {
+              setIsLocked(l => {
+                const next = !l;
+                if (next) {
+                  // Show a one-time hint when first entering practice mode.
+                  if (localStorage.getItem('kendangPracticeTipSeen') !== 'yes') {
+                    showToast('Practice mode aan — invoer is uitgeschakeld');
+                    localStorage.setItem('kendangPracticeTipSeen', 'yes');
+                  }
+                }
+                return next;
+              });
+              setIsPulsing(true);
+            }}
             onAnimationEnd={() => setIsPulsing(false)}
             style={{
               background: isLocked ? 'rgba(212,175,55,0.15)' : 'transparent',
@@ -2486,22 +2646,33 @@ function App() {
                   <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-                    {/* Export dropdown */}
-                    <div style={{ position: 'relative' }}>
-                      <button
-                        onClick={() => setShowExportMenu(v => !v)}
-                        style={{ background: '#1e293b', color: '#38bdf8', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
-                      >{t('exportBtn')} ▾</button>
-                      {showExportMenu && (
-                        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', overflow: 'hidden', zIndex: 100, minWidth: '130px' }}>
-                          <button
-                            onClick={handleExportSelection}
-                            disabled={exportSelection.size === 0}
-                            style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: exportSelection.size > 0 ? '#fbbf24' : '#475569', border: 'none', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: exportSelection.size > 0 ? 'pointer' : 'default' }}
-                          >Export selectie ({exportSelection.size})</button>
-                        </div>
-                      )}
-                    </div>
+                    {/* Export selectie button — only enabled when something is selected */}
+                    <button
+                      onClick={handleExportSelection}
+                      disabled={exportSelection.size === 0}
+                      style={{
+                        background: '#1e293b',
+                        color: exportSelection.size > 0 ? '#fbbf24' : '#475569',
+                        border: '1px solid #334155',
+                        borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
+                        cursor: exportSelection.size > 0 ? 'pointer' : 'default',
+                      }}
+                      title="Exporteer geselecteerde songs"
+                    >Export ({exportSelection.size})</button>
+
+                    {/* Verwijder selectie button — directly visible, no dropdown */}
+                    <button
+                      onClick={handleDeleteSelection}
+                      disabled={exportSelection.size === 0}
+                      style={{
+                        background: '#1e293b',
+                        color: exportSelection.size > 0 ? '#ef4444' : '#475569',
+                        border: '1px solid #334155',
+                        borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
+                        cursor: exportSelection.size > 0 ? 'pointer' : 'default',
+                      }}
+                      title="Verwijder geselecteerde songs"
+                    >Delete ({exportSelection.size})</button>
 
                     {/* Import — single button, accepts both song and group files */}
                     <label style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}>
@@ -2512,14 +2683,25 @@ function App() {
                     <button onClick={() => { setShowSongLibrary(false); setShowExportMenu(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
-                <input
-                  type="text"
-                  value={songSearchQuery}
-                  onChange={(e) => setSongSearchQuery(e.target.value)}
-                  placeholder={t('searchPlaceholder')}
-                  style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
-                  autoFocus
-                />
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={songSearchQuery}
+                    onChange={(e) => setSongSearchQuery(e.target.value)}
+                    placeholder={t('searchPlaceholder')}
+                    style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                    autoFocus
+                  />
+                  <select
+                    value={librarySort}
+                    onChange={(e) => setLibrarySort(e.target.value)}
+                    style={{ background: '#0f172a', color: '#cbd5e1', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.5rem', fontSize: '0.78rem', cursor: 'pointer' }}
+                    title="Sorteren"
+                  >
+                    <option value="name">Naam A-Z</option>
+                    <option value="recent">Laatst bewerkt</option>
+                  </select>
+                </div>
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {/* Templates folder — read-only, always at the top of the library */}
                   {(() => {
@@ -2546,7 +2728,7 @@ function App() {
                         </div>
                         {!isCollapsed && (matches.length === 0 ? (
                           <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
-                            (Nog geen templates — voeg ze toe in src/factory/presets.js)
+                            Nog geen templates beschikbaar.
                           </div>
                         ) : matches.map((tpl) => (
                           <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px' }}>
@@ -2577,7 +2759,20 @@ function App() {
                       acc[f].push(s);
                       return acc;
                     }, {});
-                    const folders = Object.keys(byFolder).sort();
+                    // Sort songs within each folder according to the chosen order.
+                    const sortFn = librarySort === 'recent'
+                      ? (a, b) => (b.updated_at || '').localeCompare(a.updated_at || '')
+                      : (a, b) => a.name.localeCompare(b.name);
+                    Object.values(byFolder).forEach(arr => arr.sort(sortFn));
+                    // When sorting by recent, also reorder the folder list itself by the
+                    // newest song each folder contains. Otherwise stay alphabetical.
+                    let folders;
+                    if (librarySort === 'recent') {
+                      const folderRecency = (f) => byFolder[f][0]?.updated_at || '';
+                      folders = Object.keys(byFolder).sort((a, b) => folderRecency(b).localeCompare(folderRecency(a)));
+                    } else {
+                      folders = Object.keys(byFolder).sort();
+                    }
                     if (folders.length === 0) return (
                       <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>Geen resultaten.</p>
                     );
@@ -2679,17 +2874,6 @@ function App() {
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
                               title={t('exportSongTitle')}
                             >↑</button>
-                            <button
-                              onClick={() => handleDeleteSong(s.id)}
-                              style={{
-                                background: pendingDelete?.type === 'song' && pendingDelete.key === s.id ? 'rgba(239,68,68,0.25)' : 'transparent',
-                                color: '#ef4444',
-                                border: `1px solid ${pendingDelete?.type === 'song' && pendingDelete.key === s.id ? '#ef4444' : '#475569'}`,
-                                borderRadius: '4px', padding: '0.3rem 0.55rem', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              }}
-                              title="Song verwijderen"
-                            ><TrashIcon /></button>
                           </div>
                         ))}
                       </div>
@@ -2791,7 +2975,7 @@ function App() {
         <main className="sequencer-section">
         <div className="song-timeline">
           <div style={{ padding: '0.4rem 1rem 0.2rem', fontSize: '1.1rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center' }}>
-            {songName}
+            {songName}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 6 }} title="Niet opgeslagen wijzigingen">•</span>}
           </div>
           <SongMap
             song={song}
@@ -2872,6 +3056,11 @@ function App() {
                       handleSaveSnippet={handleSaveSnippet}
                       handleInsertSnippet={handleInsertSnippet}
                       handleDeleteSnippet={handleDeleteSnippet}
+                      handleRenameSnippet={handleRenameSnippet}
+                      handleMoveSnippetToFolder={handleMoveSnippetToFolder}
+                      handleRenameSnippetFolder={handleRenameSnippetFolder}
+                      handleDeleteSnippetFolder={handleDeleteSnippetFolder}
+                      handleDeleteSnippetSilently={handleDeleteSnippetSilently}
                       handleExportSnippets={handleExportSnippets}
                       handleImportSnippets={handleImportSnippets}
                       insertMeasure={() => insertMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
@@ -2920,6 +3109,22 @@ function App() {
         </div>
         </main>
       </div>
+
+      {/* ── Toast (auto-dismiss feedback) ─────────────────────────────── */}
+      {toast && (
+        <div
+          role="status"
+          style={{
+            position: 'fixed', bottom: '4.5rem', left: '50%', transform: 'translateX(-50%)',
+            background: toast.kind === 'error' ? '#7f1d1d' : '#1d4ed8',
+            color: '#fff', padding: '0.55rem 1.1rem', borderRadius: '8px',
+            fontSize: '0.85rem', fontWeight: 'bold',
+            boxShadow: '0 6px 24px rgba(0,0,0,0.45)',
+            zIndex: 9500, pointerEvents: 'none',
+            animation: 'fadein 0.18s ease-out',
+          }}
+        >{toast.message}</div>
+      )}
 
       {/* ── Migration dialog (one-time, when legacy localStorage songs exist) ── */}
       <MigrationDialog />

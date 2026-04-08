@@ -46,7 +46,8 @@
       "Bash(npx eslint@8 --no-eslintrc -c '{}' --rule '{\"\"\"\"no-unused-vars\"\"\"\":\"\"\"\"warn\"\"\"\"}' src/components/DrumPad.jsx)",
       "Bash(rg \"^\\\\s+/ \" /Users/wernerkanhai/Documents/KendangPasunanda/src --include=\"*.jsx\" --include=\"*.js\" -l)",
       "Bash(grep -v \"=>\\\\|/>$\\\\|, $\\\\|{$\\\\|\\($\\\\|import\\\\|export\")",
-      "Bash(wait)"
+      "Bash(wait)",
+      "Bash(grep -n \"document.body$\" /Users/wernerkanhai/Documents/KendangPasunanda/src/components/PatternEditor.jsx)"
     ]
   },
   "hooks": {

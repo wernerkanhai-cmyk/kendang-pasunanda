@@ -39,10 +39,15 @@ const PatternEditor = ({
   onSnapToGrid,
   inputEnabled,
   setInputEnabled,
-  savedSnippets, 
-  handleSaveSnippet, 
-  handleInsertSnippet, 
+  savedSnippets,
+  handleSaveSnippet,
+  handleInsertSnippet,
   handleDeleteSnippet,
+  handleRenameSnippet,
+  handleMoveSnippetToFolder,
+  handleRenameSnippetFolder,
+  handleDeleteSnippetFolder,
+  handleDeleteSnippetSilently,
   handleExportSnippets,
   handleImportSnippets,
   insertMeasure,
@@ -77,6 +82,14 @@ const PatternEditor = ({
   const [snippetName, setSnippetName] = useState('');
   const [snippetFolder, setSnippetFolder] = useState('Algemeen');
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
+  const [renamingSnippetId, setRenamingSnippetId] = useState(null);
+  const [renamingSnippetInput, setRenamingSnippetInput] = useState('');
+  const [renamingSnippetFolder, setRenamingSnippetFolder] = useState(null);
+  const [renamingSnippetFolderInput, setRenamingSnippetFolderInput] = useState('');
+  const [moveSnippetTarget, setMoveSnippetTarget] = useState(null); // snippet object
+  const [moveSnippetFolderInput, setMoveSnippetFolderInput] = useState('');
+  const [collapsedSnippetFolders, setCollapsedSnippetFolders] = useState(() => new Set());
+  const [snippetSelection, setSnippetSelection] = useState(() => new Set());
 const [showBeheer, setShowBeheer] = useState(true);
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
   const [metronomeMenuPos, setMetronomeMenuPos] = useState({ top: 0, left: 0 });
@@ -733,39 +746,164 @@ const [showBeheer, setShowBeheer] = useState(true);
            })()}
 
            {/* Snippet Manager Overlay */}
-           {isManagingSnippets && (
-             <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '1rem', zIndex: 100, minWidth: '250px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
+           {isManagingSnippets && (() => {
+             const toggleSnippetSelection = (id) => {
+               setSnippetSelection(prev => {
+                 const next = new Set(prev);
+                 if (next.has(id)) next.delete(id); else next.add(id);
+                 return next;
+               });
+             };
+             const toggleSnippetFolderSelection = (snipsInFolder) => {
+               setSnippetSelection(prev => {
+                 const next = new Set(prev);
+                 const allOn = snipsInFolder.every(s => next.has(s.id));
+                 if (allOn) snipsInFolder.forEach(s => next.delete(s.id));
+                 else snipsInFolder.forEach(s => next.add(s.id));
+                 return next;
+               });
+             };
+             const toggleSnippetFolderCollapsed = (folder) => {
+               setCollapsedSnippetFolders(prev => {
+                 const next = new Set(prev);
+                 if (next.has(folder)) next.delete(folder); else next.add(folder);
+                 return next;
+               });
+             };
+             const handleBulkDeleteSnippets = async () => {
+               if (snippetSelection.size === 0) return;
+               const ids = Array.from(snippetSelection);
+               if (!window.confirm(`Weet je zeker dat je ${ids.length} patroon${ids.length === 1 ? '' : 'en'} wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`)) return;
+               for (const id of ids) {
+                 // eslint-disable-next-line no-await-in-loop
+                 try { await handleDeleteSnippetSilently?.(id); } catch (_) { /* ignore */ }
+               }
+               setSnippetSelection(new Set());
+             };
+             return (
+             <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '1rem', zIndex: 100, minWidth: '280px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem' }}>
                    <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '0.9rem' }}>{t('snippetManagement')}</h4>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                     {snippetSelection.size > 0 && (
+                       <button
+                         onClick={handleBulkDeleteSnippets}
+                         style={{ background: '#1e293b', color: '#ef4444', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                         title="Verwijder geselecteerde patronen"
+                       >Delete ({snippetSelection.size})</button>
+                     )}
                      <button onClick={handleExportSnippets} style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
                      <label style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
                        {t('importSnippets')}
                        <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />
                      </label>
-                     <button onClick={() => setIsManagingSnippets(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+                     <button onClick={() => { setIsManagingSnippets(false); setSnippetSelection(new Set()); }} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
                    </div>
                 </div>
-                
+
                 {savedSnippets.length === 0 ? (
                    <div style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>{t('noPatternsStored')}</div>
                 ) : (
                    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                      {Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort().map(folderName => (
-                         <div key={folderName} style={{ marginBottom: '1rem' }}>
-                            <div style={{ fontSize: '0.75rem', color: '#38bdf8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>{folderName}</div>
-                            {savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName).map(snip => (
-                               <div key={snip.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.3rem 0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '4px', marginBottom: '2px' }}>
-                                  <span style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{snip.name} <span style={{ color: '#64748b', fontSize: '0.7rem' }}>({snip.trackId})</span></span>
-                                  <button onClick={() => handleDeleteSnippet(snip.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', fontSize: '0.9rem' }} title={t('deleteSnippet')}>🗑️</button>
+                      {Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort().map(folderName => {
+                         const snipsInFolder = savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName);
+                         const isCollapsed = collapsedSnippetFolders.has(folderName);
+                         const allChecked = snipsInFolder.length > 0 && snipsInFolder.every(s => snippetSelection.has(s.id));
+                         const someChecked = !allChecked && snipsInFolder.some(s => snippetSelection.has(s.id));
+                         return (
+                         <div key={folderName} style={{ marginBottom: '0.6rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #1e293b', paddingBottom: '0.2rem' }}>
+                              <input
+                                type="checkbox"
+                                checked={allChecked}
+                                ref={(el) => { if (el) el.indeterminate = someChecked; }}
+                                onChange={() => toggleSnippetFolderSelection(snipsInFolder)}
+                                style={{ accentColor: '#a78bfa', cursor: 'pointer' }}
+                                title="Selecteer hele map"
+                              />
+                              {renamingSnippetFolder === folderName ? (
+                                <input
+                                  autoFocus
+                                  value={renamingSnippetFolderInput}
+                                  onChange={(e) => setRenamingSnippetFolderInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') { handleRenameSnippetFolder?.(folderName, renamingSnippetFolderInput); setRenamingSnippetFolder(null); }
+                                    if (e.key === 'Escape') setRenamingSnippetFolder(null);
+                                  }}
+                                  onBlur={() => { handleRenameSnippetFolder?.(folderName, renamingSnippetFolderInput); setRenamingSnippetFolder(null); }}
+                                  style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #38bdf8', borderRadius: '3px', padding: '0.1rem 0.3rem', fontSize: '0.75rem', fontWeight: 'bold' }}
+                                />
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => toggleSnippetFolderCollapsed(folderName)}
+                                    style={{ background: 'none', border: 'none', color: '#38bdf8', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                                    title={isCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                                  >{isCollapsed ? '▶' : '▼'}</button>
+                                  <span
+                                    onClick={() => toggleSnippetFolderCollapsed(folderName)}
+                                    style={{ flex: 1, fontSize: '0.75rem', color: '#38bdf8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px', cursor: 'pointer' }}
+                                  >📁 {folderName} <span style={{ color: '#475569', fontWeight: 'normal' }}>({snipsInFolder.length})</span></span>
+                                  <button
+                                    onClick={() => { setRenamingSnippetFolder(folderName); setRenamingSnippetFolderInput(folderName); }}
+                                    style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.2rem' }}
+                                    title="Mapnaam wijzigen"
+                                  >✏</button>
+                                  <button
+                                    onClick={() => handleDeleteSnippetFolder?.(folderName)}
+                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0.2rem', display: 'flex', alignItems: 'center' }}
+                                    title="Hele map verwijderen"
+                                  >
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                                    </svg>
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                            {!isCollapsed && snipsInFolder.map(snip => (
+                               <div key={snip.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '4px', marginBottom: '2px' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={snippetSelection.has(snip.id)}
+                                    onChange={() => toggleSnippetSelection(snip.id)}
+                                    style={{ accentColor: '#a78bfa', cursor: 'pointer' }}
+                                  />
+                                  {renamingSnippetId === snip.id ? (
+                                    <input
+                                      autoFocus
+                                      value={renamingSnippetInput}
+                                      onChange={(e) => setRenamingSnippetInput(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') { handleRenameSnippet?.(snip, renamingSnippetInput); setRenamingSnippetId(null); }
+                                        if (e.key === 'Escape') setRenamingSnippetId(null);
+                                      }}
+                                      onBlur={() => { handleRenameSnippet?.(snip, renamingSnippetInput); setRenamingSnippetId(null); }}
+                                      style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3b82f6', borderRadius: '3px', padding: '0.15rem 0.4rem', fontSize: '0.85rem' }}
+                                    />
+                                  ) : (
+                                    <span style={{ flex: 1, fontSize: '0.85rem', color: '#e2e8f0' }}>{snip.name}</span>
+                                  )}
+                                  <button
+                                    onClick={() => { setRenamingSnippetId(snip.id); setRenamingSnippetInput(snip.name); }}
+                                    style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 4px' }}
+                                    title="Hernoemen"
+                                  >✏</button>
+                                  <button
+                                    onClick={() => { setMoveSnippetTarget(snip); setMoveSnippetFolderInput(''); }}
+                                    style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}
+                                    title="Verplaats naar andere map"
+                                  >📁</button>
                                </div>
                             ))}
                          </div>
-                      ))}
+                       );
+                      })}
                    </div>
                 )}
              </div>
-           )}
+             );
+           })()}
         </div>
         <div style={{ flex: '0 0 4.5rem' }} />
         <div className="pattern-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -908,8 +1046,8 @@ const [showBeheer, setShowBeheer] = useState(true);
                          metronomeHoldRef.current = null;
                        }
                      }}
-                     style={{ background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#94a3b8', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
-                     title={t('metronome')}
+                     style={{ position: 'relative', background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#94a3b8', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
+                     title={`${t('metronome')} — houd ingedrukt voor opties`}
                    >
                      <svg width="11" height="13" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                        <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
@@ -917,6 +1055,28 @@ const [showBeheer, setShowBeheer] = useState(true);
                        <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
                      </svg>
                    </button>
+                   {/* Tappable chevron — opens the menu directly. Sits on top of the
+                       button (absolute) but is its own element so the nested-pointer
+                       woes on Safari iOS are avoided. */}
+                   <span
+                     onPointerDown={(e) => {
+                       e.stopPropagation();
+                       e.preventDefault();
+                       if (metronomeHoldRef.current) { clearTimeout(metronomeHoldRef.current); metronomeHoldRef.current = null; }
+                       if (metronomeBtnRef.current) {
+                         const r = metronomeBtnRef.current.getBoundingClientRect();
+                         setMetronomeMenuPos({ top: r.bottom + 4, left: r.left });
+                       }
+                       setShowMetronomeMenu(true);
+                     }}
+                     style={{
+                       position: 'absolute', right: 1, bottom: 1, zIndex: 2,
+                       fontSize: '0.7rem', lineHeight: 1,
+                       color: metronomeMode ? '#fb923c' : '#94a3b8', opacity: 0.85,
+                       padding: '4px 5px', cursor: 'pointer', userSelect: 'none',
+                     }}
+                     title="Open metronoom-menu"
+                   >▾</span>
                    {showMetronomeMenu && ReactDOM.createPortal(
                      <>
                        <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
@@ -948,6 +1108,66 @@ const [showBeheer, setShowBeheer] = useState(true);
               </div>,
               document.body
            )}
+
+           {/* Move snippet to folder dialog */}
+           {moveSnippetTarget && ReactDOM.createPortal((() => {
+             const existingFolders = Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort();
+             const closeDialog = () => { setMoveSnippetTarget(null); setMoveSnippetFolderInput(''); };
+             const moveTo = (target) => {
+               const folder = (target || '').trim() || 'Algemeen';
+               if ((moveSnippetTarget.folder || 'Algemeen') === folder) { closeDialog(); return; }
+               handleMoveSnippetToFolder?.(moveSnippetTarget, folder);
+               closeDialog();
+             };
+             return (
+               <div onClick={closeDialog} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 <div onClick={(e) => e.stopPropagation()} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem', fontFamily: 'system-ui, sans-serif' }}>
+                   <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>Verplaats "{moveSnippetTarget.name}"</div>
+                   <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Huidige map: <strong>{moveSnippetTarget.folder || 'Algemeen'}</strong></div>
+                   <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Bestaande mappen:</div>
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', maxHeight: '180px', overflowY: 'auto' }}>
+                     {existingFolders.map(f => (
+                       <button
+                         key={f}
+                         onClick={() => moveTo(f)}
+                         disabled={f === (moveSnippetTarget.folder || 'Algemeen')}
+                         style={{
+                           textAlign: 'left', background: '#0f172a',
+                           color: f === (moveSnippetTarget.folder || 'Algemeen') ? '#475569' : '#e2e8f0',
+                           border: '1px solid #334155', borderRadius: '6px',
+                           padding: '0.45rem 0.75rem', fontSize: '0.85rem',
+                           cursor: f === (moveSnippetTarget.folder || 'Algemeen') ? 'default' : 'pointer',
+                         }}
+                       >📁 {f}{f === (moveSnippetTarget.folder || 'Algemeen') ? '  (huidige)' : ''}</button>
+                     ))}
+                   </div>
+                   <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Of nieuwe map:</div>
+                   <input
+                     type="text" value={moveSnippetFolderInput}
+                     onChange={(e) => setMoveSnippetFolderInput(e.target.value)}
+                     onKeyDown={(e) => { if (e.key === 'Enter' && moveSnippetFolderInput.trim()) moveTo(moveSnippetFolderInput); }}
+                     placeholder="bv. Tepak Dua, Mincid, ..."
+                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                   />
+                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                     <button onClick={closeDialog} style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}>Annuleer</button>
+                     <button
+                       onClick={() => moveTo(moveSnippetFolderInput)}
+                       disabled={!moveSnippetFolderInput.trim()}
+                       style={{
+                         background: moveSnippetFolderInput.trim() ? '#3b82f6' : '#1e293b',
+                         color: moveSnippetFolderInput.trim() ? '#fff' : '#475569',
+                         border: 'none', borderRadius: '6px',
+                         padding: '0.4rem 0.9rem',
+                         cursor: moveSnippetFolderInput.trim() ? 'pointer' : 'default',
+                         fontSize: '0.85rem', fontWeight: 'bold',
+                       }}
+                     >Verplaats</button>
+                   </div>
+                 </div>
+               </div>
+             );
+           })(), document.body)}
 
         </div>
       </div>
