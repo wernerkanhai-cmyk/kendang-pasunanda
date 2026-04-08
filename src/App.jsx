@@ -17,6 +17,17 @@ import MigrationDialog from './components/MigrationDialog';
 const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
 const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
 
+// Inline trash icon — uses currentColor so the parent button's `color` actually applies.
+const TrashIcon = ({ size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+    <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+  </svg>
+);
+
 function App() {
   const t = useT();
   const { language, setLanguage } = useLanguage();
@@ -175,6 +186,7 @@ function App() {
   const [exportSelection, setExportSelection] = useState(() => new Set()); // song ids checked for selective export
   const [collapsedFolders, setCollapsedFolders] = useState(() => new Set()); // folder names that are collapsed in the library
   const [templateDialog, setTemplateDialog] = useState(null); // { template, name, folder } when a template is being instantiated
+  const [pendingDelete, setPendingDelete] = useState(null); // { type: 'song'|'folder', key } — highlights the active delete button
   const toggleFolderCollapsed = (folder) => {
     setCollapsedFolders(prev => {
       const next = new Set(prev);
@@ -480,7 +492,12 @@ function App() {
   const handleDeleteSong = async (id) => {
     const target = savedSongs.find(s => s.id === id);
     const name = target?.name || 'deze song';
-    if (!window.confirm(`Weet je zeker dat je "${name}" wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`)) return;
+    setPendingDelete({ type: 'song', key: id });
+    // Yield to the browser so the red highlight paints before the blocking confirm.
+    await new Promise(r => setTimeout(r, 50));
+    const ok = window.confirm(`Weet je zeker dat je "${name}" wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`);
+    setPendingDelete(null);
+    if (!ok) return;
     if (user) {
       try {
         await cloudRemove(id);
@@ -500,8 +517,12 @@ function App() {
   const handleDeleteFolder = async (folderName) => {
     const inFolder = savedSongs.filter(s => (s.folder || 'Algemeen') === folderName);
     if (inFolder.length === 0) return;
+    setPendingDelete({ type: 'folder', key: folderName });
+    await new Promise(r => setTimeout(r, 50));
     const msg = `Weet je zeker dat je de map "${folderName}" wilt verwijderen?\n\nDit verwijdert ${inFolder.length} song${inFolder.length === 1 ? '' : 's'} permanent.\n\nDeze actie kan niet ongedaan worden gemaakt.`;
-    if (!window.confirm(msg)) return;
+    const ok = window.confirm(msg);
+    setPendingDelete(null);
+    if (!ok) return;
     if (user) {
       for (const s of inFolder) {
         try { await cloudRemove(s.id); }
@@ -2598,9 +2619,17 @@ function App() {
                               >✏</button>
                               <button
                                 onClick={() => handleDeleteFolder(folder)}
-                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem', padding: '0 0.2rem', lineHeight: 1 }}
+                                style={{
+                                  background: pendingDelete?.type === 'folder' && pendingDelete.key === folder ? 'rgba(239,68,68,0.25)' : 'transparent',
+                                  border: `1px solid ${pendingDelete?.type === 'folder' && pendingDelete.key === folder ? '#ef4444' : 'transparent'}`,
+                                  borderRadius: '4px',
+                                  color: '#ef4444',
+                                  cursor: 'pointer',
+                                  padding: '0.15rem 0.3rem',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}
                                 title="Hele map verwijderen"
-                              >🗑</button>
+                              ><TrashIcon size={13} /></button>
                             </>
                           )}
                         </div>
@@ -2652,9 +2681,15 @@ function App() {
                             >↑</button>
                             <button
                               onClick={() => handleDeleteSong(s.id)}
-                              style={{ background: 'transparent', color: '#ef4444', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                              style={{
+                                background: pendingDelete?.type === 'song' && pendingDelete.key === s.id ? 'rgba(239,68,68,0.25)' : 'transparent',
+                                color: '#ef4444',
+                                border: `1px solid ${pendingDelete?.type === 'song' && pendingDelete.key === s.id ? '#ef4444' : '#475569'}`,
+                                borderRadius: '4px', padding: '0.3rem 0.55rem', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              }}
                               title="Song verwijderen"
-                            >🗑</button>
+                            ><TrashIcon /></button>
                           </div>
                         ))}
                       </div>
