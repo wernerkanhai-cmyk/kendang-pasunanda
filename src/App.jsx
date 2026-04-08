@@ -176,6 +176,8 @@ function App() {
   const [renameFolderInput, setRenameFolderInput] = useState('');
   const [moveSongTarget, setMoveSongTarget] = useState(null); // { id, name, currentFolder } for move dialog
   const [moveSongFolderInput, setMoveSongFolderInput] = useState('');
+  const [renamingSongId, setRenamingSongId] = useState(null);
+  const [renameSongInput, setRenameSongInput] = useState('');
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [showSongMenu, setShowSongMenu] = useState(false);
@@ -381,6 +383,22 @@ function App() {
 
   // Legacy alias used by a couple of places that still call handleSaveSong.
   const handleSaveSong = () => (currentSongId ? handleUpdateSong() : handleSaveAsNew());
+
+  // Rename a saved song. Reuses _persist so cloud + localStorage stay aligned.
+  const handleRenameSong = async (song, newName) => {
+    const trimmed = (newName || '').trim();
+    if (!trimmed || trimmed === song.name) { setRenamingSongId(null); return; }
+    const fresh = await _persist({
+      id: song.id,
+      name: trimmed,
+      folder: song.folder || 'Algemeen',
+      bpm: song.bpm ?? bpm,
+      patterns: song.patterns ?? [],
+    });
+    if (fresh && song.id === currentSongId) setSongName(trimmed);
+    setRenamingSongId(null);
+    setRenameSongInput('');
+  };
 
   // Move a saved song to a different folder. Reuses _persist so the cloud
   // path stays in one place.
@@ -2442,10 +2460,29 @@ function App() {
                         </div>
                         {byFolder[folder].map(s => (
                           <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : 'transparent' }}>
-                            <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.875rem' }}>
-                              {s.id === currentSongId ? '▶ ' : ''}{s.name}
-                              <span style={{ color: '#64748b', fontSize: '0.75rem', marginLeft: '0.5rem' }}>{s.date}</span>
-                            </span>
+                            {renamingSongId === s.id ? (
+                              <input
+                                autoFocus
+                                value={renameSongInput}
+                                onChange={(e) => setRenameSongInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleRenameSong(s, renameSongInput);
+                                  if (e.key === 'Escape') { setRenamingSongId(null); setRenameSongInput(''); }
+                                }}
+                                onBlur={() => handleRenameSong(s, renameSongInput)}
+                                style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3b82f6', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.875rem' }}
+                              />
+                            ) : (
+                              <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <span>{s.id === currentSongId ? '▶ ' : ''}{s.name}</span>
+                                <button
+                                  onClick={() => { setRenamingSongId(s.id); setRenameSongInput(s.name); }}
+                                  style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
+                                  title="Naam wijzigen"
+                                >✏</button>
+                                <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{s.date}</span>
+                              </span>
+                            )}
                             <button
                               onClick={() => handleLoadSong(s.id)}
                               style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
