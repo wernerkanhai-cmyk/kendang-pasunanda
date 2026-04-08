@@ -173,6 +173,7 @@ function App() {
   const [moveSongFolderInput, setMoveSongFolderInput] = useState('');
   const [renamingSongId, setRenamingSongId] = useState(null);
   const [renameSongInput, setRenameSongInput] = useState('');
+  const [exportSelection, setExportSelection] = useState(() => new Set()); // song ids checked for selective export
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [showSongMenu, setShowSongMenu] = useState(false);
@@ -465,6 +466,7 @@ function App() {
     setSongName(toLoad.name);
     setSongFolder(toLoad.folder || 'Algemeen');
     setShowSongLibrary(false);
+    setExportSelection(new Set());
   };
 
   const handleDeleteSong = async (id) => {
@@ -576,6 +578,42 @@ function App() {
     a.download = `kendang-bibliotheek-${new Date().toISOString().slice(0, 10)}.kendang-lib`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportSelection = () => {
+    const picked = savedSongs.filter(s => exportSelection.has(s.id));
+    if (picked.length === 0) return;
+    const encoded = encodeData(picked);
+    const blob = new Blob([encoded], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kendang-selectie-${picked.length}-${new Date().toISOString().slice(0, 10)}.kendang-lib`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExportSelection(new Set());
+    setShowExportMenu(false);
+  };
+
+  const toggleExportSong = (id) => {
+    setExportSelection(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleExportFolder = (songsInFolder) => {
+    setExportSelection(prev => {
+      const next = new Set(prev);
+      const allChecked = songsInFolder.every(s => next.has(s.id));
+      if (allChecked) {
+        for (const s of songsInFolder) next.delete(s.id);
+      } else {
+        for (const s of songsInFolder) next.add(s.id);
+      }
+      return next;
+    });
   };
 
   const handleImportLibrary = (e) => {
@@ -2365,7 +2403,7 @@ function App() {
           {/* Song Library Modal */}
           {showSongLibrary && (
             <div
-              onClick={() => setShowSongLibrary(false)}
+              onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }}
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <div
@@ -2393,6 +2431,11 @@ function App() {
                             disabled={savedSongs.length === 0}
                             style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: savedSongs.length > 0 ? '#e2e8f0' : '#475569', border: 'none', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: savedSongs.length > 0 ? 'pointer' : 'default' }}
                           >{t('exportLib')}</button>
+                          <button
+                            onClick={handleExportSelection}
+                            disabled={exportSelection.size === 0}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: exportSelection.size > 0 ? '#fbbf24' : '#475569', border: 'none', borderTop: '1px solid #334155', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: exportSelection.size > 0 ? 'pointer' : 'default' }}
+                          >Export selectie ({exportSelection.size})</button>
                         </div>
                       )}
                     </div>
@@ -2417,7 +2460,7 @@ function App() {
                       )}
                     </div>
 
-                    <button onClick={() => { setShowSongLibrary(false); setShowExportMenu(false); setShowImportMenu(false); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                    <button onClick={() => { setShowSongLibrary(false); setShowExportMenu(false); setShowImportMenu(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
                 <input
@@ -2449,6 +2492,14 @@ function App() {
                     return folders.map(folder => (
                       <div key={folder}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #334155', marginBottom: '0.25rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={byFolder[folder].length > 0 && byFolder[folder].every(s => exportSelection.has(s.id))}
+                            ref={(el) => { if (el) el.indeterminate = byFolder[folder].some(s => exportSelection.has(s.id)) && !byFolder[folder].every(s => exportSelection.has(s.id)); }}
+                            onChange={() => toggleExportFolder(byFolder[folder])}
+                            title="Selecteer hele map voor export"
+                            style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
+                          />
                           {renamingFolder === folder ? (
                             <input
                               autoFocus
@@ -2471,6 +2522,13 @@ function App() {
                         </div>
                         {byFolder[folder].map(s => (
                           <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : 'transparent' }}>
+                            <input
+                              type="checkbox"
+                              checked={exportSelection.has(s.id)}
+                              onChange={() => toggleExportSong(s.id)}
+                              title="Selecteer voor export"
+                              style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
+                            />
                             {renamingSongId === s.id ? (
                               <input
                                 autoFocus
