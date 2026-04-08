@@ -47,7 +47,11 @@
       "Bash(rg \"^\\\\s+/ \" /Users/wernerkanhai/Documents/KendangPasunanda/src --include=\"*.jsx\" --include=\"*.js\" -l)",
       "Bash(grep -v \"=>\\\\|/>$\\\\|, $\\\\|{$\\\\|\\($\\\\|import\\\\|export\")",
       "Bash(wait)",
-      "Bash(grep -n \"document.body$\" /Users/wernerkanhai/Documents/KendangPasunanda/src/components/PatternEditor.jsx)"
+      "Bash(grep -n \"document.body$\" /Users/wernerkanhai/Documents/KendangPasunanda/src/components/PatternEditor.jsx)",
+      "Bash(grep -l \"Fragment\" *.jsx components/*.jsx)",
+      "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && grep \"Fragment\" {} && grep -c \"Fragment\" {}')",
+      "Bash(grep -rE 't\\\\\\(['\\\\''\"`]__TRACKED_VAR__['\\\\''\"`]\\\\\\)' src/ '--include=*.jsx' '--include=*.js')",
+      "Bash(npx eslint:*)"
     ]
   },
   "hooks": {

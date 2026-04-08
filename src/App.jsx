@@ -176,7 +176,6 @@ function App() {
   const [songName, setSongName] = useState('Song 1');
   const [songFolder, setSongFolder] = useState('Algemeen');
   const [showSongLibrary, setShowSongLibrary] = useState(false);
-  const [showExportMenu, setShowExportMenu] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState(null); // folder name being renamed
   const [renameFolderInput, setRenameFolderInput] = useState('');
   const [moveSongTarget, setMoveSongTarget] = useState(null); // { id, name, currentFolder } for move dialog
@@ -641,7 +640,6 @@ function App() {
     }
     if (picked.some(s => s.id === currentSongId)) setCurrentSongId(null);
     setExportSelection(new Set());
-    setShowExportMenu(false);
     showToast(`${removed} song${removed === 1 ? '' : 's'} verwijderd`);
   };
 
@@ -657,7 +655,6 @@ function App() {
     a.click();
     URL.revokeObjectURL(url);
     setExportSelection(new Set());
-    setShowExportMenu(false);
   };
 
   const toggleExportSong = (id) => {
@@ -2680,7 +2677,7 @@ function App() {
                       <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
                     </label>
 
-                    <button onClick={() => { setShowSongLibrary(false); setShowExportMenu(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                    <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
