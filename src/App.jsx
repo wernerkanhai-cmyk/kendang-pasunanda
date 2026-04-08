@@ -174,6 +174,8 @@ function App() {
   const [showImportMenu, setShowImportMenu] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState(null); // folder name being renamed
   const [renameFolderInput, setRenameFolderInput] = useState('');
+  const [moveSongTarget, setMoveSongTarget] = useState(null); // { id, name, currentFolder } for move dialog
+  const [moveSongFolderInput, setMoveSongFolderInput] = useState('');
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [showSongMenu, setShowSongMenu] = useState(false);
@@ -379,6 +381,23 @@ function App() {
 
   // Legacy alias used by a couple of places that still call handleSaveSong.
   const handleSaveSong = () => (currentSongId ? handleUpdateSong() : handleSaveAsNew());
+
+  // Move a saved song to a different folder. Reuses _persist so the cloud
+  // path stays in one place.
+  const handleMoveSongToFolder = async (song, targetFolder) => {
+    const folder = (targetFolder || '').trim() || 'Algemeen';
+    if ((song.folder || 'Algemeen') === folder) { setMoveSongTarget(null); return; }
+    const fresh = await _persist({
+      id: song.id,
+      name: song.name,
+      folder,
+      bpm: song.bpm ?? bpm,
+      patterns: song.patterns ?? [],
+    });
+    if (fresh && song.id === currentSongId) setSongFolder(folder);
+    setMoveSongTarget(null);
+    setMoveSongFolderInput('');
+  };
 
   const handleOverwriteSong = async (s) => {
     if (user) {
@@ -2238,6 +2257,82 @@ function App() {
             </div>
           )}
 
+          {/* Move song to folder dialog */}
+          {moveSongTarget && (() => {
+            const existingFolders = Array.from(new Set(savedSongs.map(s => s.folder || 'Algemeen'))).sort();
+            return (
+              <div
+                onClick={() => { setMoveSongTarget(null); setMoveSongFolderInput(''); }}
+                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
+                >
+                  <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>
+                    Verplaats "{moveSongTarget.name}"
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                    Huidige map: <strong>{moveSongTarget.folder}</strong>
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>
+                    Bestaande mappen:
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', maxHeight: '180px', overflowY: 'auto' }}>
+                    {existingFolders.map(f => (
+                      <button
+                        key={f}
+                        onClick={() => handleMoveSongToFolder(moveSongTarget, f)}
+                        disabled={f === moveSongTarget.folder}
+                        style={{
+                          textAlign: 'left',
+                          background: f === moveSongTarget.folder ? '#0f172a' : '#0f172a',
+                          color: f === moveSongTarget.folder ? '#475569' : '#e2e8f0',
+                          border: '1px solid #334155',
+                          borderRadius: '6px',
+                          padding: '0.45rem 0.75rem',
+                          fontSize: '0.85rem',
+                          cursor: f === moveSongTarget.folder ? 'default' : 'pointer',
+                        }}
+                      >
+                        📁 {f}{f === moveSongTarget.folder ? '  (huidige)' : ''}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>
+                    Of nieuwe map:
+                  </div>
+                  <input
+                    type="text"
+                    value={moveSongFolderInput}
+                    onChange={(e) => setMoveSongFolderInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && moveSongFolderInput.trim()) handleMoveSongToFolder(moveSongTarget, moveSongFolderInput); }}
+                    placeholder="bv. Buka'an, Pangjadi, ..."
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                  />
+                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={() => { setMoveSongTarget(null); setMoveSongFolderInput(''); }}
+                      style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                    >Annuleer</button>
+                    <button
+                      onClick={() => handleMoveSongToFolder(moveSongTarget, moveSongFolderInput)}
+                      disabled={!moveSongFolderInput.trim()}
+                      style={{
+                        background: moveSongFolderInput.trim() ? '#3b82f6' : '#1e293b',
+                        color: moveSongFolderInput.trim() ? '#fff' : '#475569',
+                        border: 'none', borderRadius: '6px',
+                        padding: '0.4rem 0.9rem',
+                        cursor: moveSongFolderInput.trim() ? 'pointer' : 'default',
+                        fontSize: '0.85rem', fontWeight: 'bold',
+                      }}
+                    >Verplaats</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Song Library Modal */}
           {showSongLibrary && (
             <div
@@ -2355,6 +2450,11 @@ function App() {
                               onClick={() => handleLoadSong(s.id)}
                               style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
                             >{t('loadBtn')}</button>
+                            <button
+                              onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
+                              style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                              title="Verplaats naar andere map"
+                            >📁</button>
                             <button
                               onClick={() => handleExportSong(s)}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
