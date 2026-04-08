@@ -478,6 +478,9 @@ function App() {
   };
 
   const handleDeleteSong = async (id) => {
+    const target = savedSongs.find(s => s.id === id);
+    const name = target?.name || 'deze song';
+    if (!window.confirm(`Weet je zeker dat je "${name}" wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`)) return;
     if (user) {
       try {
         await cloudRemove(id);
@@ -492,6 +495,25 @@ function App() {
     }
     setLocalSavedSongs(prev => prev.filter(s => s.id !== id));
     if (currentSongId === id) setCurrentSongId(null);
+  };
+
+  const handleDeleteFolder = async (folderName) => {
+    const inFolder = savedSongs.filter(s => (s.folder || 'Algemeen') === folderName);
+    if (inFolder.length === 0) return;
+    const msg = `Weet je zeker dat je de map "${folderName}" wilt verwijderen?\n\nDit verwijdert ${inFolder.length} song${inFolder.length === 1 ? '' : 's'} permanent.\n\nDeze actie kan niet ongedaan worden gemaakt.`;
+    if (!window.confirm(msg)) return;
+    if (user) {
+      for (const s of inFolder) {
+        try { await cloudRemove(s.id); }
+        catch (err) { console.error('Folder delete failed for', s.name, err); }
+      }
+    } else {
+      setLocalSavedSongs(prev => prev.filter(s => (s.folder || 'Algemeen') !== folderName));
+    }
+    if (inFolder.some(s => s.id === currentSongId)) setCurrentSongId(null);
+    setCollapsedFolders(prev => {
+      const next = new Set(prev); next.delete(folderName); return next;
+    });
   };
 
   const handleRenameFolder = async (oldName, newName) => {
@@ -2574,6 +2596,11 @@ function App() {
                                 style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
                                 title="Mapnaam wijzigen"
                               >✏</button>
+                              <button
+                                onClick={() => handleDeleteFolder(folder)}
+                                style={{ background: 'none', border: 'none', color: '#7f1d1d', cursor: 'pointer', fontSize: '0.8rem', padding: '0 0.2rem', lineHeight: 1 }}
+                                title="Hele map verwijderen"
+                              >🗑</button>
                             </>
                           )}
                         </div>
