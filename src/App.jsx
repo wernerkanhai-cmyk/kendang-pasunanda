@@ -303,48 +303,82 @@ function App() {
     localStorage.setItem('kendangCursorOffsetMs', String(cursorOffsetMs));
   }, [cursorOffsetMs]);
 
-  const handleSaveSong = async () => {
-    const name = songName.trim() || 'Naamloos';
-    const folder = songFolder.trim() || 'Algemeen';
+  // ── SAVE FLOWS — three explicit actions ──────────────────────────────────
+  // saveCurrent: overwrite the currently loaded song (Update). No-ops if there
+  //   is no loaded song; the UI hides the button in that case.
+  // saveAsNew: create a new song row with the current name + folder. Used when
+  //   nothing is loaded yet, or when the user explicitly wants a fresh entry.
+  // saveAsCopy: duplicate the current state into a new row, appending '(kopie)'
+  //   to the title so it's findable in the library.
 
-    // "Save As": if name or folder differs from the currently loaded song, always create a new entry
-    const original = currentSongId ? savedSongs.find(s => s.id === currentSongId) : null;
-    const isSaveAs = !original || original.name !== name || original.folder !== folder;
-
-    const payload = {
-      id: isSaveAs ? null : currentSongId,
-      name,
-      folder,
-      bpm,
-      patterns: JSON.parse(JSON.stringify(song)),
-    };
-
+  const _persist = async (payload) => {
     if (user) {
       try {
         const fresh = await cloudSave(payload);
-        setCurrentSongId(fresh.id);
-        return;
+        return fresh;
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Cloud save failed, falling back to localStorage:', err);
         alert('Opslaan in cloud mislukt — opgeslagen alleen lokaal.');
       }
     }
-
     // Fallback: legacy localStorage path
     const entry = {
-      id: isSaveAs ? Date.now().toString() : currentSongId,
-      name, folder,
+      id: payload.id || Date.now().toString(),
+      name: payload.name,
+      folder: payload.folder,
       date: new Date().toLocaleDateString('nl-NL'),
       patterns: payload.patterns,
     };
-    if (!isSaveAs) {
-      setLocalSavedSongs(prev => prev.map(s => s.id === currentSongId ? entry : s));
+    if (payload.id) {
+      setLocalSavedSongs(prev => prev.map(s => s.id === payload.id ? entry : s));
     } else {
       setLocalSavedSongs(prev => [...prev, entry]);
-      setCurrentSongId(entry.id);
+    }
+    return entry;
+  };
+
+  const handleUpdateSong = async () => {
+    if (!currentSongId) return;
+    const fresh = await _persist({
+      id: currentSongId,
+      name: songName.trim() || 'Naamloos',
+      folder: songFolder.trim() || 'Algemeen',
+      bpm,
+      patterns: JSON.parse(JSON.stringify(song)),
+    });
+    if (fresh) setCurrentSongId(fresh.id);
+  };
+
+  const handleSaveAsNew = async () => {
+    const fresh = await _persist({
+      id: null,
+      name: songName.trim() || 'Naamloos',
+      folder: songFolder.trim() || 'Algemeen',
+      bpm,
+      patterns: JSON.parse(JSON.stringify(song)),
+    });
+    if (fresh) setCurrentSongId(fresh.id);
+  };
+
+  const handleSaveAsCopy = async () => {
+    const baseName = songName.trim() || 'Naamloos';
+    const copyName = `${baseName} (kopie)`;
+    const fresh = await _persist({
+      id: null,
+      name: copyName,
+      folder: songFolder.trim() || 'Algemeen',
+      bpm,
+      patterns: JSON.parse(JSON.stringify(song)),
+    });
+    if (fresh) {
+      setCurrentSongId(fresh.id);
+      setSongName(copyName);
     }
   };
+
+  // Legacy alias used by a couple of places that still call handleSaveSong.
+  const handleSaveSong = () => (currentSongId ? handleUpdateSong() : handleSaveAsNew());
 
   const handleOverwriteSong = async (s) => {
     if (user) {
@@ -1847,43 +1881,52 @@ function App() {
                   <input type="text" value={songFolder} onChange={(e) => setSongFolder(e.target.value)}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
                     placeholder={t('folderPlaceholder')} />
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <button onClick={() => { handleSaveSong(); setShowSongMenu(false); }}
-                      style={{ flex: 1, background: '#3b82f6', color: '#fff', padding: '0.5rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                      title={currentSongId ? 'Update saved song' : 'Save current song'}
-                    >💾 {currentSongId ? t('updateBtn') : t('saveBtn')}</button>
-                    <button onClick={() => { handleNewSong(); setShowSongMenu(false); }}
-                      style={{ background: '#10b981', color: '#fff', padding: '0.5rem 0.8rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                    >{t('newBtn')}</button>
-                  </div>
+
+                  {/* Three explicit save actions */}
+                  <button
+                    onClick={() => { handleUpdateSong(); setShowSongMenu(false); }}
+                    disabled={!currentSongId}
+                    style={{
+                      background: currentSongId ? '#3b82f6' : '#1e293b',
+                      color: currentSongId ? '#fff' : '#475569',
+                      padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold',
+                      border: '1px solid', borderColor: currentSongId ? '#3b82f6' : '#334155',
+                      cursor: currentSongId ? 'pointer' : 'default', fontSize: '0.85rem',
+                    }}
+                    title={currentSongId ? 'Overschrijf de geladen song' : 'Geen song geladen'}
+                  >💾 Update</button>
+
+                  <button
+                    onClick={() => { handleSaveAsNew(); setShowSongMenu(false); }}
+                    style={{ background: '#10b981', color: '#fff', padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                    title="Maak een nieuwe song met de huidige naam + folder"
+                  >➕ Save as new</button>
+
+                  <button
+                    onClick={() => { handleSaveAsCopy(); setShowSongMenu(false); }}
+                    disabled={!currentSongId}
+                    style={{
+                      background: currentSongId ? '#0f172a' : '#1e293b',
+                      color: currentSongId ? '#e2e8f0' : '#475569',
+                      padding: '0.55rem', borderRadius: '6px',
+                      border: '1px solid #334155',
+                      cursor: currentSongId ? 'pointer' : 'default', fontSize: '0.85rem',
+                    }}
+                    title={currentSongId ? 'Kopieer naar nieuwe entry met "(kopie)" achter de naam' : 'Geen song geladen'}
+                  >📋 Save copy</button>
+
+                  <div style={{ height: '1px', background: '#334155', margin: '0.2rem 0' }} />
+
+                  <button onClick={() => { handleNewSong(); setShowSongMenu(false); }}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                    title="Begin met een lege song"
+                  >✨ {t('newBtn')}</button>
+
                   <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >{t('libraryBtn')}</button>
+                    title="Open de bibliotheek om een song te laden of te verwijderen"
+                  >📚 {t('libraryBtn')}</button>
 
-                  {savedSongs.length > 0 && (() => {
-                    const byFolder = savedSongs.reduce((acc, s) => {
-                      const f = s.folder || 'Algemeen';
-                      if (!acc[f]) acc[f] = [];
-                      acc[f].push(s);
-                      return acc;
-                    }, {});
-                    return (
-                      <div style={{ borderTop: '1px solid #334155', paddingTop: '0.4rem', maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                        {Object.keys(byFolder).sort().map(folder => (
-                          <div key={folder}>
-                            <div style={{ color: '#475569', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.2rem 0.1rem 0.1rem' }}>📁 {folder}</div>
-                            {byFolder[folder].map(s => (
-                              <button key={s.id}
-                                onClick={() => handleOverwriteSong(s)}
-                                style={{ display: 'block', width: '100%', textAlign: 'left', background: s.id === currentSongId ? 'rgba(59,130,246,0.2)' : 'none', color: s.id === currentSongId ? '#93c5fd' : '#94a3b8', border: 'none', borderRadius: '4px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                                title={`Overschrijf "${s.name}"`}
-                              >{s.id === currentSongId ? '▶ ' : ''}{s.name}</button>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
                   {FACTORY_PRESETS.length > 0 && (
                     <select defaultValue=""
                       onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; setShowSongMenu(false); } }}
