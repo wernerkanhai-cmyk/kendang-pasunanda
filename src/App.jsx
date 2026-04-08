@@ -444,21 +444,31 @@ function App() {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       try {
         const imported = decodeData(ev.target.result);
-        // Accepteer zowel losse song als array van songs
         const songs = Array.isArray(imported) ? imported : [imported];
         const valid = songs.filter(s => s.name && Array.isArray(s.patterns));
         if (valid.length === 0) throw new Error();
-        setSavedSongs(prev => {
-          const existingIds = new Set(prev.map(s => s.id));
-          return [...prev, ...valid.map(s => ({
-            ...s,
-            id: existingIds.has(s.id) ? Date.now().toString() + Math.random() : s.id,
-          }))];
-        });
-        alert(t('importedSongs')(valid.length));
+        if (user) {
+          let ok = 0;
+          for (const s of valid) {
+            try {
+              await cloudSave({ id: null, name: s.name, folder: s.folder || 'Algemeen', bpm: s.bpm ?? 100, patterns: s.patterns });
+              ok++;
+            } catch (err) { console.error('Import failed for', s.name, err); }
+          }
+          alert(t('importedSongs')(ok));
+        } else {
+          setLocalSavedSongs(prev => {
+            const existingIds = new Set(prev.map(s => s.id));
+            return [...prev, ...valid.map(s => ({
+              ...s,
+              id: existingIds.has(s.id) ? Date.now().toString() + Math.random() : s.id,
+            }))];
+          });
+          alert(t('importedSongs')(valid.length));
+        }
       } catch {
         alert(t('invalidFile'));
       }
@@ -500,17 +510,35 @@ function App() {
     e.target.value = '';
   };
 
-  const confirmImportLibrary = (folderOverride) => {
+  const confirmImportLibrary = async (folderOverride) => {
     if (!pendingImport) return;
-    setSavedSongs(prev => {
-      const existingIds = new Set(prev.map(s => s.id));
-      const nieuwen = pendingImport.songs.map(s => ({
-        ...s,
-        id: existingIds.has(s.id) ? Date.now().toString() + Math.random() : s.id,
-        folder: folderOverride || s.folder || 'Algemeen',
-      }));
-      return [...prev, ...nieuwen];
-    });
+    const songs = pendingImport.songs;
+    if (user) {
+      let ok = 0;
+      for (const s of songs) {
+        try {
+          await cloudSave({
+            id: null,
+            name: s.name,
+            folder: folderOverride || s.folder || 'Algemeen',
+            bpm: s.bpm ?? 100,
+            patterns: s.patterns ?? [],
+          });
+          ok++;
+        } catch (err) { console.error('Library import failed for', s.name, err); }
+      }
+      alert(t('importedSongs')(ok));
+    } else {
+      setLocalSavedSongs(prev => {
+        const existingIds = new Set(prev.map(s => s.id));
+        const nieuwen = songs.map(s => ({
+          ...s,
+          id: existingIds.has(s.id) ? Date.now().toString() + Math.random() : s.id,
+          folder: folderOverride || s.folder || 'Algemeen',
+        }));
+        return [...prev, ...nieuwen];
+      });
+    }
     setPendingImport(null);
     setImportFolderName('');
   };
