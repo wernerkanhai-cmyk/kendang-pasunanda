@@ -11,7 +11,7 @@
  *     and reads always reflect server truth when online).
  */
 
-const VERSION = 'kp-v1';
+const VERSION = 'kp-v2';
 const STATIC_CACHE = `kendang-shell-${VERSION}`;
 const RUNTIME_STATIC = `kendang-static-${VERSION}`;
 const AUDIO_CACHE = 'kendang-audio'; // version-less so audio survives across deploys
@@ -25,7 +25,7 @@ const PRECACHE_URLS = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',
-  '/fonts/NeoDamina Werner edit.ttf',
+  '/fonts/NeoDamina%20Werner%20edit.ttf',
 ];
 
 self.addEventListener('install', (event) => {
@@ -74,6 +74,12 @@ self.addEventListener('fetch', (event) => {
   // Audio samples: cache-first, fill on first request.
   if (url.pathname.startsWith('/audio/') && url.pathname.endsWith('.wav')) {
     event.respondWith(cacheFirst(req, AUDIO_CACHE));
+    return;
+  }
+
+  // Fonts: cache-first, fill on first request (handles encoded paths too).
+  if (url.pathname.startsWith('/fonts/') || url.pathname.match(/\.(ttf|otf|woff2?)$/i)) {
+    event.respondWith(cacheFirst(req, STATIC_CACHE));
     return;
   }
 
