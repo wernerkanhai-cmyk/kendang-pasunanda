@@ -5,7 +5,7 @@ import PatternEditor from './components/PatternEditor';
 import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
 import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
-import { FACTORY_PRESETS, FACTORY_CATEGORIES } from './factory/presets';
+import { FACTORY_PRESETS } from './factory/presets';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
@@ -166,7 +166,6 @@ function App() {
   const [songFolder, setSongFolder] = useState('Algemeen');
   const [showSongLibrary, setShowSongLibrary] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [showImportMenu, setShowImportMenu] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState(null); // folder name being renamed
   const [renameFolderInput, setRenameFolderInput] = useState('');
   const [moveSongTarget, setMoveSongTarget] = useState(null); // { id, name, currentFolder } for move dialog
@@ -174,6 +173,15 @@ function App() {
   const [renamingSongId, setRenamingSongId] = useState(null);
   const [renameSongInput, setRenameSongInput] = useState('');
   const [exportSelection, setExportSelection] = useState(() => new Set()); // song ids checked for selective export
+  const [collapsedFolders, setCollapsedFolders] = useState(() => new Set()); // folder names that are collapsed in the library
+  const [templateDialog, setTemplateDialog] = useState(null); // { template, name, folder } when a template is being instantiated
+  const toggleFolderCollapsed = (folder) => {
+    setCollapsedFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(folder)) next.delete(folder); else next.add(folder);
+      return next;
+    });
+  };
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [showSongMenu, setShowSongMenu] = useState(false);
@@ -532,54 +540,6 @@ function App() {
     setShowExportMenu(false);
   };
 
-  const handleImportSong = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      try {
-        const imported = decodeData(ev.target.result);
-        const songs = Array.isArray(imported) ? imported : [imported];
-        const valid = songs.filter(s => s.name && Array.isArray(s.patterns));
-        if (valid.length === 0) throw new Error();
-        if (user) {
-          let ok = 0;
-          for (const s of valid) {
-            try {
-              await cloudSave({ id: null, name: s.name, folder: s.folder || 'Algemeen', bpm: s.bpm ?? 100, patterns: s.patterns });
-              ok++;
-            } catch (err) { console.error('Import failed for', s.name, err); }
-          }
-          alert(t('importedSongs')(ok));
-        } else {
-          setLocalSavedSongs(prev => {
-            const existingIds = new Set(prev.map(s => s.id));
-            return [...prev, ...valid.map(s => ({
-              ...s,
-              id: existingIds.has(s.id) ? Date.now().toString() + Math.random() : s.id,
-            }))];
-          });
-          alert(t('importedSongs')(valid.length));
-        }
-      } catch {
-        alert(t('invalidFile'));
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
-
-  const handleExportLibrary = () => {
-    const encoded = encodeData(savedSongs);
-    const blob = new Blob([encoded], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `kendang-bibliotheek-${new Date().toISOString().slice(0, 10)}.kendang-lib`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const handleExportSelection = () => {
     const picked = savedSongs.filter(s => exportSelection.has(s.id));
     if (picked.length === 0) return;
@@ -616,22 +576,47 @@ function App() {
     });
   };
 
-  const handleImportLibrary = (e) => {
+  // Single import flow: accepts both .kendang (one song) and .kendang-lib
+  // (array of songs). For single songs we re-use handleImportSong directly.
+  // For arrays we open the folder-picker dialog.
+  const handleImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
         const imported = decodeData(ev.target.result);
-        if (!Array.isArray(imported)) throw new Error();
-        const valid = imported.filter(s => s.id && s.name);
-        if (valid.length === 0) throw new Error();
-        // Stel de bestandsnaam voor als mapnaam (zonder extensie)
-        const suggested = file.name.replace(/\.(kendang-lib|kendang)$/i, '').replace(/[_-]/g, ' ');
-        setImportFolderName(suggested);
-        setPendingImport({ songs: valid });
+        if (Array.isArray(imported)) {
+          const valid = imported.filter(s => s.name && Array.isArray(s.patterns));
+          if (valid.length === 0) throw new Error();
+          const suggested = file.name.replace(/\.(kendang-lib|kendang)$/i, '').replace(/[_-]/g, ' ');
+          setImportFolderName(suggested);
+          setPendingImport({ songs: valid });
+        } else if (imported && imported.name && Array.isArray(imported.patterns)) {
+          // Reuse the song-import path by faking the file event shape
+          // (handleImportSong reads the file again from e.target.files[0],
+          // so we just call its inner logic inline).
+          (async () => {
+            const valid = [imported];
+            if (user) {
+              let ok = 0;
+              for (const s of valid) {
+                try {
+                  await cloudSave({ id: null, name: s.name, folder: s.folder || 'Algemeen', bpm: s.bpm ?? 100, patterns: s.patterns });
+                  ok++;
+                } catch (err) { console.error('Import failed for', s.name, err); }
+              }
+              alert(t('importedSongs')(ok));
+            } else {
+              setLocalSavedSongs(prev => [...prev, ...valid.map(s => ({ ...s, id: s.id || Date.now().toString() + Math.random() }))]);
+              alert(t('importedSongs')(valid.length));
+            }
+          })();
+        } else {
+          throw new Error('Unrecognised file');
+        }
       } catch {
-        alert(t('invalidLibrary'));
+        alert(t('invalidFile') || t('invalidLibrary'));
       }
     };
     reader.readAsText(file);
@@ -671,15 +656,30 @@ function App() {
     setImportFolderName('');
   };
 
-  const handleLoadPreset = (presetId) => {
-    const preset = FACTORY_PRESETS.find(p => p.id === presetId);
-    if (!preset) return;
-    const block = { ...preset, id: crypto.randomUUID() };
-    setSong([block]);
-    setActivePatternId(block.id);
-    setActiveSlot({ patternId: block.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
-    setUndoStack([]);
-    setRedoStack([]);
+  // Load a factory template into the editor as a brand-new editable song.
+  // The template itself stays untouched in src/factory/presets.js. The user
+  // is asked for a name + folder via a small dialog (state below).
+  const handleUseTemplate = async (template, targetName, targetFolder) => {
+    const name = (targetName || template.name || 'Naamloos').trim();
+    const folder = (targetFolder || 'Algemeen').trim() || 'Algemeen';
+    const patternsCopy = JSON.parse(JSON.stringify(template.patterns ?? []));
+    const fresh = await _persist({
+      id: null,
+      name,
+      folder,
+      bpm: template.bpm ?? bpm,
+      patterns: patternsCopy,
+    });
+    if (fresh) {
+      setSong(patternsCopy);
+      setActivePatternId(patternsCopy[0]?.id);
+      setActiveSlot({ patternId: patternsCopy[0]?.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+      setUndoStack([]);
+      setRedoStack([]);
+      setCurrentSongId(fresh.id);
+      setSongName(name);
+      setSongFolder(folder);
+    }
   };
 
   // Ref to last added song block for auto-scroll
@@ -2012,24 +2012,6 @@ function App() {
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
                     title="Open de bibliotheek om een song te laden of te verwijderen"
                   >📚 {t('libraryBtn')}</button>
-
-                  {FACTORY_PRESETS.length > 0 && (
-                    <select defaultValue=""
-                      onChange={(e) => { if (e.target.value) { handleLoadPreset(e.target.value); e.target.value = ''; setShowSongMenu(false); } }}
-                      style={{ background: '#0f172a', color: '#cbd5e1', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.6rem', fontSize: '0.85rem', cursor: 'pointer' }}
-                    >
-                      <option value="">{t('loadPreset')}</option>
-                      {FACTORY_CATEGORIES.map(cat => {
-                        const items = FACTORY_PRESETS.filter(p => p.category === cat.label);
-                        if (items.length === 0) return null;
-                        return (
-                          <optgroup key={cat.label} label={cat.label}>
-                            {items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                          </optgroup>
-                        );
-                      })}
-                    </select>
-                  )}
                 </div>
               </>
             )}
@@ -2324,6 +2306,64 @@ function App() {
             </div>
           )}
 
+          {/* Use template dialog — pick a name and folder before instantiating */}
+          {templateDialog && (
+            <div
+              onClick={() => setTemplateDialog(null)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{ background: '#1e293b', border: '1px solid #d4af37', borderRadius: '12px', padding: '1.5rem', width: '360px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+              >
+                <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#d4af37' }}>
+                  📦 Template gebruiken
+                </div>
+                <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                  Maakt een bewerkbare kopie van <strong style={{ color: '#fcd34d' }}>{templateDialog.template.name}</strong> in jouw library.
+                </div>
+                <label style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Naam van de nieuwe song:</label>
+                <input
+                  type="text"
+                  value={templateDialog.name}
+                  onChange={(e) => setTemplateDialog({ ...templateDialog, name: e.target.value })}
+                  autoFocus
+                  style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                />
+                <label style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Map:</label>
+                <input
+                  type="text"
+                  value={templateDialog.folder}
+                  onChange={(e) => setTemplateDialog({ ...templateDialog, folder: e.target.value })}
+                  style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                />
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.3rem' }}>
+                  <button
+                    onClick={() => setTemplateDialog(null)}
+                    style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >Annuleer</button>
+                  <button
+                    onClick={async () => {
+                      const dlg = templateDialog;
+                      setTemplateDialog(null);
+                      setShowSongLibrary(false);
+                      await handleUseTemplate(dlg.template, dlg.name, dlg.folder);
+                    }}
+                    disabled={!templateDialog.name.trim()}
+                    style={{
+                      background: templateDialog.name.trim() ? '#d4af37' : '#1e293b',
+                      color: templateDialog.name.trim() ? '#1e293b' : '#475569',
+                      border: 'none', borderRadius: '6px',
+                      padding: '0.4rem 0.9rem',
+                      cursor: templateDialog.name.trim() ? 'pointer' : 'default',
+                      fontSize: '0.85rem', fontWeight: 'bold',
+                    }}
+                  >Maak song</button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Move song to folder dialog */}
           {moveSongTarget && (() => {
             const existingFolders = Array.from(new Set(savedSongs.map(s => s.folder || 'Algemeen'))).sort();
@@ -2417,7 +2457,7 @@ function App() {
                     {/* Export dropdown */}
                     <div style={{ position: 'relative' }}>
                       <button
-                        onClick={() => { setShowExportMenu(v => !v); setShowImportMenu(false); }}
+                        onClick={() => setShowExportMenu(v => !v)}
                         style={{ background: '#1e293b', color: '#38bdf8', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
                       >{t('exportBtn')} ▾</button>
                       {showExportMenu && (
@@ -2427,11 +2467,6 @@ function App() {
                             style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: '#e2e8f0', border: 'none', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer' }}
                           >{t('exportSong')}</button>
                           <button
-                            onClick={() => { handleExportLibrary(); setShowExportMenu(false); }}
-                            disabled={savedSongs.length === 0}
-                            style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: savedSongs.length > 0 ? '#e2e8f0' : '#475569', border: 'none', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: savedSongs.length > 0 ? 'pointer' : 'default' }}
-                          >{t('exportLib')}</button>
-                          <button
                             onClick={handleExportSelection}
                             disabled={exportSelection.size === 0}
                             style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: exportSelection.size > 0 ? '#fbbf24' : '#475569', border: 'none', borderTop: '1px solid #334155', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: exportSelection.size > 0 ? 'pointer' : 'default' }}
@@ -2440,27 +2475,13 @@ function App() {
                       )}
                     </div>
 
-                    {/* Import dropdown */}
-                    <div style={{ position: 'relative' }}>
-                      <button
-                        onClick={() => { setShowImportMenu(v => !v); setShowExportMenu(false); }}
-                        style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}
-                      >{t('importBtn')} ▾</button>
-                      {showImportMenu && (
-                        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', overflow: 'hidden', zIndex: 100, minWidth: '130px' }}>
-                          <label style={{ display: 'block', color: '#e2e8f0', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer' }}>
-                            {t('importSong')}
-                            <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={(e) => { handleImportSong(e); setShowImportMenu(false); }} />
-                          </label>
-                          <label style={{ display: 'block', color: '#e2e8f0', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer' }}>
-                            {t('importLib')}
-                            <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={(e) => { handleImportLibrary(e); setShowImportMenu(false); }} />
-                          </label>
-                        </div>
-                      )}
-                    </div>
+                    {/* Import — single button, accepts both song and group files */}
+                    <label style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}>
+                      Import
+                      <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
+                    </label>
 
-                    <button onClick={() => { setShowSongLibrary(false); setShowExportMenu(false); setShowImportMenu(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                    <button onClick={() => { setShowSongLibrary(false); setShowExportMenu(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
                 <input
@@ -2472,6 +2493,49 @@ function App() {
                   autoFocus
                 />
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {/* Templates folder — read-only, always at the top of the library */}
+                  {(() => {
+                    const q = songSearchQuery.toLowerCase();
+                    const matches = FACTORY_PRESETS.filter(p =>
+                      !q || p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q)
+                    );
+                    // While searching, hide the templates folder if nothing in it matches.
+                    if (q && matches.length === 0) return null;
+                    const folderName = '__TEMPLATES__';
+                    const isCollapsed = collapsedFolders.has(folderName);
+                    return (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #d4af37', marginBottom: '0.25rem' }}>
+                          <button
+                            onClick={() => toggleFolderCollapsed(folderName)}
+                            style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                            title={isCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                          >{isCollapsed ? '▶' : '▼'}</button>
+                          <span
+                            onClick={() => toggleFolderCollapsed(folderName)}
+                            style={{ flex: 1, color: '#d4af37', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                          >📦 Templates <span style={{ color: '#a37f1e', fontWeight: 'normal' }}>({matches.length})</span></span>
+                        </div>
+                        {!isCollapsed && (matches.length === 0 ? (
+                          <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
+                            (Nog geen templates — voeg ze toe in src/factory/presets.js)
+                          </div>
+                        ) : matches.map((tpl) => (
+                          <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px' }}>
+                            <span style={{ flex: 1, color: '#fcd34d', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              {tpl.name}
+                              {tpl.category && <span style={{ color: '#a37f1e', fontSize: '0.7rem' }}>· {tpl.category}</span>}
+                            </span>
+                            <button
+                              onClick={() => setTemplateDialog({ template: tpl, name: tpl.name, folder: 'Algemeen' })}
+                              style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
+                            >Gebruik</button>
+                          </div>
+                        )))}
+                      </div>
+                    );
+                  })()}
+
                   {savedSongs.length === 0 ? (
                     <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>{t('noSongsStored')}</p>
                   ) : (() => {
@@ -2511,7 +2575,15 @@ function App() {
                             />
                           ) : (
                             <>
-                              <span style={{ flex: 1, color: '#94a3b8', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em' }}>📁 {folder}</span>
+                              <button
+                                onClick={() => toggleFolderCollapsed(folder)}
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                                title={collapsedFolders.has(folder) ? 'Map openklappen' : 'Map dichtklappen'}
+                              >{collapsedFolders.has(folder) ? '▶' : '▼'}</button>
+                              <span
+                                onClick={() => toggleFolderCollapsed(folder)}
+                                style={{ flex: 1, color: '#94a3b8', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                              >📁 {folder} <span style={{ color: '#475569', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
                               <button
                                 onClick={() => { setRenamingFolder(folder); setRenameFolderInput(folder); }}
                                 style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
@@ -2520,7 +2592,7 @@ function App() {
                             </>
                           )}
                         </div>
-                        {byFolder[folder].map(s => (
+                        {!collapsedFolders.has(folder) && byFolder[folder].map(s => (
                           <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : 'transparent' }}>
                             <input
                               type="checkbox"
