@@ -161,11 +161,6 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const savedSongs = user ? cloudSongs : localSavedSongs;
-  const setSavedSongs = (updater) => {
-    // Only used by import/factory-preset/folder-rename flows that still touch localStorage.
-    // Cloud-side updates go through cloudSave / cloudRemove directly.
-    setLocalSavedSongs(updater);
-  };
   const [currentSongId, setCurrentSongId] = useState(null);
   const [songName, setSongName] = useState('Song 1');
   const [songFolder, setSongFolder] = useState('Algemeen');
@@ -489,10 +484,26 @@ function App() {
     if (currentSongId === id) setCurrentSongId(null);
   };
 
-  const handleRenameFolder = (oldName, newName) => {
+  const handleRenameFolder = async (oldName, newName) => {
     const trimmed = newName.trim();
     if (!trimmed || trimmed === oldName) { setRenamingFolder(null); return; }
-    setSavedSongs(prev => prev.map(s => s.folder === oldName ? { ...s, folder: trimmed } : s));
+    if (user) {
+      // Cloud path: re-save every song in this folder with the new folder name.
+      const inFolder = savedSongs.filter(s => (s.folder || 'Algemeen') === oldName);
+      for (const s of inFolder) {
+        try {
+          await _persist({
+            id: s.id,
+            name: s.name,
+            folder: trimmed,
+            bpm: s.bpm ?? bpm,
+            patterns: s.patterns ?? [],
+          });
+        } catch (err) { console.error('Folder rename failed for', s.name, err); }
+      }
+    } else {
+      setLocalSavedSongs(prev => prev.map(s => s.folder === oldName ? { ...s, folder: trimmed } : s));
+    }
     if (songFolder === oldName) setSongFolder(trimmed);
     setRenamingFolder(null);
   };
