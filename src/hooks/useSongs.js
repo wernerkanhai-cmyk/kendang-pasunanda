@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { listSongs, saveSong as saveSongRpc, loadSong as loadSongRpc, deleteSong as deleteSongRpc } from '../services/songRepo';
+import { cacheList, readList, putItem, deleteItem } from '../lib/offlineStore';
 
 /**
  * Reactive cache + sync hook for songs stored in Supabase.
@@ -26,8 +27,24 @@ export function useSongs() {
     setLoading(true);
     setError(null);
     listSongs()
-      .then((rows) => { if (alive) setSongs(rows); })
-      .catch((err) => { if (alive) setError(err); })
+      .then(async (rows) => {
+        if (!alive) return;
+        setSongs(rows);
+        // Mirror to IndexedDB so a later offline boot still works.
+        try { await cacheList('songs', user.id, rows); } catch (e) { /* ignore */ }
+      })
+      .catch(async (err) => {
+        if (!alive) return;
+        // Network error → fall back to last known IndexedDB snapshot.
+        try {
+          const cached = await readList('songs', user.id);
+          if (cached.length > 0) {
+            setSongs(cached);
+            return;
+          }
+        } catch (_) { /* ignore */ }
+        setError(err);
+      })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [user]);
@@ -51,7 +68,6 @@ export function useSongs() {
     setError(null);
     try {
       const id = await saveSongRpc(song);
-      // Re-fetch this single song so we get the canonical updated_at + ids back.
       const fresh = await loadSongRpc(id);
       setSongs((prev) => {
         const idx = prev.findIndex((s) => s.id === id);
@@ -62,22 +78,24 @@ export function useSongs() {
         }
         return [fresh, ...prev];
       });
+      if (user) {
+        try { await putItem('songs', user.id, fresh); } catch (_) { /* ignore */ }
+      }
       return fresh;
     } catch (err) {
       setError(err);
       throw err;
     }
-  }, []);
+  }, [user]);
 
   const remove = useCallback(async (songId) => {
     setError(null);
-    // Optimistic: drop from cache first
     const prevState = songs;
     setSongs((prev) => prev.filter((s) => s.id !== songId));
     try {
       await deleteSongRpc(songId);
+      try { await deleteItem('songs', songId); } catch (_) { /* ignore */ }
     } catch (err) {
-      // Roll back on failure
       setSongs(prevState);
       setError(err);
       throw err;

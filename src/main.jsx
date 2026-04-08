@@ -5,6 +5,7 @@ import App from './App.jsx'
 import AuthGate from './components/AuthGate.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { LanguageProvider } from './i18n.jsx'
+import { registerServiceWorker } from './lib/registerSW.js'
 
 // Polyfill: iOS Safari only exposes crypto.randomUUID on secure contexts (HTTPS / localhost),
 // not on plain LAN dev URLs. Provide a small RFC4122 v4 fallback so dev-on-iPad works.
@@ -18,6 +19,8 @@ if (typeof crypto !== 'undefined' && typeof crypto.randomUUID !== 'function') {
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   };
 }
+
+registerServiceWorker();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

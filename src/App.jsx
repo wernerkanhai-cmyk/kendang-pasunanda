@@ -133,6 +133,14 @@ function App() {
   // Cloud sync — single source of truth for saved songs is Supabase.
   // localStorage acts as a one-time fallback during migration (phase 6 cleans it up).
   const { user, signOut } = useAuth();
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  useEffect(() => {
+    const onUp = () => setIsOnline(true);
+    const onDown = () => setIsOnline(false);
+    window.addEventListener('online', onUp);
+    window.addEventListener('offline', onDown);
+    return () => { window.removeEventListener('online', onUp); window.removeEventListener('offline', onDown); };
+  }, []);
   const { songs: cloudSongs, save: cloudSave, remove: cloudRemove, error: cloudError } = useSongs();
   const { snippets: cloudSnippets, save: cloudSnippetSave, remove: cloudSnippetRemove } = useSnippets();
 
@@ -2113,7 +2121,10 @@ function App() {
                     <>
                       <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
                       <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Account</div>
-                      <div style={{ color: '#cbd5e1', fontSize: '0.75rem', marginBottom: '0.3rem', wordBreak: 'break-all' }}>{user.email}</div>
+                      <div style={{ color: '#cbd5e1', fontSize: '0.75rem', marginBottom: '0.2rem', wordBreak: 'break-all' }}>{user.email}</div>
+                      <div style={{ color: isOnline ? '#22c55e' : '#f87171', fontSize: '0.7rem', marginBottom: '0.3rem' }}>
+                        {isOnline ? '● Online' : '● Offline (cache modus)'}
+                      </div>
                       <button
                         onClick={() => { signOut(); setShowToolsMenu(false); }}
                         style={{ background: '#0f172a', color: '#f87171', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}

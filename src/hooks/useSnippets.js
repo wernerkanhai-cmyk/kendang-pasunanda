@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { listSnippets, saveSnippet as saveSnippetRpc, deleteSnippet as deleteSnippetRpc } from '../services/snippetRepo';
+import { cacheList, readList, putItem, deleteItem } from '../lib/offlineStore';
 
 export function useSnippets() {
   const { user } = useAuth();
@@ -17,8 +18,22 @@ export function useSnippets() {
     setLoading(true);
     setError(null);
     listSnippets()
-      .then((rows) => { if (alive) setSnippets(rows); })
-      .catch((err) => { if (alive) setError(err); })
+      .then(async (rows) => {
+        if (!alive) return;
+        setSnippets(rows);
+        try { await cacheList('snippets', user.id, rows); } catch (_) { /* ignore */ }
+      })
+      .catch(async (err) => {
+        if (!alive) return;
+        try {
+          const cached = await readList('snippets', user.id);
+          if (cached.length > 0) {
+            setSnippets(cached);
+            return;
+          }
+        } catch (_) { /* ignore */ }
+        setError(err);
+      })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [user]);
@@ -50,12 +65,15 @@ export function useSnippets() {
         }
         return [...prev, fresh];
       });
+      if (user) {
+        try { await putItem('snippets', user.id, fresh); } catch (_) { /* ignore */ }
+      }
       return fresh;
     } catch (err) {
       setError(err);
       throw err;
     }
-  }, []);
+  }, [user]);
 
   const remove = useCallback(async (snippetId) => {
     setError(null);
@@ -63,6 +81,7 @@ export function useSnippets() {
     setSnippets((prev) => prev.filter((s) => s.id !== snippetId));
     try {
       await deleteSnippetRpc(snippetId);
+      try { await deleteItem('snippets', snippetId); } catch (_) { /* ignore */ }
     } catch (err) {
       setSnippets(prevState);
       setError(err);
