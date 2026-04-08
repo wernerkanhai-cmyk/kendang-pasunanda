@@ -529,17 +529,6 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
-  const handleExportCurrentSong = () => {
-    const entry = {
-      id: currentSongId || Date.now().toString(),
-      name: songName.trim() || 'Naamloos',
-      date: new Date().toLocaleDateString(),
-      patterns: song,
-    };
-    handleExportSong(entry);
-    setShowExportMenu(false);
-  };
-
   const handleExportSelection = () => {
     const picked = savedSongs.filter(s => exportSelection.has(s.id));
     if (picked.length === 0) return;
@@ -2463,13 +2452,9 @@ function App() {
                       {showExportMenu && (
                         <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', overflow: 'hidden', zIndex: 100, minWidth: '130px' }}>
                           <button
-                            onClick={handleExportCurrentSong}
-                            style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: '#e2e8f0', border: 'none', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                          >{t('exportSong')}</button>
-                          <button
                             onClick={handleExportSelection}
                             disabled={exportSelection.size === 0}
-                            style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: exportSelection.size > 0 ? '#fbbf24' : '#475569', border: 'none', borderTop: '1px solid #334155', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: exportSelection.size > 0 ? 'pointer' : 'default' }}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', color: exportSelection.size > 0 ? '#fbbf24' : '#475569', border: 'none', padding: '0.4rem 0.75rem', fontSize: '0.8rem', cursor: exportSelection.size > 0 ? 'pointer' : 'default' }}
                           >Export selectie ({exportSelection.size})</button>
                         </div>
                       )}
