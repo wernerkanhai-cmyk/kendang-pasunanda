@@ -2598,7 +2598,7 @@ function App() {
                               >✏</button>
                               <button
                                 onClick={() => handleDeleteFolder(folder)}
-                                style={{ background: 'none', border: 'none', color: '#7f1d1d', cursor: 'pointer', fontSize: '0.8rem', padding: '0 0.2rem', lineHeight: 1 }}
+                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem', padding: '0 0.2rem', lineHeight: 1 }}
                                 title="Hele map verwijderen"
                               >🗑</button>
                             </>
@@ -2652,7 +2652,8 @@ function App() {
                             >↑</button>
                             <button
                               onClick={() => handleDeleteSong(s.id)}
-                              style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                              style={{ background: 'transparent', color: '#ef4444', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                              title="Song verwijderen"
                             >🗑</button>
                           </div>
                         ))}
