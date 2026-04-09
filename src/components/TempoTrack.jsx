@@ -47,7 +47,7 @@ export const interpolateBpm = (tempoTrack, localSlot) => {
 
 const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth }) => {
   const t = useT();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const svgRef = useRef(null);
   const dragRef = useRef(null);
   const tempoTrackRef = useRef([]);
