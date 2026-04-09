@@ -498,11 +498,16 @@ const [showBeheer, setShowBeheer] = useState(true);
     const onUp = () => {
       setRulerDrag(prev => {
         if (!prev) return null;
-        const startM = Math.min(prev.start, prev.current);
-        const endM = Math.max(prev.start, prev.current);
-        const startSlot = startM * 48;
-        const endSlot = (endM + 1) * 48;
-        onRulerLoop?.(startSlot, endSlot);
+        // Only create a loop if the user actually dragged across multiple measures.
+        // A single click (start === current) should do nothing — the double-click
+        // handler takes care of toggling 1-measure loops.
+        if (prev.start !== prev.current) {
+          const startM = Math.min(prev.start, prev.current);
+          const endM = Math.max(prev.start, prev.current);
+          const startSlot = startM * 48;
+          const endSlot = (endM + 1) * 48;
+          onRulerLoop?.(startSlot, endSlot);
+        }
         return null;
       });
       window.removeEventListener('pointermove', onMove);
