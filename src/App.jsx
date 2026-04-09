@@ -1535,6 +1535,13 @@ function App() {
     if (schedulerRef.current) {
       const total = song.reduce((sum, p) => sum + p.anak.length, 0);
       schedulerRef.current.setLoopBounds(0, total);
+      // Resync the visual cursor to the new loop bounds so it doesn't drift.
+      if (isPlaying) {
+        const sched = schedulerRef.current;
+        const spsMs = sched.getSecondsPerSlot() * 1000;
+        playStartWallTimeRef.current = Date.now() - (sched.currentSlot - 0) * spsMs + cursorOffsetMsRef.current;
+        slotTimesRef.current = null; // force constant-BPM fallback
+      }
     }
   };
 
@@ -1558,6 +1565,12 @@ function App() {
             schedulerRef.current.setPendingLoopAfterCurrentLoop(currentLoopEnd, total);
             schedulerRef.current.onLoopSwitch = (start, end) => {
               slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
+              // Resync wall clock so the visual cursor aligns with the new loop origin
+              const sched = schedulerRef.current;
+              if (sched) {
+                const spsMs = sched.getSecondsPerSlot() * 1000;
+                playStartWallTimeRef.current = Date.now() - (sched.currentSlot - start) * spsMs + cursorOffsetMsRef.current;
+              }
             };
           } else {
             schedulerRef.current.setLoopBounds(0, total);
@@ -1580,6 +1593,11 @@ function App() {
             schedulerRef.current.setPendingLoopAfterCurrentMeasure(globalStart, globalEnd);
             schedulerRef.current.onLoopSwitch = (start, end) => {
               slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
+              const sched = schedulerRef.current;
+              if (sched) {
+                const spsMs = sched.getSecondsPerSlot() * 1000;
+                playStartWallTimeRef.current = Date.now() - (sched.currentSlot - start) * spsMs + cursorOffsetMsRef.current;
+              }
             };
           } else {
             schedulerRef.current.setLoopBounds(globalStart, globalEnd);
@@ -1612,6 +1630,11 @@ function App() {
       // Wanneer de scheduler de wissel uitvoert, herbouw slotTimesRef
       schedulerRef.current.onLoopSwitch = (start, end) => {
         slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
+        const sched = schedulerRef.current;
+        if (sched) {
+          const spsMs = sched.getSecondsPerSlot() * 1000;
+          playStartWallTimeRef.current = Date.now() - (sched.currentSlot - start) * spsMs + cursorOffsetMsRef.current;
+        }
       };
     } else {
       schedulerRef.current.setLoopBounds(loopStartGlobal, loopEndGlobal);
@@ -1673,7 +1696,10 @@ function App() {
     sched.currentSlot = globalSlot;
     sched.nextNoteTime = nextNoteTime;
     sched.scheduler();
-    playStartWallTimeRef.current = Date.now() + cursorOffsetMsRef.current;
+    // slotTimesRef was just rebuilt with globalSlot as loopStart, so elapsed=0
+    // maps to globalSlot. Sync the wall clock to match.
+    const outputLatencyMs = ctx ? ((Math.abs(ctx.outputLatency || 0) + Math.abs(ctx.baseLatency || 0)) * 1000) : 0;
+    playStartWallTimeRef.current = Date.now() + outputLatencyMs + cursorOffsetMsRef.current;
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
