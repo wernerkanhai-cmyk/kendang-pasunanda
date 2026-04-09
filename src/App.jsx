@@ -3028,7 +3028,12 @@ function App() {
           >
             <span style={{ letterSpacing: '1px' }}>⠿</span>
             <span style={{ color: '#86efac' }}>{t('instrument')}</span>
-            <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#4ade80' }}>{drumCollapsed ? '▸' : '▾'}</span>
+            <span
+              onClick={(e) => { e.stopPropagation(); setDrumCollapsed(c => !c); }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              style={{ marginLeft: 'auto', fontSize: '0.7rem', color: '#4ade80', cursor: 'pointer', padding: '0 6px' }}
+            >{drumCollapsed ? '▸' : '▾'}</span>
           </div>
 
           {/* Content — verborgen wanneer ingeklapt */}
