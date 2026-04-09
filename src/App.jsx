@@ -174,9 +174,15 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const savedSongs = user ? cloudSongs : localSavedSongs;
-  const [currentSongId, setCurrentSongId] = useState(null);
-  const [songName, setSongName] = useState('Song 1');
-  const [songFolder, setSongFolder] = useState('Algemeen');
+  const [currentSongId, setCurrentSongId] = useState(() => localStorage.getItem('kendangCurrentSongId') || null);
+  const [songName, setSongName] = useState(() => localStorage.getItem('kendangSongName') || 'Song 1');
+  const [songFolder, setSongFolder] = useState(() => localStorage.getItem('kendangSongFolder') || 'Algemeen');
+  useEffect(() => {
+    if (currentSongId) localStorage.setItem('kendangCurrentSongId', currentSongId);
+    else localStorage.removeItem('kendangCurrentSongId');
+  }, [currentSongId]);
+  useEffect(() => { localStorage.setItem('kendangSongName', songName); }, [songName]);
+  useEffect(() => { localStorage.setItem('kendangSongFolder', songFolder); }, [songFolder]);
   const [showSongLibrary, setShowSongLibrary] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState(null); // folder name being renamed
   const [renameFolderInput, setRenameFolderInput] = useState('');
