@@ -109,7 +109,8 @@
   font-weight: 600;
   outline: none;
   padding: 0.25rem 0;
-  width: 150px;
+  flex: 1;
+  min-width: 80px;
 }
 
 .pattern-name-input:focus {
