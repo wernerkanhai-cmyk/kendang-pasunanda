@@ -409,18 +409,16 @@ function App() {
   const handleSaveAsCopy = async () => {
     const baseName = songName.trim() || 'Naamloos';
     const copyName = `${baseName} (kopie)`;
-    const fresh = await _persist({
+    await _persist({
       id: null,
       name: copyName,
       folder: songFolder.trim() || 'Algemeen',
       bpm,
       patterns: JSON.parse(JSON.stringify(song)),
     });
-    if (fresh) {
-      setCurrentSongId(fresh.id);
-      setSongName(copyName);
-      showToast('Kopie opgeslagen ✓');
-    }
+    // Stay on the original song — the copy is a snapshot in the library.
+    // User can load it from there if they want to work on it.
+    showToast(`"${copyName}" opgeslagen in library`);
   };
 
   // ── Auto-save ────────────────────────────────────────────────────────────
