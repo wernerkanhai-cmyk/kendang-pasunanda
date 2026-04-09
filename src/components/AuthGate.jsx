@@ -148,6 +148,7 @@ export default function AuthGate({ children }) {
             Terug naar inloggen
           </button>
         )}
+        <div style={copyright}>© {new Date().getFullYear()} Werner Kanhai. Alle rechten voorbehouden.</div>
       </form>
     </div>
   );
@@ -179,4 +180,8 @@ const submitBtn = {
 const switchBtn = {
   background: 'transparent', color: '#94a3b8', border: 'none',
   fontSize: '0.8rem', cursor: 'pointer', padding: '0.25rem',
+};
+const copyright = {
+  color: '#475569', fontSize: '0.65rem', textAlign: 'center',
+  marginTop: '0.5rem', letterSpacing: '0.02em',
 };
