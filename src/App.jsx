@@ -5,7 +5,7 @@ import PatternEditor from './components/PatternEditor';
 import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
 import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
-import { FACTORY_PRESETS, FACTORY_SNIPPETS } from './factory/presets';
+import { useTemplates } from './hooks/useTemplates';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
@@ -154,6 +154,8 @@ function App() {
   }, []);
   const { songs: cloudSongs, save: cloudSave, remove: cloudRemove } = useSongs();
   const { snippets: cloudSnippets, save: cloudSnippetSave, remove: cloudSnippetRemove } = useSnippets();
+  const { templates: dbTemplates, snippetTemplates: dbSnippetTemplates, publishSong: publishTemplate, removeSong: removeTemplate, publishSnippet: publishSnippetTemplate, removeSnippet: removeSnippetTemplate } = useTemplates();
+  const isAdmin = user?.email === 'wernerkanhai@mac.com';
 
   // Snippet library — cloud when signed in, localStorage otherwise
   const [localSavedSnippets, setLocalSavedSnippets] = useState(() => {
@@ -2413,36 +2415,29 @@ function App() {
 
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
 
-                  {/* Export as template — admin only */}
-                  {user?.email === 'wernerkanhai@mac.com' && <button
-                    onClick={() => {
-                      const template = {
-                        id: (songName || 'template').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, ''),
-                        name: songName || 'Naamloos',
-                        category: songFolder || 'Algemeen',
-                        bpm,
-                        patterns: song.map(p => ({
-                          name: p.name,
-                          anak: p.anak,
-                          indung: p.indung,
-                          gong: p.gong || [],
-                          tempoTrackEnabled: p.tempoTrackEnabled || false,
-                          tempoTrack: p.tempoTrack || [],
-                        })),
-                      };
-                      const json = JSON.stringify(template, null, 2);
-                      const blob = new Blob([json], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `${template.id}.template.json`;
-                      a.click();
-                      URL.revokeObjectURL(url);
+                  {/* Publish as template — admin only, writes to Supabase templates table */}
+                  {isAdmin && <button
+                    onClick={async () => {
+                      try {
+                        await publishTemplate({
+                          name: songName || 'Naamloos',
+                          folder: songFolder || 'Algemeen',
+                          bpm,
+                          patterns: song.map(p => ({
+                            name: p.name,
+                            anak: p.anak,
+                            indung: p.indung,
+                            gong: p.gong || [],
+                            tempoTrackEnabled: p.tempoTrackEnabled || false,
+                            tempoTrack: p.tempoTrack || [],
+                          })),
+                        });
+                        showToast('Template gepubliceerd ✓');
+                      } catch (err) { alert(err?.message ?? 'Publiceren mislukt'); }
                       setShowToolsMenu(false);
-                      showToast('Template geëxporteerd ✓');
                     }}
                     style={{ background: '#0f172a', color: '#d4af37', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >📦 Exporteer als template</button>}
+                  >📦 Publiceer als template</button>}
 
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
                   <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('languageLabel')}</div>
@@ -2797,13 +2792,12 @@ function App() {
                   </select>
                 </div>
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {/* Templates folder — read-only, always at the top of the library */}
+                  {/* Templates folder — from database, readable by all, writable by admin */}
                   {(() => {
                     const q = songSearchQuery.toLowerCase();
-                    const matches = FACTORY_PRESETS.filter(p =>
+                    const matches = dbTemplates.filter(p =>
                       !q || p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q)
                     );
-                    // While searching, hide the templates folder if nothing in it matches.
                     if (q && matches.length === 0) return null;
                     const folderName = '__TEMPLATES__';
                     const isCollapsed = collapsedFolders.has(folderName);
@@ -2834,6 +2828,17 @@ function App() {
                               onClick={() => setTemplateDialog({ template: tpl, name: tpl.name, folder: 'Algemeen' })}
                               style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
                             >Gebruik</button>
+                            {isAdmin && (
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm(`Template "${tpl.name}" verwijderen?`)) return;
+                                  try { await removeTemplate(tpl.id); showToast('Template verwijderd'); }
+                                  catch (err) { alert(err?.message ?? 'Verwijderen mislukt'); }
+                                }}
+                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+                                title="Template verwijderen"
+                              ><TrashIcon size={12} /></button>
+                            )}
                           </div>
                         )))}
                       </div>
@@ -3155,8 +3160,10 @@ function App() {
                       handleRenameSnippetFolder={handleRenameSnippetFolder}
                       handleDeleteSnippetFolder={handleDeleteSnippetFolder}
                       handleDeleteSnippetSilently={handleDeleteSnippetSilently}
-                      factorySnippets={FACTORY_SNIPPETS}
-                      isAdmin={user?.email === 'wernerkanhai@mac.com'}
+                      factorySnippets={dbSnippetTemplates}
+                      isAdmin={isAdmin}
+                      onPublishSnippetTemplate={publishSnippetTemplate}
+                      onRemoveSnippetTemplate={removeSnippetTemplate}
                       handleExportSnippets={handleExportSnippets}
                       handleImportSnippets={handleImportSnippets}
                       insertMeasure={() => insertMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}

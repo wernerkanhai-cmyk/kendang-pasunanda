@@ -50,6 +50,8 @@ const PatternEditor = ({
   handleDeleteSnippetSilently,
   factorySnippets = [],
   isAdmin = false,
+  onPublishSnippetTemplate,
+  onRemoveSnippetTemplate,
   handleExportSnippets,
   handleImportSnippets,
   insertMeasure,
@@ -776,23 +778,6 @@ const [showBeheer, setShowBeheer] = useState(true);
                  return next;
                });
              };
-             const handleExportSnippetTemplates = () => {
-               const selected = savedSnippets.filter(s => snippetSelection.has(s.id));
-               const items = (selected.length > 0 ? selected : savedSnippets).map(s => ({
-                 id: (s.name || 'snippet').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, ''),
-                 name: s.name,
-                 category: s.folder || 'Algemeen',
-                 data: s.data,
-               }));
-               const json = JSON.stringify(items, null, 2);
-               const blob = new Blob([json], { type: 'application/json' });
-               const url = URL.createObjectURL(blob);
-               const a = document.createElement('a');
-               a.href = url;
-               a.download = `kendang-snippet-templates-${new Date().toISOString().slice(0, 10)}.snippet-template.json`;
-               a.click();
-               URL.revokeObjectURL(url);
-             };
              const handleBulkDeleteSnippets = async () => {
                if (snippetSelection.size === 0) return;
                const ids = Array.from(snippetSelection);
@@ -816,7 +801,19 @@ const [showBeheer, setShowBeheer] = useState(true);
                        >Delete ({snippetSelection.size})</button>
                      )}
                      <button onClick={handleExportSnippets} style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
-                     {isAdmin && <button onClick={handleExportSnippetTemplates} style={{ background: '#1e293b', color: '#d4af37', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title="Exporteer als snippet templates (JSON)">📦</button>}
+                     {isAdmin && snippetSelection.size > 0 && (
+                       <button
+                         onClick={async () => {
+                           const selected = savedSnippets.filter(s => snippetSelection.has(s.id));
+                           for (const s of selected) {
+                             try { await onPublishSnippetTemplate?.(s); } catch (err) { console.error('Publish failed:', err); }
+                           }
+                           setSnippetSelection(new Set());
+                         }}
+                         style={{ background: '#1e293b', color: '#d4af37', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                         title="Publiceer geselecteerde snippets als templates"
+                       >📦 Publiceer ({snippetSelection.size})</button>
+                     )}
                      <label style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
                        {t('importSnippets')}
                        <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />
@@ -862,6 +859,20 @@ const [showBeheer, setShowBeheer] = useState(true);
                                   onClick={() => handleInsertSnippet?.(tpl)}
                                   style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}
                                 >Insert</button>
+                                {isAdmin && (
+                                  <button
+                                    onClick={async () => {
+                                      if (!window.confirm(`Snippet template "${tpl.name}" verwijderen?`)) return;
+                                      try { await onRemoveSnippetTemplate?.(tpl.id); } catch (err) { alert(err?.message ?? 'Verwijderen mislukt'); }
+                                    }}
+                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+                                    title="Template verwijderen"
+                                  >
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                                    </svg>
+                                  </button>
+                                )}
                               </div>
                             ))}
                           </div>
