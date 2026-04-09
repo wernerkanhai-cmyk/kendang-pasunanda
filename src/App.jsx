@@ -2168,11 +2168,32 @@ function App() {
                   display: 'flex', flexDirection: 'column', gap: '0.5rem',
                 }}>
                   <input type="text" value={songName} onChange={(e) => setSongName(e.target.value)}
-                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
+                    onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
                     placeholder={t('songNamePlaceholder')} />
-                  <input type="text" value={songFolder} onChange={(e) => setSongFolder(e.target.value)}
-                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.85rem' }}
-                    placeholder={t('folderPlaceholder')} />
+                  {(() => {
+                    const existingFolders = Array.from(new Set(savedSongs.map(s => s.folder || 'Algemeen'))).sort();
+                    const isCustom = songFolder && !existingFolders.includes(songFolder);
+                    return isCustom ? (
+                      <input type="text" autoFocus value={songFolder} onChange={(e) => setSongFolder(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Escape') setSongFolder('Algemeen'); }}
+                        onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
+                        style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
+                        placeholder={t('folderPlaceholder')} />
+                    ) : (
+                      <select
+                        value={songFolder || 'Algemeen'}
+                        onChange={(e) => {
+                          if (e.target.value === '__NEW__') setSongFolder('');
+                          else setSongFolder(e.target.value);
+                        }}
+                        style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px', cursor: 'pointer' }}
+                      >
+                        {existingFolders.map(f => <option key={f} value={f}>{f}</option>)}
+                        <option value="__NEW__">+ Nieuwe map...</option>
+                      </select>
+                    );
+                  })()}
 
                   {/* Three explicit save actions */}
                   <button
