@@ -143,7 +143,7 @@ function App() {
 
   // Cloud sync — single source of truth for saved songs is Supabase.
   // localStorage acts as a one-time fallback during migration (phase 6 cleans it up).
-  const { user, signOut } = useAuth();
+  const { user, signOut, setNewPassword } = useAuth();
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   useEffect(() => {
     const onUp = () => setIsOnline(true);
@@ -192,6 +192,10 @@ function App() {
   }, [librarySort]);
   const [templateDialog, setTemplateDialog] = useState(null); // { template, name, folder } when a template is being instantiated
   const [pendingDelete, setPendingDelete] = useState(null); // { type: 'song'|'folder', key } — highlights the active delete button
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [changePasswordValue, setChangePasswordValue] = useState('');
+  const [changePasswordValue2, setChangePasswordValue2] = useState('');
+  const [changePasswordBusy, setChangePasswordBusy] = useState(false);
   const [toast, setToast] = useState(null); // { message, kind: 'info'|'success'|'error' } — auto-dismisses after a short delay
   const toastTimerRef = useRef(null);
   const showToast = (message, kind = 'success') => {
@@ -2456,6 +2460,68 @@ function App() {
                       <div style={{ color: isOnline ? '#22c55e' : '#f87171', fontSize: '0.7rem', marginBottom: '0.3rem' }}>
                         {isOnline ? '● Online' : '● Offline (cache modus)'}
                       </div>
+                      {!changePasswordOpen ? (
+                        <button
+                          onClick={() => setChangePasswordOpen(true)}
+                          style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                        >Wachtwoord wijzigen</button>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder="Nieuw wachtwoord"
+                            value={changePasswordValue}
+                            onChange={(e) => setChangePasswordValue(e.target.value)}
+                            style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '4px', padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}
+                          />
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder="Herhaal nieuw wachtwoord"
+                            value={changePasswordValue2}
+                            onChange={(e) => setChangePasswordValue2(e.target.value)}
+                            style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '4px', padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}
+                          />
+                          <div style={{ display: 'flex', gap: '0.3rem' }}>
+                            <button
+                              disabled={changePasswordBusy || changePasswordValue.length < 6 || changePasswordValue !== changePasswordValue2}
+                              onClick={async () => {
+                                setChangePasswordBusy(true);
+                                try {
+                                  const { error } = await setNewPassword(changePasswordValue);
+                                  if (error) throw error;
+                                  showToast('Wachtwoord gewijzigd ✓');
+                                  setChangePasswordOpen(false);
+                                  setChangePasswordValue('');
+                                  setChangePasswordValue2('');
+                                } catch (err) {
+                                  alert(err?.message ?? 'Wachtwoord wijzigen mislukt.');
+                                } finally {
+                                  setChangePasswordBusy(false);
+                                }
+                              }}
+                              style={{
+                                flex: 1,
+                                background: changePasswordValue.length >= 6 && changePasswordValue === changePasswordValue2 ? '#1d4ed8' : '#1e293b',
+                                color: changePasswordValue.length >= 6 && changePasswordValue === changePasswordValue2 ? '#fff' : '#475569',
+                                border: 'none', borderRadius: '4px', padding: '0.4rem', fontSize: '0.8rem',
+                                cursor: changePasswordValue.length >= 6 && changePasswordValue === changePasswordValue2 ? 'pointer' : 'default',
+                              }}
+                            >{changePasswordBusy ? '…' : 'Opslaan'}</button>
+                            <button
+                              onClick={() => { setChangePasswordOpen(false); setChangePasswordValue(''); setChangePasswordValue2(''); }}
+                              style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.4rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                            >Annuleer</button>
+                          </div>
+                          {changePasswordValue.length > 0 && changePasswordValue.length < 6 && (
+                            <div style={{ color: '#f87171', fontSize: '0.7rem' }}>Minimaal 6 tekens</div>
+                          )}
+                          {changePasswordValue2.length > 0 && changePasswordValue !== changePasswordValue2 && (
+                            <div style={{ color: '#f87171', fontSize: '0.7rem' }}>Wachtwoorden komen niet overeen</div>
+                          )}
+                        </div>
+                      )}
                       <button
                         onClick={() => { signOut(); setShowToolsMenu(false); }}
                         style={{ background: '#0f172a', color: '#f87171', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
