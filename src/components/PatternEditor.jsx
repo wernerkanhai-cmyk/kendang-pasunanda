@@ -478,9 +478,8 @@ const [showBeheer, setShowBeheer] = useState(true);
       onRulerLoop?.(measureIdx * 48, (measureIdx + 1) * 48);
       return;
     }
-    const mStart = Math.floor(loopRangeObj.start / 48);
-    const mEnd = Math.ceil(loopRangeObj.end / 48) - 1;
-    if (measureIdx >= mStart && measureIdx <= mEnd) onClearRulerLoop?.();
+    // Loop actief → dubbelklik op elke willekeurige maat deactiveert de loop
+    onClearRulerLoop?.();
   };
 
   const handleRulerPointerDown = (e, measureIdx) => {
