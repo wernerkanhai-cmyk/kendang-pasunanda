@@ -637,8 +637,9 @@ const [showBeheer, setShowBeheer] = useState(true);
                     onChange={(e) => setSnippetName(e.target.value)}
                     onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
                     onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
                     placeholder={t('snippetNamePlaceholder')}
-                    style={{ background: 'transparent', color: '#fff', border: 'none', outline: 'none', width: '80px', fontSize: '0.8rem', padding: '0 4px' }}
+                    style={{ background: 'transparent', color: '#fff', border: 'none', outline: 'none', width: '80px', fontSize: '16px', padding: '0 4px' }}
                   />
                   <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }} />
                   <input
@@ -647,8 +648,9 @@ const [showBeheer, setShowBeheer] = useState(true);
                     onChange={(e) => setSnippetFolder(e.target.value)}
                     onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
                     onClick={(e) => e.stopPropagation()}
+                    onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
                     placeholder={t('snippetFolderPlaceholder')}
-                    style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', width: '70px', fontSize: '0.8rem', padding: '0 4px' }}
+                    style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', width: '70px', fontSize: '16px', padding: '0 4px' }}
                   />
                   <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
                   <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✕</button>
