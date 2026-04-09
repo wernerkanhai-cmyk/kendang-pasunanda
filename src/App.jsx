@@ -2192,6 +2192,33 @@ function App() {
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
                     title="Open de bibliotheek om een song te laden of te verwijderen"
                   >📚 {t('libraryBtn')}</button>
+
+                  {isAdmin && <>
+                    <div style={{ height: '1px', background: '#334155', margin: '0.2rem 0' }} />
+                    <button
+                      onClick={async () => {
+                        try {
+                          await publishTemplate({
+                            name: songName || 'Naamloos',
+                            folder: songFolder || 'Algemeen',
+                            bpm,
+                            patterns: song.map(p => ({
+                              name: p.name,
+                              anak: p.anak,
+                              indung: p.indung,
+                              gong: p.gong || [],
+                              tempoTrackEnabled: p.tempoTrackEnabled || false,
+                              tempoTrack: p.tempoTrack || [],
+                            })),
+                          });
+                          showToast('Template gepubliceerd ✓');
+                        } catch (err) { alert(err?.message ?? 'Publiceren mislukt'); }
+                        setShowSongMenu(false);
+                      }}
+                      style={{ background: '#0f172a', color: '#d4af37', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                      title="Publiceer deze song als template voor alle gebruikers"
+                    >📦 Publiceer als template</button>
+                  </>}
                 </div>
               </>
             )}
@@ -2412,32 +2439,6 @@ function App() {
                     onClick={() => { setShowManual(true); setShowToolsMenu(false); }}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
                   >{t('manual')}</button>
-
-                  <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
-
-                  {/* Publish as template — admin only, writes to Supabase templates table */}
-                  {isAdmin && <button
-                    onClick={async () => {
-                      try {
-                        await publishTemplate({
-                          name: songName || 'Naamloos',
-                          folder: songFolder || 'Algemeen',
-                          bpm,
-                          patterns: song.map(p => ({
-                            name: p.name,
-                            anak: p.anak,
-                            indung: p.indung,
-                            gong: p.gong || [],
-                            tempoTrackEnabled: p.tempoTrackEnabled || false,
-                            tempoTrack: p.tempoTrack || [],
-                          })),
-                        });
-                        showToast('Template gepubliceerd ✓');
-                      } catch (err) { alert(err?.message ?? 'Publiceren mislukt'); }
-                      setShowToolsMenu(false);
-                    }}
-                    style={{ background: '#0f172a', color: '#d4af37', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >📦 Publiceer als template</button>}
 
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
                   <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('languageLabel')}</div>
