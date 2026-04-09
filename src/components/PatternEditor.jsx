@@ -49,6 +49,7 @@ const PatternEditor = ({
   handleDeleteSnippetFolder,
   handleDeleteSnippetSilently,
   factorySnippets = [],
+  isAdmin = false,
   handleExportSnippets,
   handleImportSnippets,
   insertMeasure,
@@ -815,7 +816,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                        >Delete ({snippetSelection.size})</button>
                      )}
                      <button onClick={handleExportSnippets} style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
-                     <button onClick={handleExportSnippetTemplates} style={{ background: '#1e293b', color: '#d4af37', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title="Exporteer als snippet templates (JSON)">📦</button>
+                     {isAdmin && <button onClick={handleExportSnippetTemplates} style={{ background: '#1e293b', color: '#d4af37', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title="Exporteer als snippet templates (JSON)">📦</button>}
                      <label style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
                        {t('importSnippets')}
                        <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />

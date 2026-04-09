@@ -2413,8 +2413,8 @@ function App() {
 
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
 
-                  {/* Export as template — produces a .template.json that can be added to FACTORY_PRESETS */}
-                  <button
+                  {/* Export as template — admin only */}
+                  {user?.email === 'wernerkanhai@mac.com' && <button
                     onClick={() => {
                       const template = {
                         id: (songName || 'template').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, ''),
@@ -2442,7 +2442,7 @@ function App() {
                       showToast('Template geëxporteerd ✓');
                     }}
                     style={{ background: '#0f172a', color: '#d4af37', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >📦 Exporteer als template</button>
+                  >📦 Exporteer als template</button>}
 
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
                   <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('languageLabel')}</div>
@@ -3156,6 +3156,7 @@ function App() {
                       handleDeleteSnippetFolder={handleDeleteSnippetFolder}
                       handleDeleteSnippetSilently={handleDeleteSnippetSilently}
                       factorySnippets={FACTORY_SNIPPETS}
+                      isAdmin={user?.email === 'wernerkanhai@mac.com'}
                       handleExportSnippets={handleExportSnippets}
                       handleImportSnippets={handleImportSnippets}
                       insertMeasure={() => insertMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
