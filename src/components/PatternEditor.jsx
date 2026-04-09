@@ -642,16 +642,41 @@ const [showBeheer, setShowBeheer] = useState(true);
                     style={{ background: 'transparent', color: '#fff', border: 'none', outline: 'none', width: '80px', fontSize: '16px', padding: '0 4px' }}
                   />
                   <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }} />
-                  <input
-                    type="text"
-                    value={snippetFolder}
-                    onChange={(e) => setSnippetFolder(e.target.value)}
-                    onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') cancelSaveSnippet(); }}
-                    onClick={(e) => e.stopPropagation()}
-                    onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
-                    placeholder={t('snippetFolderPlaceholder')}
-                    style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', width: '70px', fontSize: '16px', padding: '0 4px' }}
-                  />
+                  {(() => {
+                    const existingFolders = Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort();
+                    const isCustom = snippetFolder && !existingFolders.includes(snippetFolder);
+                    return isCustom ? (
+                      <input
+                        type="text"
+                        autoFocus
+                        value={snippetFolder}
+                        onChange={(e) => setSnippetFolder(e.target.value)}
+                        onKeyDown={(e) => { e.stopPropagation(); if(e.key === 'Enter') confirmSaveSnippet(); if(e.key === 'Escape') { setSnippetFolder('Algemeen'); } }}
+                        onClick={(e) => e.stopPropagation()}
+                        onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
+                        placeholder={t('snippetFolderPlaceholder')}
+                        style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', width: '90px', fontSize: '16px', padding: '0 4px' }}
+                      />
+                    ) : (
+                      <select
+                        value={snippetFolder || 'Algemeen'}
+                        onChange={(e) => {
+                          if (e.target.value === '__NEW__') {
+                            setSnippetFolder('');
+                          } else {
+                            setSnippetFolder(e.target.value);
+                          }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ background: '#0f172a', color: '#cbd5e1', border: 'none', outline: 'none', fontSize: '14px', padding: '0 2px', cursor: 'pointer', maxWidth: '110px' }}
+                      >
+                        {existingFolders.map(f => (
+                          <option key={f} value={f}>{f}</option>
+                        ))}
+                        <option value="__NEW__">+ Nieuwe map...</option>
+                      </select>
+                    );
+                  })()}
                   <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
                   <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✕</button>
                 </div>
