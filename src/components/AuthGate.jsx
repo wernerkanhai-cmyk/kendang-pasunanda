@@ -84,7 +84,7 @@ export default function AuthGate({ children }) {
 
   return (
     <div style={fullScreen}>
-      <form onSubmit={handleSubmit} style={form}>
+      <form onSubmit={handleSubmit} style={form} autoComplete="on">
         <div style={title}>Kendang Pasunanda</div>
         <div style={subtitle}>
           {mode === 'signin' && 'Log in op je account'}
@@ -92,9 +92,13 @@ export default function AuthGate({ children }) {
           {mode === 'forgot' && 'Wachtwoord vergeten — vul je e-mail in'}
         </div>
 
+        {/* Hidden username hint so iOS Keychain recognises this as a login form */}
+        <input type="text" name="username" autoComplete="username" value={email} readOnly style={{ position: 'absolute', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }} tabIndex={-1} />
+
         <input
           type="email"
-          autoComplete="email"
+          name="email"
+          autoComplete={mode === 'signup' ? 'email' : 'username'}
           placeholder="E-mailadres"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
