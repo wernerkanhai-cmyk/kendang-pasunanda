@@ -45,3 +45,29 @@ export const FACTORY_CATEGORIES = [
   { label: 'Mincid' },
   { label: 'Padungdung' },
 ];
+
+/**
+ * Factory Snippet Templates — read-only pattern snippets that ship with the app.
+ *
+ * Each snippet template is a reusable rhythmic fragment (one or more measures
+ * for both anak and indung). They appear as a fixed "📦 Templates" section at
+ * the top of the Snippet Manager.
+ *
+ * SHAPE
+ * -----
+ *   {
+ *     id:       'unique-string',
+ *     name:     'Tepak Dua — motif A',
+ *     category: 'Tepak Dua',
+ *     data: {
+ *       anak:   [...slot objects...],
+ *       indung: [...slot objects...],
+ *       gong:   [],
+ *     },
+ *   }
+ *
+ * HOW TO ADD: export a snippet via '📦 Exporteer snippet templates' in
+ * the Snippet Manager, then import the resulting .snippet-template.json
+ * entries into this array.
+ */
+export const FACTORY_SNIPPETS = [];

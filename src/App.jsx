@@ -5,7 +5,7 @@ import PatternEditor from './components/PatternEditor';
 import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
 import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
-import { FACTORY_PRESETS } from './factory/presets';
+import { FACTORY_PRESETS, FACTORY_SNIPPETS } from './factory/presets';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
@@ -3089,6 +3089,7 @@ function App() {
                       handleRenameSnippetFolder={handleRenameSnippetFolder}
                       handleDeleteSnippetFolder={handleDeleteSnippetFolder}
                       handleDeleteSnippetSilently={handleDeleteSnippetSilently}
+                      factorySnippets={FACTORY_SNIPPETS}
                       handleExportSnippets={handleExportSnippets}
                       handleImportSnippets={handleImportSnippets}
                       insertMeasure={() => insertMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}

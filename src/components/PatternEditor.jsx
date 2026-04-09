@@ -48,6 +48,7 @@ const PatternEditor = ({
   handleRenameSnippetFolder,
   handleDeleteSnippetFolder,
   handleDeleteSnippetSilently,
+  factorySnippets = [],
   handleExportSnippets,
   handleImportSnippets,
   insertMeasure,
@@ -774,6 +775,23 @@ const [showBeheer, setShowBeheer] = useState(true);
                  return next;
                });
              };
+             const handleExportSnippetTemplates = () => {
+               const selected = savedSnippets.filter(s => snippetSelection.has(s.id));
+               const items = (selected.length > 0 ? selected : savedSnippets).map(s => ({
+                 id: (s.name || 'snippet').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, ''),
+                 name: s.name,
+                 category: s.folder || 'Algemeen',
+                 data: s.data,
+               }));
+               const json = JSON.stringify(items, null, 2);
+               const blob = new Blob([json], { type: 'application/json' });
+               const url = URL.createObjectURL(blob);
+               const a = document.createElement('a');
+               a.href = url;
+               a.download = `kendang-snippet-templates-${new Date().toISOString().slice(0, 10)}.snippet-template.json`;
+               a.click();
+               URL.revokeObjectURL(url);
+             };
              const handleBulkDeleteSnippets = async () => {
                if (snippetSelection.size === 0) return;
                const ids = Array.from(snippetSelection);
@@ -797,6 +815,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                        >Delete ({snippetSelection.size})</button>
                      )}
                      <button onClick={handleExportSnippets} style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
+                     <button onClick={handleExportSnippetTemplates} style={{ background: '#1e293b', color: '#d4af37', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title="Exporteer als snippet templates (JSON)">📦</button>
                      <label style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
                        {t('importSnippets')}
                        <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />
@@ -804,6 +823,52 @@ const [showBeheer, setShowBeheer] = useState(true);
                      <button onClick={() => { setIsManagingSnippets(false); setSnippetSelection(new Set()); }} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
                    </div>
                 </div>
+
+                {/* Factory snippet templates — read-only, always at top */}
+                {(() => {
+                  const tplFolderName = '__SNIPPET_TEMPLATES__';
+                  const isCollapsed = collapsedSnippetFolders.has(tplFolderName);
+                  return factorySnippets.length > 0 || true ? ( // always show, even when empty
+                    <div style={{ marginBottom: '0.6rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #d4af37', paddingBottom: '0.2rem' }}>
+                        <button
+                          onClick={() => toggleSnippetFolderCollapsed(tplFolderName)}
+                          style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                        >{isCollapsed ? '▶' : '▼'}</button>
+                        <span
+                          onClick={() => toggleSnippetFolderCollapsed(tplFolderName)}
+                          style={{ flex: 1, color: '#d4af37', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer' }}
+                        >📦 Templates <span style={{ color: '#a37f1e', fontWeight: 'normal' }}>({factorySnippets.length})</span></span>
+                      </div>
+                      {!isCollapsed && (factorySnippets.length === 0 ? (
+                        <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.3rem 0.5rem' }}>
+                          Nog geen snippet templates beschikbaar.
+                        </div>
+                      ) : (() => {
+                        const byCategory = factorySnippets.reduce((acc, s) => {
+                          const cat = s.category || 'Algemeen';
+                          if (!acc[cat]) acc[cat] = [];
+                          acc[cat].push(s);
+                          return acc;
+                        }, {});
+                        return Object.keys(byCategory).sort().map(cat => (
+                          <div key={cat} style={{ marginBottom: '0.4rem' }}>
+                            <div style={{ fontSize: '0.65rem', color: '#a37f1e', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0.15rem 0.5rem' }}>{cat}</div>
+                            {byCategory[cat].map(tpl => (
+                              <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem', background: 'rgba(212,175,55,0.05)', borderRadius: '4px', marginBottom: '2px' }}>
+                                <span style={{ flex: 1, fontSize: '0.85rem', color: '#fcd34d' }}>{tpl.name}</span>
+                                <button
+                                  onClick={() => handleInsertSnippet?.(tpl)}
+                                  style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}
+                                >Insert</button>
+                              </div>
+                            ))}
+                          </div>
+                        ));
+                      })())}
+                    </div>
+                  ) : null;
+                })()}
 
                 {savedSnippets.length === 0 ? (
                    <div style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>{t('noPatternsStored')}</div>
