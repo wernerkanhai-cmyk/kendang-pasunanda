@@ -10,6 +10,7 @@ import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { useT, useLanguage, LANGUAGES } from './i18n';
 import { useSongs } from './hooks/useSongs';
+import { loadSong as loadSongFromCloud } from './services/songRepo';
 import { useSnippets } from './hooks/useSnippets';
 import { useAuth } from './context/AuthContext';
 import MigrationDialog from './components/MigrationDialog';
@@ -183,6 +184,32 @@ function App() {
   }, [currentSongId]);
   useEffect(() => { localStorage.setItem('kendangSongName', songName); }, [songName]);
   useEffect(() => { localStorage.setItem('kendangSongFolder', songFolder); }, [songFolder]);
+
+  // On mount: if there's a currentSongId and the user is online, silently
+  // check if the cloud version is newer and replace local data if so.
+  useEffect(() => {
+    if (!currentSongId || !user || !isOnline) return;
+    let alive = true;
+    loadSongFromCloud(currentSongId)
+      .then((cloud) => {
+        if (!alive || !cloud) return;
+        // Compare the cloud patterns with what we have locally. If they
+        // differ the cloud version wins (it was saved from another device
+        // or an auto-save that didn't make it into this localStorage).
+        const cloudJson = JSON.stringify(cloud.patterns);
+        const localJson = JSON.stringify(song);
+        if (cloudJson !== localJson) {
+          setSong(cloud.patterns);
+          lastSavedSnapshotRef.current = cloudJson;
+        }
+        if (cloud.name && cloud.name !== songName) setSongName(cloud.name);
+        if (cloud.folder && cloud.folder !== songFolder) setSongFolder(cloud.folder);
+      })
+      .catch(() => { /* offline or deleted — keep local */ });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const [showSongLibrary, setShowSongLibrary] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState(null); // folder name being renamed
   const [renameFolderInput, setRenameFolderInput] = useState('');
