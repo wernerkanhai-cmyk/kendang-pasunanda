@@ -118,14 +118,26 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
   const startDrag = (e, origSlot) => {
     e.stopPropagation();
     e.preventDefault();
+    // Capture the pointer so fast moves don't lose the target element
+    if (e.pointerId != null && e.target.setPointerCapture) {
+      try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
+    }
     dragRef.current = { origSlot, moved: false };
+
+    // Cache the SVG rect at drag start so layout shifts during React
+    // re-renders don't cause the node to jump.
+    const startRect = svgRef.current?.getBoundingClientRect();
+    const scaleX = startRect ? totalWidth / startRect.width : 1;
 
     const onMove = (ev) => {
       ev.preventDefault();
       const d = dragRef.current;
-      if (!d || !svgRef.current) return;
+      if (!d || !startRect) return;
       d.moved = true;
-      const { x, y } = getSvgPos(ev);
+      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      const x = (cx - startRect.left) * scaleX;
+      const y = cy - startRect.top;
       const newSlot = Math.max(0, Math.min(totalSlots - 1, Math.round(x / slotWidth)));
       const newBpm = yToBpm(y);
       const prevSlot = d.origSlot;
@@ -134,8 +146,6 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
         n.slot === prevSlot ? { slot: newSlot, bpm: newBpm } : n
       );
       newTrack.sort((a, b) => a.slot - b.slot);
-      // Direct updaten zodat volgende pointermove event de node op de juiste slot vindt,
-      // ongeacht of React al heeft ge-rerenderd.
       tempoTrackRef.current = newTrack;
       d.origSlot = newSlot;
       onUpdate(pattern.id, newTrack);
@@ -285,6 +295,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
             preserveAspectRatio="none"
             width="100%"
             height={TRACK_HEIGHT}
+            style={{ touchAction: 'none' }}
             style={{ display: 'block', cursor: enabled ? 'crosshair' : 'default', touchAction: 'none' }}
             onDoubleClick={handleDoubleClick}
           >
