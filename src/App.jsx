@@ -132,10 +132,8 @@ function App() {
     document.getElementById(`timeline-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [stepBackCount]);
 
-  // When leaving practice mode, scroll the editor to the position where practice was
+  // When switching between edit and practice mode, scroll the playhead into view
   useEffect(() => {
-    if (isLocked) return;
-    // small delay so DOM has rendered the edit view
     const id = setTimeout(() => {
       document.getElementById(`timeline-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
