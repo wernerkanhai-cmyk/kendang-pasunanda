@@ -391,22 +391,46 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
                   {/* handle */}
                   <circle cx={ZOOM_WIDTH / 2} cy={curY} r={7} fill="#d4af37" stroke="#0f172a" strokeWidth={2} />
                 </svg>
-                {/* ±1 fine buttons */}
+                {/* ±1 fine buttons — hold to repeat */}
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  {[-1, +1].map(d => (
-                    <button key={d}
-                      onPointerDown={e => { e.stopPropagation(); e.preventDefault();
-                        const newBpm = Math.max(BPM_MIN, Math.min(BPM_MAX, zoomedNode.bpm + d));
+                  {[-1, +1].map(d => {
+                    const apply = () => {
+                      setZoomedNode(prev => {
+                        if (!prev) return null;
+                        const newBpm = Math.max(BPM_MIN, Math.min(BPM_MAX, prev.bpm + d));
                         const newTrack = tempoTrackRef.current.map(n =>
-                          n.slot === zoomedNode.slot ? { ...n, bpm: newBpm } : n
+                          n.slot === prev.slot ? { ...n, bpm: newBpm } : n
                         );
                         newTrack.sort((a, b) => a.slot - b.slot);
+                        tempoTrackRef.current = newTrack;
                         onUpdate(pattern.id, newTrack);
-                        setZoomedNode(prev => prev ? { ...prev, bpm: newBpm } : null);
-                      }}
-                      style={{ background: '#1e293b', border: '1px solid #475569', color: '#94a3b8', borderRadius: '4px', padding: '2px 10px', cursor: 'pointer', fontSize: '0.85rem' }}
-                    >{d > 0 ? '+1' : '−1'}</button>
-                  ))}
+                        return { ...prev, bpm: newBpm };
+                      });
+                    };
+                    let repeatTimer = null;
+                    let speedTimer = null;
+                    const startRepeat = () => {
+                      apply();
+                      repeatTimer = setInterval(apply, 120);
+                      // After 1s, speed up
+                      speedTimer = setTimeout(() => {
+                        if (repeatTimer) clearInterval(repeatTimer);
+                        repeatTimer = setInterval(apply, 50);
+                      }, 1000);
+                    };
+                    const stopRepeat = () => {
+                      if (repeatTimer) { clearInterval(repeatTimer); repeatTimer = null; }
+                      if (speedTimer) { clearTimeout(speedTimer); speedTimer = null; }
+                    };
+                    return (
+                      <button key={d}
+                        onPointerDown={e => { e.stopPropagation(); e.preventDefault(); startRepeat(); }}
+                        onPointerUp={stopRepeat}
+                        onPointerLeave={stopRepeat}
+                        style={{ background: '#1e293b', border: '1px solid #475569', color: '#94a3b8', borderRadius: '4px', padding: '2px 10px', cursor: 'pointer', fontSize: '0.85rem', userSelect: 'none' }}
+                      >{d > 0 ? '+1' : '−1'}</button>
+                    );
+                  })}
                 </div>
                 <button
                   onPointerDown={e => { e.stopPropagation(); setZoomedNode(null); }}
