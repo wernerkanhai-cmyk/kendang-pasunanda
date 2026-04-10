@@ -1,8 +1,55 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useT } from '../i18n';
 
 const BPM_MIN = 20;
 const BPM_MAX = 140;
+
+/** Small sub-component so the repeat timer refs survive across renders. */
+function TempoFineButton({ delta, zoomedNode, setZoomedNode, tempoTrackRef, onUpdate, patternId }) {
+  const repeatRef = useRef(null);
+  const speedRef = useRef(null);
+
+  const apply = useCallback(() => {
+    setZoomedNode(prev => {
+      if (!prev) return null;
+      const newBpm = Math.max(BPM_MIN, Math.min(BPM_MAX, prev.bpm + delta));
+      const newTrack = tempoTrackRef.current.map(n =>
+        n.slot === prev.slot ? { ...n, bpm: newBpm } : n
+      );
+      newTrack.sort((a, b) => a.slot - b.slot);
+      tempoTrackRef.current = newTrack;
+      onUpdate(patternId, newTrack);
+      return { ...prev, bpm: newBpm };
+    });
+  }, [delta, setZoomedNode, tempoTrackRef, onUpdate, patternId]);
+
+  const stop = useCallback(() => {
+    if (repeatRef.current) { clearInterval(repeatRef.current); repeatRef.current = null; }
+    if (speedRef.current) { clearTimeout(speedRef.current); speedRef.current = null; }
+  }, []);
+
+  // Clean up on unmount
+  useEffect(() => stop, [stop]);
+
+  const start = () => {
+    stop();
+    apply();
+    repeatRef.current = setInterval(apply, 120);
+    speedRef.current = setTimeout(() => {
+      if (repeatRef.current) clearInterval(repeatRef.current);
+      repeatRef.current = setInterval(apply, 50);
+    }, 1000);
+  };
+
+  return (
+    <button
+      onPointerDown={e => { e.stopPropagation(); e.preventDefault(); start(); }}
+      onPointerUp={stop}
+      onPointerLeave={stop}
+      style={{ background: '#1e293b', border: '1px solid #475569', color: '#94a3b8', borderRadius: '4px', padding: '2px 10px', cursor: 'pointer', fontSize: '0.85rem', userSelect: 'none' }}
+    >{delta > 0 ? '+1' : '−1'}</button>
+  );
+}
 const TRACK_HEIGHT = 60;
 const ZOOM_HEIGHT = 160;
 const ZOOM_WIDTH = 56;
@@ -393,44 +440,9 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
                 </svg>
                 {/* ±1 fine buttons — hold to repeat */}
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  {[-1, +1].map(d => {
-                    const apply = () => {
-                      setZoomedNode(prev => {
-                        if (!prev) return null;
-                        const newBpm = Math.max(BPM_MIN, Math.min(BPM_MAX, prev.bpm + d));
-                        const newTrack = tempoTrackRef.current.map(n =>
-                          n.slot === prev.slot ? { ...n, bpm: newBpm } : n
-                        );
-                        newTrack.sort((a, b) => a.slot - b.slot);
-                        tempoTrackRef.current = newTrack;
-                        onUpdate(pattern.id, newTrack);
-                        return { ...prev, bpm: newBpm };
-                      });
-                    };
-                    let repeatTimer = null;
-                    let speedTimer = null;
-                    const startRepeat = () => {
-                      apply();
-                      repeatTimer = setInterval(apply, 120);
-                      // After 1s, speed up
-                      speedTimer = setTimeout(() => {
-                        if (repeatTimer) clearInterval(repeatTimer);
-                        repeatTimer = setInterval(apply, 50);
-                      }, 1000);
-                    };
-                    const stopRepeat = () => {
-                      if (repeatTimer) { clearInterval(repeatTimer); repeatTimer = null; }
-                      if (speedTimer) { clearTimeout(speedTimer); speedTimer = null; }
-                    };
-                    return (
-                      <button key={d}
-                        onPointerDown={e => { e.stopPropagation(); e.preventDefault(); startRepeat(); }}
-                        onPointerUp={stopRepeat}
-                        onPointerLeave={stopRepeat}
-                        style={{ background: '#1e293b', border: '1px solid #475569', color: '#94a3b8', borderRadius: '4px', padding: '2px 10px', cursor: 'pointer', fontSize: '0.85rem', userSelect: 'none' }}
-                      >{d > 0 ? '+1' : '−1'}</button>
-                    );
-                  })}
+                  {[-1, +1].map(d => (
+                    <TempoFineButton key={d} delta={d} zoomedNode={zoomedNode} setZoomedNode={setZoomedNode} tempoTrackRef={tempoTrackRef} onUpdate={onUpdate} patternId={pattern.id} />
+                  ))}
                 </div>
                 <button
                   onPointerDown={e => { e.stopPropagation(); setZoomedNode(null); }}
