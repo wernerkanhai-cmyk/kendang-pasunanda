@@ -20,6 +20,7 @@ const PatternEditor = ({
   undoStack, 
   redoStack, 
   bpm,
+  inheritedBpm,
   realtimeBpm = null,
   handleBpmChange,
   isRecording, 
@@ -1416,7 +1417,7 @@ const [showBeheer, setShowBeheer] = useState(true);
         <div style={{ padding: '4px 1rem 0' }}>
           <TempoTrack
             pattern={pattern}
-            defaultBpm={bpm}
+            defaultBpm={inheritedBpm ?? bpm}
             onUpdate={onUpdateTempoTrack}
             onToggleEnabled={onToggleTempoTrack}
             slotWidth={slotWidth}

@@ -3212,7 +3212,16 @@ function App() {
           />
           {(() => {
             let offset = 0;
+            let inheritedBpm = bpm;
             return song.map((pattern, idx) => {
+              const patternInheritedBpm = inheritedBpm;
+              // Update inheritedBpm for the next pattern: if this pattern has
+              // an active tempoTrack, use its last point; otherwise carry over.
+              const tt = pattern.tempoTrack;
+              if (tt && tt.length > 0 && pattern.tempoTrackEnabled !== false) {
+                const sorted = [...tt].sort((a, b) => a.slot - b.slot);
+                inheritedBpm = sorted[sorted.length - 1].bpm;
+              }
               const measureOffset = offset;
               offset += Math.ceil(pattern.anak.length / 48);
               return (
@@ -3252,6 +3261,7 @@ function App() {
                       undoStack={undoStack}
                       redoStack={redoStack}
                       bpm={bpm}
+                      inheritedBpm={patternInheritedBpm}
                       realtimeBpm={realtimeBpm}
                       handleBpmChange={handleBpmChange}
                       isRecording={isRecording}
