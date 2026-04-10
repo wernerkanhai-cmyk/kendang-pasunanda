@@ -62,7 +62,6 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [stepBackCount, setStepBackCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
-  const [precount, setPrecount] = useState(0);
   const [loopingPatternId, setLoopingPatternId] = useState(null);
   const loopingPatternIdRef = useRef(null);
   const [loopRange, setLoopRange] = useState(null); // { patternId, startSlot, endSlot } local slots
@@ -1103,7 +1102,6 @@ function App() {
       (globalSlot) => { currentAudioSlotRef.current = globalSlot; },
       // onPrecount
       (count) => {
-        setPrecount(count);
         if (count === 0) {
           if (schedulerRef.current?.isRecording) setIsRecording(true);
           setIsPlaying(true);
@@ -1170,7 +1168,6 @@ function App() {
       samplerRef.current?.silenceAll();
       setIsPlaying(false);
       setIsRecording(false);
-      setPrecount(0);
       setLoopingPatternId(null);
       loopingPatternIdRef.current = null;
       loopRangeRef.current = null;
@@ -1799,23 +1796,6 @@ function App() {
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
     setActivePatternId(patternId);
     setStepBackCount(c => c + 1);
-  };
-
-  const toggleRecord = async () => {
-    if (isPlaying || isRecording) {
-      schedulerRef.current.pause();
-      setIsPlaying(false);
-      setIsRecording(false);
-      setPrecount(0);
-    } else {
-      // Start opname vanaf begin van de maat waar de cursor staat
-      const globalStart = activeSlot
-        ? localToGlobal(activeSlot.patternId, activeSlot.startIndex - (activeSlot.startIndex % 48), song)
-        : 0;
-      setIsRecording('precount'); // Temporary state to disable UI during countdown
-      await schedulerRef.current.startRecordPrecount(globalStart);
-      // OnPrecount(0) callback will set the final true state
-    }
   };
 
   const handleGongFromInstrument = () => {
@@ -3263,13 +3243,11 @@ function App() {
                       realtimeBpm={realtimeBpm}
                       handleBpmChange={handleBpmChange}
                       isRecording={isRecording}
-                      toggleRecord={toggleRecord}
                       isPlaying={isPlaying}
                       togglePlay={togglePlay}
                       rewind={rewind}
                       stepBack={stepBack}
                       stepBackCount={stepBackCount}
-                      precount={precount}
                       gridResolution={gridResolution}
                       magneticInput={magneticInput}
                       setGridResolution={setGridResolution}

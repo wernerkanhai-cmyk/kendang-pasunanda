@@ -23,9 +23,7 @@ const PatternEditor = ({
   inheritedBpm,
   realtimeBpm = null,
   handleBpmChange,
-  isRecording, 
-  toggleRecord, 
-  precount, 
+  isRecording,
   isPlaying,
   togglePlay,
   rewind,
@@ -1125,15 +1123,6 @@ const [showBeheer, setShowBeheer] = useState(true);
                    style={{ background: loopingPatternId === pattern.id ? '#f97316' : 'transparent', color: loopingPatternId === pattern.id ? '#fff' : '#94a3b8', border: `1px solid ${loopingPatternId === pattern.id ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                    title={t('loopSection')}
                  >↺</button>
-
-                 <button
-                   onClick={(e) => { e.stopPropagation(); toggleRecord(); }}
-                   className={isRecording ? 'recording-pulse' : ''}
-                   style={{ background: isRecording ? '#ef4444' : 'transparent', color: isRecording ? '#fff' : '#94a3b8', border: `1px solid ${isRecording ? '#ef4444' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
-                   title={isRecording === 'precount' ? t('precount')(precount) : t('record')}
-                 >
-                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: isRecording ? '#fff' : '#ef4444' }} />
-                 </button>
 
                  {/* Metronoomknop */}
                  <div ref={metronomeBtnRef} style={{ position: 'relative' }}>
