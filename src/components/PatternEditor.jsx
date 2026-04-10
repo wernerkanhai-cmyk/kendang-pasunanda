@@ -605,11 +605,16 @@ const [showBeheer, setShowBeheer] = useState(true);
       }}
     >
       <div className="pattern-header" style={{ display: isLocked ? 'none' : 'flex', alignItems: 'center' }}>
-        <input 
-          type="text" 
-          value={pattern.name} 
+        <input
+          type="text"
+          value={pattern.name}
           onChange={handleNameChange}
+          onFocus={(e) => {
+            // Prevent iOS from jumping the viewport when the input is near the bottom
+            setTimeout(() => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' }), 50);
+          }}
           className="pattern-name-input"
+          style={{ fontSize: '16px' }}
         />
         
         {/* Song-beheer toggle */}
