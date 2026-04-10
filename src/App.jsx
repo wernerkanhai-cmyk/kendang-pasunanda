@@ -1350,28 +1350,49 @@ function App() {
    * Build a function globalSlot → bpm using each pattern's tempoTrack.
    * Falls back to defaultBpm when a pattern has no nodes.
    */
-  const buildTempoAt = (songArr, defaultBpm) => (globalSlot) => {
-    let offset = 0;
-    for (const pattern of songArr) {
-      const len = pattern.anak.length;
-      if (globalSlot < offset + len) {
-        const localSlot = globalSlot - offset;
-        const track = pattern.tempoTrack;
-        if (!track || track.length === 0 || pattern.tempoTrackEnabled === false) return defaultBpm;
+  const buildTempoAt = (songArr, defaultBpm) => {
+    // Pre-compute the carry-over BPM for each pattern: the last tempo point
+    // of the most recent pattern that had an active tempoTrack. This way a
+    // pattern without its own tempo nodes inherits the end-tempo of the
+    // preceding pattern instead of snapping back to the global BPM.
+    const carryOver = new Array(songArr.length).fill(defaultBpm);
+    let running = defaultBpm;
+    for (let p = 0; p < songArr.length; p++) {
+      const pat = songArr[p];
+      const track = pat.tempoTrack;
+      if (track && track.length > 0 && pat.tempoTrackEnabled !== false) {
         const sorted = [...track].sort((a, b) => a.slot - b.slot);
-        if (localSlot <= sorted[0].slot) return sorted[0].bpm;
-        if (localSlot >= sorted[sorted.length - 1].slot) return sorted[sorted.length - 1].bpm;
-        for (let i = 0; i < sorted.length - 1; i++) {
-          if (localSlot >= sorted[i].slot && localSlot <= sorted[i + 1].slot) {
-            const t = (localSlot - sorted[i].slot) / (sorted[i + 1].slot - sorted[i].slot);
-            return sorted[i].bpm + t * (sorted[i + 1].bpm - sorted[i].bpm);
-          }
-        }
-        return defaultBpm;
+        running = sorted[sorted.length - 1].bpm;
       }
-      offset += len;
+      carryOver[p] = running;
     }
-    return defaultBpm;
+
+    return (globalSlot) => {
+      let offset = 0;
+      for (let p = 0; p < songArr.length; p++) {
+        const pattern = songArr[p];
+        const len = pattern.anak.length;
+        if (globalSlot < offset + len) {
+          const localSlot = globalSlot - offset;
+          const track = pattern.tempoTrack;
+          // Use the carry-over BPM from the previous pattern (or defaultBpm for the first)
+          const fallback = p > 0 ? carryOver[p - 1] : defaultBpm;
+          if (!track || track.length === 0 || pattern.tempoTrackEnabled === false) return fallback;
+          const sorted = [...track].sort((a, b) => a.slot - b.slot);
+          if (localSlot <= sorted[0].slot) return sorted[0].bpm;
+          if (localSlot >= sorted[sorted.length - 1].slot) return sorted[sorted.length - 1].bpm;
+          for (let i = 0; i < sorted.length - 1; i++) {
+            if (localSlot >= sorted[i].slot && localSlot <= sorted[i + 1].slot) {
+              const t = (localSlot - sorted[i].slot) / (sorted[i + 1].slot - sorted[i].slot);
+              return sorted[i].bpm + t * (sorted[i + 1].bpm - sorted[i].bpm);
+            }
+          }
+          return fallback;
+        }
+        offset += len;
+      }
+      return running; // past the last pattern — use the last known tempo
+    };
   };
 
   /** Precompute cumulative slot start times (ms) from loopStart to totalSlots. */
