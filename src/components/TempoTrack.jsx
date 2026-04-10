@@ -92,9 +92,23 @@ export const interpolateBpm = (tempoTrack, localSlot) => {
   return sorted[sorted.length - 1].bpm;
 };
 
-const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth }) => {
+const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth, isActive, isPlaying }) => {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [manualToggle, setManualToggle] = useState(false); // true if user explicitly opened/closed
+
+  // Auto open/close based on whether this pattern is the active one during playback.
+  // Only overrides if the user hasn't manually toggled.
+  useEffect(() => {
+    if (!isPlaying) return;
+    if (manualToggle) return;
+    setOpen(isActive);
+  }, [isActive, isPlaying, manualToggle]);
+
+  // Reset manual override when playback stops so auto-behaviour resumes next time
+  useEffect(() => {
+    if (!isPlaying) setManualToggle(false);
+  }, [isPlaying]);
   const svgRef = useRef(null);
   const dragRef = useRef(null);
   const tempoTrackRef = useRef([]);
@@ -304,7 +318,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
       {/* Header */}
       <div
         style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', cursor: 'pointer', background: open && enabled ? 'rgba(212,175,55,0.22)' : 'rgba(255,255,255,0.08)', userSelect: 'none', minWidth: 0 }}
-        onClick={() => setOpen(o => !o)}
+        onClick={() => { setOpen(o => !o); setManualToggle(true); }}
       >
         <span style={{ fontSize: '0.7rem', color: open ? '#d4af37' : '#94a3b8', flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
         <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: isActive && enabled ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>{t('tempoLabel')}</span>

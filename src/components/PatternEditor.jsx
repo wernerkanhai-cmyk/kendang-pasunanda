@@ -1421,6 +1421,8 @@ const [showBeheer, setShowBeheer] = useState(true);
             onUpdate={onUpdateTempoTrack}
             onToggleEnabled={onToggleTempoTrack}
             slotWidth={slotWidth}
+            isActive={isActive}
+            isPlaying={isPlaying}
           />
         </div>
       )}
