@@ -306,7 +306,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
       ? `${Math.round(tempoTrack[0].bpm)} BPM (statisch)`
       : `${Math.round(Math.min(...tempoTrack.map(n => n.bpm)))}–${Math.round(Math.max(...tempoTrack.map(n => n.bpm)))} BPM`;
 
-  const isActive = tempoTrack.length > 0;
+  const hasNodes = tempoTrack.length > 0;
   const enabled = pattern.tempoTrackEnabled !== false;
 
   // Grid lines for 20-140
@@ -314,15 +314,15 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
   const labelBpms = [20, 40, 60, 80, 100, 120, 140];
 
   return (
-    <div style={{ marginBottom: '6px', border: `2px solid ${isActive && enabled ? 'rgba(212,175,55,0.6)' : 'rgba(255,255,255,0.35)'}`, borderRadius: '4px', overflow: 'visible', position: 'relative' }}>
+    <div style={{ marginBottom: '6px', border: `2px solid ${hasNodes && enabled ? 'rgba(212,175,55,0.6)' : 'rgba(255,255,255,0.35)'}`, borderRadius: '4px', overflow: 'visible', position: 'relative' }}>
       {/* Header */}
       <div
         style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', cursor: 'pointer', background: open && enabled ? 'rgba(212,175,55,0.22)' : 'rgba(255,255,255,0.08)', userSelect: 'none', minWidth: 0 }}
         onClick={() => { setOpen(o => !o); setManualToggle(true); }}
       >
         <span style={{ fontSize: '0.7rem', color: open ? '#d4af37' : '#94a3b8', flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
-        <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: isActive && enabled ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>{t('tempoLabel')}</span>
-        <span style={{ fontSize: '0.65rem', color: isActive && enabled ? '#d4af37' : '#64748b', marginLeft: '2px', flexShrink: 0 }}>{enabled ? summaryLabel : `${defaultBpm} BPM (globaal)`}</span>
+        <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: hasNodes && enabled ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>{t('tempoLabel')}</span>
+        <span style={{ fontSize: '0.65rem', color: hasNodes && enabled ? '#d4af37' : '#64748b', marginLeft: '2px', flexShrink: 0 }}>{enabled ? summaryLabel : `${defaultBpm} BPM (globaal)`}</span>
 
         {/* Enable/disable toggle */}
         {onToggleEnabled && (
@@ -339,7 +339,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
           >{enabled ? 'ON' : 'OFF'}</button>
         )}
 
-        {open && enabled && isActive && (
+        {open && enabled && hasNodes && (
           <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }} onClick={e => e.stopPropagation()}>
             <button onClick={clearTrack}
               style={{ padding: '1px 6px', fontSize: '0.62rem', background: '#1e293b', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '3px', cursor: 'pointer' }}>{t('clearTempo')}</button>
@@ -369,7 +369,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
                 stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
             ))}
             <polygon points={fillPoints} fill="rgba(212,175,55,0.08)" />
-            <polyline points={polyPoints} fill="none" stroke={isActive ? '#d4af37' : '#334155'} strokeWidth={1.5} strokeLinejoin="round" />
+            <polyline points={polyPoints} fill="none" stroke={hasNodes ? '#d4af37' : '#334155'} strokeWidth={1.5} strokeLinejoin="round" />
             {labelBpms.map(b => (
               <text key={b} x={3} y={bpmToY(b) + 3} fill="rgba(255,255,255,0.2)" fontSize={8} style={{ userSelect: 'none' }}>{b}</text>
             ))}
