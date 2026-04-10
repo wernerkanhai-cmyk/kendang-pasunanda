@@ -24,6 +24,8 @@ export class AudioScheduler {
     this.loopStart = 0; // Slot waarnaar terug geloopt wordt
     this.pendingLoop = null; // { start, end } — wacht op einde huidige cyclus
     this.onLoopSwitch = null; // (start, end) => void — callback na loop-wissel
+    this.stopAtEnd = false;  // when true, pause at totalSlots instead of looping
+    this.onStopAtEnd = null; // () => void — callback when playback reaches the end
   }
 
   setAudioContext(ctx) {
@@ -87,6 +89,12 @@ export class AudioScheduler {
         // Cursor referentie: nieuwe loop begint op dit audiotijdstip
         this.playStartAudioTime = this.nextNoteTime;
         if (this.onLoopSwitch) this.onLoopSwitch(start, end);
+      } else if (this.stopAtEnd) {
+        // No explicit loop active — stop playback at the end of the song.
+        this.currentSlot = this.totalSlots - 1;
+        this.pause();
+        if (this.onStopAtEnd) this.onStopAtEnd();
+        return;
       } else {
         this.currentSlot = this.loopStart;
       }

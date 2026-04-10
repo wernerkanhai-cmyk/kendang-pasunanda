@@ -1463,7 +1463,13 @@ function App() {
           ? localToGlobal(lr.patternId, lr.endSlot, song)
           : song.reduce((sum, p) => sum + p.anak.length, 0);
       // Zorg dat de scheduler ook de juiste loopStart+totalSlots heeft
-      if (activeSections || lr) schedulerRef.current.setLoopBounds(globalStart, loopEnd);
+      const hasExplicitLoop = !!(activeSections || lr);
+      if (hasExplicitLoop) schedulerRef.current.setLoopBounds(globalStart, loopEnd);
+      schedulerRef.current.stopAtEnd = !hasExplicitLoop;
+      schedulerRef.current.onStopAtEnd = () => {
+        setIsPlaying(false);
+        setRealtimeBpm(null);
+      };
       slotTimesRef.current = buildSlotTimesMs(globalStart, loopEnd, buildTempoAt(song, bpm));
 
       if (metronomeMode === '4') {
@@ -1548,6 +1554,7 @@ function App() {
 
     loopingPatternIdRef.current = patternId;
     setLoopingPatternId(patternId);
+    schedulerRef.current.stopAtEnd = false;
     schedulerRef.current.setTotalSlots(loopEndGlobal);
     // Build slot time table for this loop range
     slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
@@ -1568,6 +1575,7 @@ function App() {
     if (schedulerRef.current) {
       const total = song.reduce((sum, p) => sum + p.anak.length, 0);
       schedulerRef.current.setLoopBounds(0, total);
+      schedulerRef.current.stopAtEnd = true;
       // Resync the visual cursor to the new loop bounds so it doesn't drift.
       if (isPlaying) {
         const sched = schedulerRef.current;
@@ -1592,6 +1600,7 @@ function App() {
         setLoopingPatternId(null);
         if (schedulerRef.current) {
           const total = songRef.current.reduce((sum, p) => sum + p.anak.length, 0);
+          schedulerRef.current.stopAtEnd = true;
           if (isPlaying) {
             // Maak huidige loop af tot het einde van de regel, dan door met de rest van de song
             const currentLoopEnd = schedulerRef.current.totalSlots;
@@ -1622,6 +1631,7 @@ function App() {
         loopingPatternIdRef.current = null;
         setLoopingPatternId(null);
         if (schedulerRef.current) {
+          schedulerRef.current.stopAtEnd = false;
           if (isPlaying) {
             schedulerRef.current.setPendingLoopAfterCurrentMeasure(globalStart, globalEnd);
             schedulerRef.current.onLoopSwitch = (start, end) => {
@@ -1657,6 +1667,7 @@ function App() {
     setLoopRange(newLoopRange);
     loopingPatternIdRef.current = patternId;
     setLoopingPatternId(patternId);
+    if (schedulerRef.current) schedulerRef.current.stopAtEnd = false;
     if (isPlaying) {
       // Zet pending loop — scheduler wisselt na einde huidige maat (max 1 maat wachten)
       schedulerRef.current.setPendingLoopAfterCurrentMeasure(loopStartGlobal, loopEndGlobal);
