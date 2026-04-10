@@ -2206,9 +2206,11 @@ function App() {
               <>
                 <div onClick={() => setShowSongMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
                 <div style={{
-                  position: 'absolute', top: '110%', left: 0, zIndex: 200,
+                  position: 'fixed', top: '3.5rem', left: '0.5rem', zIndex: 200,
                   background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
-                  padding: '0.75rem', minWidth: '240px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                  padding: '0.75rem', minWidth: '240px', maxWidth: 'calc(100vw - 1rem)',
+                  maxHeight: 'calc(100dvh - 4.5rem)', overflowY: 'auto',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                   display: 'flex', flexDirection: 'column', gap: '0.5rem',
                 }}>
                   <input type="text" value={songName} onChange={(e) => setSongName(e.target.value)}
