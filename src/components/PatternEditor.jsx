@@ -68,6 +68,9 @@ const PatternEditor = ({
   setMetronomeVolume,
   onUpdateTempoTrack,
   onToggleTempoTrack,
+  onToggleAllTempoOpen,
+  onToggleAllTempoEnabled,
+  globalTempoOpenSignal,
   onSeek,
   onDuplicate,
   onDelete,
@@ -1412,6 +1415,9 @@ const [showBeheer, setShowBeheer] = useState(true);
             slotWidth={slotWidth}
             isActive={isActive}
             isPlaying={isPlaying}
+            onToggleAllOpen={onToggleAllTempoOpen}
+            onToggleAllEnabled={onToggleAllTempoEnabled}
+            globalOpenSignal={globalTempoOpenSignal}
           />
         </div>
       )}

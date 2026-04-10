@@ -1435,6 +1435,17 @@ function App() {
     setSong(prev => prev.map(p => p.id === patternId ? { ...p, tempoTrackEnabled: p.tempoTrackEnabled === false } : p));
   };
 
+  // Global tempo panel open/close — incremented to signal all TempoTracks
+  const [globalTempoOpenSignal, setGlobalTempoOpenSignal] = useState(0); // odd = open all, even = close all
+  const handleToggleAllTempoOpen = () => setGlobalTempoOpenSignal(s => s + 1);
+
+  const handleToggleAllTempoEnabled = () => {
+    setSong(prev => {
+      const anyEnabled = prev.some(p => p.tempoTrackEnabled !== false);
+      return prev.map(p => ({ ...p, tempoTrackEnabled: !anyEnabled }));
+    });
+  };
+
   const handleBpmChange = (delta) => {
     const newBpm = Math.max(20, Math.min(140, bpm + delta));
     setBpm(newBpm);
@@ -3287,6 +3298,9 @@ function App() {
                       setMetronomeVolume={setMetronomeVolume}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
                       onToggleTempoTrack={handleToggleTempoTrack}
+                      onToggleAllTempoOpen={handleToggleAllTempoOpen}
+                      onToggleAllTempoEnabled={handleToggleAllTempoEnabled}
+                      globalTempoOpenSignal={globalTempoOpenSignal}
                       onSeek={handleSeek}
                       trackVolumes={trackVolumes}
                       onTrackVolumeChange={(track, val) => setTrackVolumes(v => ({ ...v, [track]: val }))}

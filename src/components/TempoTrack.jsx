@@ -92,23 +92,32 @@ export const interpolateBpm = (tempoTrack, localSlot) => {
   return sorted[sorted.length - 1].bpm;
 };
 
-const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth, isActive, isPlaying }) => {
+const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth, isActive, isPlaying, onToggleAllOpen, onToggleAllEnabled, globalOpenSignal }) => {
   const t = useT();
   const [open, setOpen] = useState(false);
-  const [manualToggle, setManualToggle] = useState(false); // true if user explicitly opened/closed
+  const [manualToggle, setManualToggle] = useState(false);
 
   // Auto open/close based on whether this pattern is the active one during playback.
-  // Only overrides if the user hasn't manually toggled.
   useEffect(() => {
     if (!isPlaying) return;
     if (manualToggle) return;
     setOpen(isActive);
   }, [isActive, isPlaying, manualToggle]);
 
-  // Reset manual override when playback stops so auto-behaviour resumes next time
+  // Reset manual override when playback stops
   useEffect(() => {
     if (!isPlaying) setManualToggle(false);
   }, [isPlaying]);
+
+  // Respond to "toggle all open/close" signal from parent
+  const prevSignalRef = useRef(globalOpenSignal);
+  useEffect(() => {
+    if (globalOpenSignal === prevSignalRef.current) return;
+    prevSignalRef.current = globalOpenSignal;
+    // odd signal = open all, even = close all
+    setOpen(globalOpenSignal % 2 === 1);
+    setManualToggle(true);
+  }, [globalOpenSignal]);
   const svgRef = useRef(null);
   const dragRef = useRef(null);
   const tempoTrackRef = useRef([]);
@@ -319,6 +328,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
       <div
         style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', cursor: 'pointer', background: open && enabled ? 'rgba(212,175,55,0.22)' : 'rgba(255,255,255,0.08)', userSelect: 'none', minWidth: 0 }}
         onClick={() => { setOpen(o => !o); setManualToggle(true); }}
+        onDoubleClick={(e) => { e.stopPropagation(); onToggleAllOpen?.(); }}
       >
         <span style={{ fontSize: '0.7rem', color: open ? '#d4af37' : '#94a3b8', flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
         <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: hasNodes && enabled ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>{t('tempoLabel')}</span>
@@ -337,6 +347,16 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
             }}
             title={enabled ? 'Disable tempo automation' : 'Enable tempo automation'}
           >{enabled ? 'ON' : 'OFF'}</button>
+        )}
+        {onToggleAllEnabled && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleAllEnabled(); }}
+            style={{
+              marginLeft: '2px', padding: '1px 5px', fontSize: '0.55rem', borderRadius: '3px', cursor: 'pointer', flexShrink: 0,
+              background: 'transparent', color: '#64748b', border: '1px solid #334155', fontWeight: 'bold',
+            }}
+            title="Alle tempo-tracks aan of uit"
+          >ALL</button>
         )}
 
         {open && enabled && hasNodes && (
