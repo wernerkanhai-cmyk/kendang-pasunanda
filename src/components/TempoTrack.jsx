@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useT } from '../i18n';
 
 const BPM_MIN = 20;
-const BPM_MAX = 100;
+const BPM_MAX = 140;
 const TRACK_HEIGHT = 60;
 const ZOOM_HEIGHT = 160;
 const ZOOM_WIDTH = 56;
@@ -238,9 +238,9 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth 
   const isActive = tempoTrack.length > 0;
   const enabled = pattern.tempoTrackEnabled !== false;
 
-  // Grid lines for 20-100
-  const gridBpms = [20, 30, 40, 50, 60, 70, 80, 90, 100];
-  const labelBpms = [20, 40, 60, 80, 100];
+  // Grid lines for 20-140
+  const gridBpms = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140];
+  const labelBpms = [20, 40, 60, 80, 100, 120, 140];
 
   return (
     <div style={{ marginBottom: '6px', border: `2px solid ${isActive && enabled ? 'rgba(212,175,55,0.6)' : 'rgba(255,255,255,0.35)'}`, borderRadius: '4px', overflow: 'visible', position: 'relative' }}>

@@ -1063,7 +1063,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                         onChange={(e) => setBpmInput(e.target.value)}
                         onBlur={() => {
                           const val = parseInt(bpmInput, 10);
-                          if (!isNaN(val)) handleBpmChange(Math.max(20, Math.min(100, val)) - bpm);
+                          if (!isNaN(val)) handleBpmChange(Math.max(20, Math.min(140, val)) - bpm);
                           setBpmEditing(false);
                         }}
                         onKeyDown={(e) => {
