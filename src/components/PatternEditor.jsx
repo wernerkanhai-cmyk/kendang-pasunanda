@@ -86,6 +86,7 @@ const PatternEditor = ({
   const [snippetName, setSnippetName] = useState('');
   const [snippetFolder, setSnippetFolder] = useState('Algemeen');
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
+  const [snippetSelectKey, setSnippetSelectKey] = useState(0);
   const [renamingSnippetId, setRenamingSnippetId] = useState(null);
   const [renamingSnippetInput, setRenamingSnippetInput] = useState('');
   const [renamingSnippetFolder, setRenamingSnippetFolder] = useState(null);
@@ -728,15 +729,17 @@ const [showBeheer, setShowBeheer] = useState(true);
                 💾
               </button>
            )}
-           <select 
-              value="" 
+           <select
+              key={snippetSelectKey}
+              defaultValue=""
               onChange={(e) => {
                  if (e.target.value === '') return;
                  const selectedSnippet = savedSnippets.find(s => s.id === e.target.value);
                  if (selectedSnippet) {
                     handleInsertSnippet(selectedSnippet);
                  }
-                 e.target.value = ''; // auto-reset
+                 // Force remount so the same snippet can be picked again immediately
+                 setSnippetSelectKey(k => k + 1);
               }}
               style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.3rem', fontSize: '0.8rem', cursor: 'pointer', minWidth: '150px' }}
            >
