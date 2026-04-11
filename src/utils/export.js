@@ -71,11 +71,17 @@ function calculateBeams(slots) {
       }
 
       if (activeIndices.length === 0) continue;
-      // Skip beams for 8T triplet beats
-      if (activeIndices.every(n => TRIPLET_OFFSETS.has(n)) &&
-          activeIndices.some(n => n === 4 || n === 8)) continue;
-      // Skip if both half-beats are 16T triplets
-      if (has16T(beatStart, position)) continue;
+      // Triplet beats: render a single level-1 beam spanning the group, but no level-2.
+      const is8T = activeIndices.every(n => TRIPLET_OFFSETS.has(n)) && activeIndices.some(n => n === 4 || n === 8);
+      const is16T = has16T(beatStart, position);
+      if (is8T || is16T) {
+        const first = activeIndices[0];
+        const last = activeIndices[activeIndices.length - 1];
+        if (last > first) {
+          results.push({ startIdx: beatStart + first, span: last - first + 1, level: 1, position });
+        }
+        continue;
+      }
 
       const firstNote = activeIndices[0];
       const lastNote  = activeIndices[activeIndices.length - 1];

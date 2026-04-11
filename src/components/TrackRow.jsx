@@ -364,12 +364,19 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
          }
 
          if (activeIndices.length === 0) continue;
-         // Skip beam rendering for triplet beats (8T, 16T, or 4T)
+         // Triplet beats: render only a single level-1 beam spanning the group, no level-2.
          const hand = position;
-         if (handTriplets.some(t => t.hand === hand && t.start === beatStart && t.type === '8T')) continue;
-         // Skip if both half-beats are 16T
-         if (handTriplets.some(t => t.hand === hand && t.start === beatStart && t.type === '16T')
-          && handTriplets.some(t => t.hand === hand && t.start === beatStart + 6 && t.type === '16T')) continue;
+         const is8T = handTriplets.some(t => t.hand === hand && t.start === beatStart && t.type === '8T');
+         const is16T = handTriplets.some(t => t.hand === hand && t.start === beatStart && t.type === '16T')
+                    && handTriplets.some(t => t.hand === hand && t.start === beatStart + 6 && t.type === '16T');
+         if (is8T || is16T) {
+           const first = activeIndices[0];
+           const last = activeIndices[activeIndices.length - 1];
+           if (last > first) {
+             handResults.push({ startIdx: beatStart + first, span: last - first + 1, level: 1, position });
+           }
+           continue;
+         }
 
          const firstNote = activeIndices[0];
          const lastNote  = activeIndices[activeIndices.length - 1];
