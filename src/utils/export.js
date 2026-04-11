@@ -282,7 +282,10 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     for (let i = 0; i < SLOTS_PER_ROW; i++) {
       const slot = slots[i];
       if (!slot) continue;
-      const x = rowX + i * SLOT_W + 2;
+      // Nudge beat-start symbols (slot 0 of each beat) one slot to the right
+      // so they don't sit flush against the bar line.
+      const nudge = (i % 12 === 0) ? SLOT_W : 0;
+      const x = rowX + i * SLOT_W + 2 + nudge;
 
       if (slot.top !== '' && slot.top !== SYMBOL_REST) {
         ctx.globalAlpha  = 1.0;
