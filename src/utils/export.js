@@ -280,6 +280,9 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
     // ── Pre-compute: per beat, per hand, count real symbols and find the lone one ──
     // If a hand has exactly 1 symbol in a beat, center it (same x as quarter-rest dot).
+    // Exception: if the OTHER hand has 2+ symbols (a beam), align the lone symbol
+    // with the first symbol of that beam instead of centering — keeps vertical alignment.
+    const noteCount = {}; // key: `${beatStart}-${hand}` → number of real symbols
     const loneSymbol = {}; // key: `${beatStart}-${hand}` → slot index, or null
     for (let beatStart = 0; beatStart < SLOTS_PER_ROW; beatStart += 12) {
       for (const hand of ['top', 'bottom']) {
@@ -288,8 +291,19 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
           const s = slots[beatStart + j];
           if (s && s[hand] !== '' && s[hand] !== SYMBOL_REST) indices.push(beatStart + j);
         }
+        noteCount[`${beatStart}-${hand}`] = indices.length;
         loneSymbol[`${beatStart}-${hand}`] = indices.length === 1 ? indices[0] : null;
       }
+    }
+    // Second pass: if one hand is lone and the other has a beam (2+), don't center.
+    // Set loneSymbol to null so it falls through to the normal nudged position.
+    for (let beatStart = 0; beatStart < SLOTS_PER_ROW; beatStart += 12) {
+      const topLone = loneSymbol[`${beatStart}-top`] !== null;
+      const botLone = loneSymbol[`${beatStart}-bottom`] !== null;
+      const topMulti = noteCount[`${beatStart}-top`] >= 2;
+      const botMulti = noteCount[`${beatStart}-bottom`] >= 2;
+      if (topLone && botMulti) loneSymbol[`${beatStart}-top`] = null;
+      if (botLone && topMulti) loneSymbol[`${beatStart}-bottom`] = null;
     }
 
     // ── Real symbols (data rests skipped — rendered separately below) ─────────
