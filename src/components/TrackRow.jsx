@@ -210,7 +210,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
               if (firstSym === null) firstSym = v;
             }
           }
-          if (notes.length === 0) continue;
+          if (notes.length < 2) continue; // need at least 2 notes for a triplet
           if (!notes.every(n => offsets.has(n))) continue;
           if (!notes.some(n => nonFirstOffsets.includes(n))) continue;
           const below = !TOP_HAND_SYMBOLS.includes(firstSym);

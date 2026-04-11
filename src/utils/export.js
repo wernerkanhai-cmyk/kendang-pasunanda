@@ -53,7 +53,7 @@ function calculateBeams(slots) {
         const v = hand === 'top' ? s.top : s.bottom;
         if (v !== '' && v !== SYMBOL_REST) notes.push(i);
       }
-      if (notes.length === 0) return false;
+      if (notes.length < 2) return false; // need at least 2 notes for a 16T triplet
       if (!notes.every(n => TRIPLET_16T_OFFS.has(n))) return false;
       return notes.some(n => n === 2 || n === 4);
     };
@@ -132,7 +132,7 @@ function calculateTripletArcs(slots) {
         const v = s[hand];
         if (v !== '' && v !== SYMBOL_REST) notes.push(i);
       }
-      if (notes.length === 0) continue;
+      if (notes.length < 2) continue; // need at least 2 notes for a 16T triplet
       if (!notes.every(n => TRIPLET_16T_OFFS.has(n))) continue;
       if (!notes.some(n => n === 2 || n === 4)) continue;
       results.push({ start: groupStart, hand, type: '16T' });
