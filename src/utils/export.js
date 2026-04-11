@@ -261,27 +261,6 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       ctx.stroke();
     }
 
-    // ── Triplet arcs ─────────────────────────────────────────────────────────
-    const arcs = calculateTripletArcs(slots);
-    ctx.strokeStyle = baseColor;
-    ctx.lineWidth   = 1.5;
-    for (const arc of arcs) {
-      const spanSlots = arc.type === '16T' ? 3 : 8;
-      const arcW  = SLOT_W * spanSlots;
-      const arcNudge = (arc.start % 12 === 0) ? SLOT_W * 0.5 : 0;
-      const arcX  = rowX + arc.start * SLOT_W + (arc.type === '16T' ? SLOT_W * 0.5 : SLOT_W) + arcNudge;
-      const cx    = arcX + arcW / 2;
-      // Place arc just below the symbol:
-      // top-hand:    textBaseline='bottom' → baseline at nullY-symTop → arc 6px below that
-      // bottom-hand: textBaseline='top'    → top of text at nullY+symBot, text runs down SYM_SIZE px → arc 6px below bottom of text
-      const arcY  = arc.hand === 'top'
-        ? nullY - symTop - 3
-        : nullY + symBot + SYM_SIZE + 23;
-      ctx.beginPath();
-      ctx.moveTo(arcX, arcY);
-      ctx.quadraticCurveTo(cx, arcY + 10, arcX + arcW, arcY);
-      ctx.stroke();
-    }
 
     // ── Pre-compute: per beat, per hand, count real symbols and find the lone one ──
     // If a hand has exactly 1 symbol in a beat, center it (same x as quarter-rest dot).

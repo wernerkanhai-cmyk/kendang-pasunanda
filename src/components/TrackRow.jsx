@@ -541,48 +541,6 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
             >
-              {isTripletStart && (
-                <div className={`triplet-slur color-${trackId} ${trackId === 'anak' ? 'pos-above' : 'pos-below'}`}>
-                  <svg width="108" height="24" viewBox="0 0 108 24">
-                    {trackId === 'anak' ? (
-                      <path d="M 6 18 Q 54 2 102 18" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    ) : (
-                      <path d="M 6 6 Q 54 22 102 6" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    )}
-                    <text x="54" y={trackId === 'anak' ? "10" : "20"} textAnchor="middle" fontSize="10" fill="currentColor">3</text>
-                  </svg>
-                </div>
-              )}
-
-              {/* Per-hand triplet arc: single arc from slot 1 to slot 9 (8T) or 0.5 to 3 (16T) */}
-              {handTripletsHere.map((t, hi) => {
-                const spanSlots = t.type === '16T' ? 3 : 8;
-                const arcW = slotWidth * spanSlots;
-                const arcLeft = slotWidth * (t.type === '16T' ? 0.5 : 1);
-                const cx = arcW / 2;
-                const isIndung = trackId === 'indung';
-                return (
-                  <div
-                    key={`ht-${hi}`}
-                    className={`color-${trackId}`}
-                    style={{
-                      position: 'absolute',
-                      left: arcLeft,
-                      width: arcW,
-                      zIndex: 20,
-                      pointerEvents: 'none',
-                      ...(t.hand === 'bottom'
-                        ? { top: '50%', marginTop: '24px' }
-                        : { bottom: '50%', marginBottom: '-6px' }),
-                    }}
-                  >
-                    <svg width={arcW} height="14" viewBox={`0 0 ${arcW} 14`} overflow="visible">
-                      <path d={`M 3 2 Q ${cx} 12 ${arcW - 3} 2`} fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
-                  </div>
-                );
-              })}
-
               {/* Data symbols (notes and data rests) */}
               {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
                 <span
