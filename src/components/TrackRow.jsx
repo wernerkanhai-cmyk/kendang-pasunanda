@@ -600,12 +600,12 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                   {slot.bottom}
                 </span>
               )}
-              {/* Quarter rest per hand: maat heeft noten maar deze hand heeft niets in dit tel */}
+              {/* Quarter rest per hand: centered in the beat (6 slots offset) */}
               {index % 12 === 0 && quarterRests.has(`${index}-top`) && (
-                <span className={`kendang-font slot-rest pos-above color-${trackId}`}>{SYMBOL_REST}</span>
+                <span className={`kendang-font slot-rest pos-above color-${trackId}`} style={{ transform: `translateX(${5.5 * slotWidth}px)` }}>{SYMBOL_REST}</span>
               )}
               {index % 12 === 0 && quarterRests.has(`${index}-bottom`) && (
-                <span className={`kendang-font slot-rest pos-below color-${trackId}`}>{SYMBOL_REST}</span>
+                <span className={`kendang-font slot-rest pos-below color-${trackId}`} style={{ transform: `translateX(${5.5 * slotWidth}px)` }}>{SYMBOL_REST}</span>
               )}
               {/* Implied rests: pos 6 lead-in dot when pos 9 has a note (plek 3→4 rule) */}
               {(slot.top === '' || collapsedRests.has(`${index}-top`)) && impliedRests.has(`${index}-top`) && (

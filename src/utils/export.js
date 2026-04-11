@@ -324,7 +324,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
           ctx.globalAlpha  = 1.0;
 
           if (!beatHasNoteForHand) {
-            ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W / 2, dotY[hand]);
+            // Center the quarter-rest dot in the beat (6 slots in)
+            ctx.fillText('.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand]);
           } else {
             if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
               ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W / 2, dotY[hand]);
