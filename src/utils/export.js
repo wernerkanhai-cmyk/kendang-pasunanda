@@ -308,12 +308,18 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       const beatStart = Math.floor(beam.startIdx / 12) * 12;
       hasBeam.add(`${beatStart}-${beam.position}`);
     }
-    // Second pass: if one hand is lone and the other has a beam or 2+ notes, don't center.
+    // Second pass: don't center a lone symbol if:
+    //   - its OWN hand has a beam (rest+note pattern → note should stay at its slot)
+    //   - the OTHER hand has a beam or 2+ notes (vertical alignment with beam start)
     for (let beatStart = 0; beatStart < SLOTS_PER_ROW; beatStart += 12) {
       const topLone = loneSymbol[`${beatStart}-top`] !== null;
       const botLone = loneSymbol[`${beatStart}-bottom`] !== null;
       const topHasBeam = hasBeam.has(`${beatStart}-top`) || noteCount[`${beatStart}-top`] >= 2;
       const botHasBeam = hasBeam.has(`${beatStart}-bottom`) || noteCount[`${beatStart}-bottom`] >= 2;
+      // Own hand has a beam → the note is part of a rhythmic figure, keep it in place
+      if (topLone && topHasBeam) loneSymbol[`${beatStart}-top`] = null;
+      if (botLone && botHasBeam) loneSymbol[`${beatStart}-bottom`] = null;
+      // Other hand has a beam → align with beam start, not center
       if (topLone && botHasBeam) loneSymbol[`${beatStart}-top`] = null;
       if (botLone && topHasBeam) loneSymbol[`${beatStart}-bottom`] = null;
     }
