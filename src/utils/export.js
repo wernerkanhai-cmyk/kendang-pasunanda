@@ -295,15 +295,22 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
         loneSymbol[`${beatStart}-${hand}`] = indices.length === 1 ? indices[0] : null;
       }
     }
-    // Second pass: if one hand is lone and the other has a beam (2+), don't center.
-    // Set loneSymbol to null so it falls through to the normal nudged position.
+    // Build a set of beats that have a beam per hand (from the pre-calculated beams).
+    // A beam means the hand has a visible rhythmic structure (even if only 1 real note
+    // plus a rest-dot) — so the other hand's lone symbol should align with it, not center.
+    const hasBeam = new Set();
+    for (const beam of beams) {
+      const beatStart = Math.floor(beam.startIdx / 12) * 12;
+      hasBeam.add(`${beatStart}-${beam.position}`);
+    }
+    // Second pass: if one hand is lone and the other has a beam or 2+ notes, don't center.
     for (let beatStart = 0; beatStart < SLOTS_PER_ROW; beatStart += 12) {
       const topLone = loneSymbol[`${beatStart}-top`] !== null;
       const botLone = loneSymbol[`${beatStart}-bottom`] !== null;
-      const topMulti = noteCount[`${beatStart}-top`] >= 2;
-      const botMulti = noteCount[`${beatStart}-bottom`] >= 2;
-      if (topLone && botMulti) loneSymbol[`${beatStart}-top`] = null;
-      if (botLone && topMulti) loneSymbol[`${beatStart}-bottom`] = null;
+      const topHasBeam = hasBeam.has(`${beatStart}-top`) || noteCount[`${beatStart}-top`] >= 2;
+      const botHasBeam = hasBeam.has(`${beatStart}-bottom`) || noteCount[`${beatStart}-bottom`] >= 2;
+      if (topLone && botHasBeam) loneSymbol[`${beatStart}-top`] = null;
+      if (botLone && topHasBeam) loneSymbol[`${beatStart}-bottom`] = null;
     }
 
     // ── Real symbols (data rests skipped — rendered separately below) ─────────
