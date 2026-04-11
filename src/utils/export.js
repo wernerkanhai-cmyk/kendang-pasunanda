@@ -400,7 +400,9 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
             if (slot6 && slot9 &&
                 (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
                  slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST) {
-              ctx.fillText('.', rowX + (beatStart + 6) * SLOT_W + SLOT_W / 2, dotY[hand]);
+              // Place the implied-rest dot at the start of the 2nd 8th-block
+              // so there is clear space before the note on slot 9.
+              ctx.fillText('.', rowX + (beatStart + 6) * SLOT_W, dotY[hand]);
             }
           }
         }
