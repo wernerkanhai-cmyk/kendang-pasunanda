@@ -369,12 +369,28 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
           ctx.globalAlpha  = 1.0;
 
           if (!beatHasNoteForHand) {
-            // Center the quarter-rest dot in the beat (6 slots in)
-            ctx.fillText('.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand]);
+            // Quarter-rest: center in the beat, unless the other hand has a beam —
+            // in that case align with the beam start (slot 0 + nudge).
+            const other = hand === 'top' ? 'bottom' : 'top';
+            const otherHasBeam = hasBeam.has(`${beatStart}-${other}`) || noteCount[`${beatStart}-${other}`] >= 2;
+            if (otherHasBeam) {
+              ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand]);
+            } else {
+              ctx.fillText('.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand]);
+            }
           } else {
             if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
-              // Same half-slot nudge as real symbols at beat start
-              ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand]);
+              // 8th-rest dot at slot 0: if this hand has a beam, use the nudged
+              // position; if the other hand has a centered lone symbol, center too.
+              const other = hand === 'top' ? 'bottom' : 'top';
+              const otherLone = loneSymbol[`${beatStart}-${other}`] !== null;
+              const thisHandBeam = hasBeam.has(`${beatStart}-${hand}`);
+              if (!thisHandBeam && otherLone) {
+                // Align with the other hand's centered symbol
+                ctx.fillText('.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand]);
+              } else {
+                ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand]);
+              }
             }
             if (slot6 && slot9 &&
                 (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
