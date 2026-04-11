@@ -278,27 +278,45 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       ctx.stroke();
     }
 
+    // ── Pre-compute: per beat, per hand, count real symbols and find the lone one ──
+    // If a hand has exactly 1 symbol in a beat, center it (same x as quarter-rest dot).
+    const loneSymbol = {}; // key: `${beatStart}-${hand}` → slot index, or null
+    for (let beatStart = 0; beatStart < SLOTS_PER_ROW; beatStart += 12) {
+      for (const hand of ['top', 'bottom']) {
+        const indices = [];
+        for (let j = 0; j < 12; j++) {
+          const s = slots[beatStart + j];
+          if (s && s[hand] !== '' && s[hand] !== SYMBOL_REST) indices.push(beatStart + j);
+        }
+        loneSymbol[`${beatStart}-${hand}`] = indices.length === 1 ? indices[0] : null;
+      }
+    }
+
     // ── Real symbols (data rests skipped — rendered separately below) ─────────
     ctx.font = `${SYM_SIZE}px Kendang, monospace`;
     ctx.fillStyle = baseColor;
     for (let i = 0; i < SLOTS_PER_ROW; i++) {
       const slot = slots[i];
       if (!slot) continue;
-      // Nudge beat-start symbols (slot 0 of each beat) half a slot to the right
-      // so they don't sit flush against the bar line. Half a slot keeps enough
-      // distance from the bar line without crowding the next 16th-note symbol.
-      const nudge = (i % 12 === 0) ? SLOT_W * 0.5 : 0;
-      const x = rowX + i * SLOT_W + 2 + nudge;
+      const beatStart = Math.floor(i / 12) * 12;
 
-      if (slot.top !== '' && slot.top !== SYMBOL_REST) {
+      for (const hand of ['top', 'bottom']) {
+        const sym = slot[hand];
+        if (sym === '' || sym === SYMBOL_REST) continue;
+
+        let x;
+        if (loneSymbol[`${beatStart}-${hand}`] === i) {
+          // Single symbol in beat → center at beat midpoint (same as quarter-rest dot)
+          x = rowX + beatStart * SLOT_W + 6 * SLOT_W;
+        } else {
+          // Multiple symbols → normal position with beat-start nudge
+          const nudge = (i % 12 === 0) ? SLOT_W * 0.5 : 0;
+          x = rowX + i * SLOT_W + 2 + nudge;
+        }
+
         ctx.globalAlpha  = 1.0;
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(slot.top, x, nullY - symTop);
-      }
-      if (slot.bottom !== '' && slot.bottom !== SYMBOL_REST) {
-        ctx.globalAlpha  = 1.0;
-        ctx.textBaseline = 'top';
-        ctx.fillText(slot.bottom, x, nullY + symBot);
+        ctx.textBaseline = hand === 'top' ? 'bottom' : 'top';
+        ctx.fillText(sym, x, hand === 'top' ? nullY - symTop : nullY + symBot);
       }
       ctx.globalAlpha = 1.0;
     }
