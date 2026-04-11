@@ -243,8 +243,9 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     const beams = calculateBeams(slots);
     ctx.lineWidth = 1;
     for (const beam of beams) {
-      const bx = rowX + beam.startIdx * SLOT_W;
-      const bw = (beam.span + 1) * SLOT_W;
+      const beamNudge = (beam.startIdx % 12 === 0) ? SLOT_W * 0.5 : 0;
+      const bx = rowX + beam.startIdx * SLOT_W + beamNudge;
+      const bw = (beam.span + 1) * SLOT_W - beamNudge;
       const by = nullY + (beam.position === 'top'
         ? (beam.level === 1 ? cfg.beamTop1    : cfg.beamTop2) - topBeamShift
         : (beam.level === 1 ? cfg.beamBottom1 : cfg.beamBottom2));
@@ -262,7 +263,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     for (const arc of arcs) {
       const spanSlots = arc.type === '16T' ? 3 : 7;
       const arcW  = SLOT_W * spanSlots;
-      const arcX  = rowX + arc.start * SLOT_W + SLOT_W * 0.5;
+      const arcNudge = (arc.start % 12 === 0) ? SLOT_W * 0.5 : 0;
+      const arcX  = rowX + arc.start * SLOT_W + SLOT_W * 0.5 + arcNudge;
       const cx    = arcX + arcW / 2;
       // Place arc just below the symbol:
       // top-hand:    textBaseline='bottom' → baseline at nullY-symTop → arc 6px below that
@@ -282,9 +284,10 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     for (let i = 0; i < SLOTS_PER_ROW; i++) {
       const slot = slots[i];
       if (!slot) continue;
-      // Nudge beat-start symbols (slot 0 of each beat) one slot to the right
-      // so they don't sit flush against the bar line.
-      const nudge = (i % 12 === 0) ? SLOT_W : 0;
+      // Nudge beat-start symbols (slot 0 of each beat) half a slot to the right
+      // so they don't sit flush against the bar line. Half a slot keeps enough
+      // distance from the bar line without crowding the next 16th-note symbol.
+      const nudge = (i % 12 === 0) ? SLOT_W * 0.5 : 0;
       const x = rowX + i * SLOT_W + 2 + nudge;
 
       if (slot.top !== '' && slot.top !== SYMBOL_REST) {
@@ -331,7 +334,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
             ctx.fillText('.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand]);
           } else {
             if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
-              ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W / 2, dotY[hand]);
+              // Same half-slot nudge as real symbols at beat start
+              ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand]);
             }
             if (slot6 && slot9 &&
                 (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
