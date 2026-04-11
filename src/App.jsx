@@ -263,11 +263,12 @@ function App() {
     const activeBlock = document.getElementById(`block-${activePatternId}`);
     if (activeBlock) {
       const rect = activeBlock.getBoundingClientRect();
-      setSongMapTop(rect.top);
+      // Clamp so the panel always stays on screen
+      setSongMapTop(Math.max(0, Math.min(rect.top, window.innerHeight - 200)));
     } else {
       setSongMapTop(0);
     }
-    setShowSongMap(true);
+    setShowSongMap(v => !v); // toggle instead of always open
   };
 
   // Song pattern drag-to-reorder

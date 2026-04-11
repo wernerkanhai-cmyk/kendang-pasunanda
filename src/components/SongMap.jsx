@@ -18,9 +18,10 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
 
   return ReactDOM.createPortal(
     <>
-      {/* Backdrop */}
+      {/* Backdrop — tap to close */}
       {open && (
         <div
+          onPointerDown={onClose}
           style={{
             position: 'fixed', inset: 0, zIndex: 400,
             background: 'rgba(0,0,0,0.4)',
@@ -57,7 +58,7 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
           </span>
           <button
             onPointerDown={(e) => { e.stopPropagation(); onClose(); }}
-            style={{ background: 'transparent', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: '2px 4px' }}
+            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1, padding: '4px 6px' }}
           >✕</button>
         </div>
 
