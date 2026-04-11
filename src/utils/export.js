@@ -75,11 +75,10 @@ function calculateBeams(slots) {
       const is8T = activeIndices.every(n => TRIPLET_OFFSETS.has(n)) && activeIndices.some(n => n === 4 || n === 8);
       const is16T = has16T(beatStart, position);
       if (is8T || is16T) {
-        const first = activeIndices[0];
-        const last = activeIndices[activeIndices.length - 1];
-        if (last > first) {
-          results.push({ startIdx: beatStart + first, span: last - first + 1, level: 1, position });
-        }
+        // Beam spans the full triplet grid (0–8 for 8T, 0–4 for 16T),
+        // including rest positions — they are part of the group.
+        const tripletEnd = is8T ? 8 : 4;
+        results.push({ startIdx: beatStart, span: tripletEnd + 1, level: 1, position });
         continue;
       }
 
