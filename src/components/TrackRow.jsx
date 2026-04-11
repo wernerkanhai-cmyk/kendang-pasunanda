@@ -554,11 +554,11 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                 </div>
               )}
 
-              {/* Per-hand triplet arc: 8T spans 7 slots, 16T spans 3 slots, 4T spans 15 slots */}
+              {/* Per-hand triplet arc: single arc from slot 1 to slot 9 (8T) or 0.5 to 3 (16T) */}
               {handTripletsHere.map((t, hi) => {
-                const spanSlots = t.type === '16T' ? 3 : 7;
+                const spanSlots = t.type === '16T' ? 3 : 8;
                 const arcW = slotWidth * spanSlots;
-                const arcLeft = slotWidth * 0.5;
+                const arcLeft = slotWidth * (t.type === '16T' ? 0.5 : 1);
                 const cx = arcW / 2;
                 const isIndung = trackId === 'indung';
                 return (

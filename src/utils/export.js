@@ -266,10 +266,10 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     ctx.strokeStyle = baseColor;
     ctx.lineWidth   = 1.5;
     for (const arc of arcs) {
-      const spanSlots = arc.type === '16T' ? 3 : 7;
+      const spanSlots = arc.type === '16T' ? 3 : 8;
       const arcW  = SLOT_W * spanSlots;
       const arcNudge = (arc.start % 12 === 0) ? SLOT_W * 0.5 : 0;
-      const arcX  = rowX + arc.start * SLOT_W + SLOT_W * 0.5 + arcNudge;
+      const arcX  = rowX + arc.start * SLOT_W + (arc.type === '16T' ? SLOT_W * 0.5 : SLOT_W) + arcNudge;
       const cx    = arcX + arcW / 2;
       // Place arc just below the symbol:
       // top-hand:    textBaseline='bottom' → baseline at nullY-symTop → arc 6px below that
