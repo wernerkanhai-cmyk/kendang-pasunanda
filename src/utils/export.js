@@ -306,6 +306,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     // ── Real symbols (data rests skipped — rendered separately below) ─────────
     ctx.font = `${SYM_SIZE}px Kendang, monospace`;
     ctx.fillStyle = baseColor;
+    ctx.textAlign = 'center';
     for (let i = 0; i < SLOTS_PER_ROW; i++) {
       const slot = slots[i];
       if (!slot) continue;
@@ -320,16 +321,14 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
           // Single symbol in beat → center at beat midpoint (same as quarter-rest dot)
           x = rowX + beatStart * SLOT_W + 6 * SLOT_W;
         } else {
-          // Multiple symbols → position with graduated nudge.
-          // Slot 0 gets the largest nudge to breathe from the bar line,
-          // slots 3 and 6 get proportionally less so all three 16th-note
-          // positions in the first half of the beat stay evenly spaced.
+          // Multiple symbols → center each symbol in its slot, with a graduated
+          // nudge so beat-start slots breathe from the bar line.
           const localSlot = i % 12;
           const nudge = localSlot === 0 ? SLOT_W * 0.5
                       : localSlot === 3 ? SLOT_W * 0.33
                       : localSlot === 6 ? SLOT_W * 0.17
                       : 0;
-          x = rowX + i * SLOT_W + 2 + nudge;
+          x = rowX + i * SLOT_W + SLOT_W / 2 + nudge;
         }
 
         ctx.globalAlpha  = 1.0;
@@ -338,6 +337,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       }
       ctx.globalAlpha = 1.0;
     }
+    ctx.textAlign = 'left'; // reset for other drawing
 
     // ── Rest dots: quarter rests + implied rests (same rules as screen) ───────
     ctx.font      = `${SYM_SIZE}px Kendang, monospace`;
