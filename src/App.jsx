@@ -71,7 +71,7 @@ function App() {
   const mutedTrackRef = useRef(null);
   const [metronomeMode, setMetronomeMode] = useState(''); // '' | '4' | '8' | 'click' | 'precount'
   const [metronomeVolume, setMetronomeVolume] = useState(0.7);
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
   const [isPulsing, setIsPulsing] = useState(false);
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
