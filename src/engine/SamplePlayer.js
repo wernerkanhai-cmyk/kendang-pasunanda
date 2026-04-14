@@ -197,6 +197,26 @@ export class SamplePlayer {
     } else {
       this.audioCtx.resume().then(doWarmup);
     }
+
+    // Keep-alive: play a silent buffer every 20s to prevent iOS from
+    // suspending the AudioContext after a period of inactivity.
+    if (this._keepAliveId) clearInterval(this._keepAliveId);
+    this._keepAliveId = setInterval(() => {
+      if (!this.audioCtx || this.audioCtx.state === 'closed') {
+        clearInterval(this._keepAliveId);
+        return;
+      }
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch(() => {});
+      }
+      try {
+        const silent = this.audioCtx.createBuffer(1, 1, this.audioCtx.sampleRate);
+        const src = this.audioCtx.createBufferSource();
+        src.buffer = silent;
+        src.connect(this.audioCtx.destination);
+        src.start(0);
+      } catch (_) {}
+    }, 20000);
   }
 
   /**
@@ -301,7 +321,7 @@ export class SamplePlayer {
     const buf = (buffers || this.buffers)[key];
     if (!buf || !this.audioCtx) return;
 
-    const schedule = () => {
+    const schedule = (forceNow = false) => {
       const src = this.audioCtx.createBufferSource();
       src.buffer = buf;
       if (pitchValue !== 1.0) src.playbackRate.value = pitchValue;
@@ -316,15 +336,17 @@ export class SamplePlayer {
         src.connect(dest);
       }
 
-      const t = when > 0 ? when : this.audioCtx.currentTime + 0.003;
+      const t = forceNow ? this.audioCtx.currentTime + 0.003 : (when > 0 ? when : this.audioCtx.currentTime + 0.003);
       const offset = this.transientOffsets[key] ?? 0;
       src.start(t, offset);
     };
 
     if (this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume().then(schedule);
+      // Resume and play immediately — force recalc of start time so the
+      // note isn't scheduled in the past after the resume delay.
+      this.audioCtx.resume().then(() => schedule(true));
     } else {
-      schedule();
+      schedule(false);
     }
   }
 
