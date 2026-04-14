@@ -1155,7 +1155,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                          metronomeHoldRef.current = null;
                        }
                      }}
-                     style={{ position: 'relative', background: metronomeMode ? 'rgba(251,146,60,0.15)' : 'transparent', color: metronomeMode ? '#fb923c' : '#94a3b8', border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
+                     style={{ position: 'relative', background: metronomeMode ? 'rgba(167,139,250,0.15)' : 'transparent', color: metronomeMode ? '#a78bfa' : '#94a3b8', border: `1px solid ${metronomeMode ? '#8b5cf6' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                      title={`${t('metronome')} — houd ingedrukt voor opties`}
                    >
                      <svg width="11" height="13" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
@@ -1181,7 +1181,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                      style={{
                        position: 'absolute', right: 1, bottom: 1, zIndex: 2,
                        fontSize: '0.7rem', lineHeight: 1,
-                       color: metronomeMode ? '#fb923c' : '#94a3b8', opacity: 0.85,
+                       color: metronomeMode ? '#a78bfa' : '#94a3b8', opacity: 0.85,
                        padding: '4px 5px', cursor: 'pointer', userSelect: 'none',
                      }}
                      title="Open metronoom-menu"
@@ -1195,7 +1195,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                          onPointerDown={(e) => e.stopPropagation()}
                          style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
                          {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
-                           <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#fb923c' : '#94a3b8', background: metronomeMode === val ? 'rgba(251,146,60,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                           <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#a78bfa' : '#94a3b8', background: metronomeMode === val ? 'rgba(167,139,250,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                              {label}
                            </button>
                          ))}
@@ -1205,7 +1205,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                              type="range" min="0" max="1" step="0.05"
                              value={metronomeVolume}
                              onChange={(e) => setMetronomeVolume?.(parseFloat(e.target.value))}
-                             style={{ width: '100%', accentColor: '#fb923c', cursor: 'pointer' }}
+                             style={{ width: '100%', accentColor: '#a78bfa', cursor: 'pointer' }}
                            />
                          </div>
                        </div>
@@ -1516,13 +1516,13 @@ const [showBeheer, setShowBeheer] = useState(true);
                 onClick={(e) => { e.stopPropagation(); setMetronomeMode(v => v ? '' : 'on'); }}
                 style={{
                   flexShrink: 0, width: '20px', height: '20px',
-                  background: metronomeMode ? 'rgba(251,146,60,0.2)' : 'transparent',
-                  color: metronomeMode ? '#fb923c' : '#94a3b8',
-                  border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`,
+                  background: metronomeMode ? 'rgba(167,139,250,0.2)' : 'transparent',
+                  color: metronomeMode ? '#a78bfa' : '#94a3b8',
+                  border: `1px solid ${metronomeMode ? '#8b5cf6' : '#475569'}`,
                   borderRadius: '3px', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   pointerEvents: 'auto',
-                  boxShadow: metronomeMode ? '0 0 4px rgba(251,146,60,0.4)' : 'none',
+                  boxShadow: metronomeMode ? '0 0 4px rgba(167,139,250,0.4)' : 'none',
                 }}
                 title={metronomeMode ? 'Metronoom uit' : 'Metronoom aan'}
               >
