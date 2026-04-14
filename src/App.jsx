@@ -57,7 +57,11 @@ function App() {
   const [redoStack, setRedoStack] = useState([]);
   
   // Audio Transport State
-  const [bpm, setBpm] = useState(60);
+  const [bpm, setBpm] = useState(() => {
+    const saved = localStorage.getItem('kendangBpm');
+    return saved ? parseInt(saved, 10) || 60 : 60;
+  });
+  useEffect(() => { localStorage.setItem('kendangBpm', String(bpm)); }, [bpm]);
   const [realtimeBpm, setRealtimeBpm] = useState(null); // null = not playing or no automation
   const [isPlaying, setIsPlaying] = useState(false);
   const [stepBackCount, setStepBackCount] = useState(0);
@@ -207,6 +211,10 @@ function App() {
         }
         if (cloud.name && cloud.name !== songName) setSongName(cloud.name);
         if (cloud.folder && cloud.folder !== songFolder) setSongFolder(cloud.folder);
+        if (cloud.bpm && cloud.bpm !== bpm) {
+          setBpm(cloud.bpm);
+          if (schedulerRef.current) schedulerRef.current.setBpm(cloud.bpm);
+        }
       })
       .catch(() => { /* offline or deleted — keep local */ });
     return () => { alive = false; };
@@ -1181,6 +1189,7 @@ function App() {
       loopingPatternIdRef.current = null;
       loopRangeRef.current = null;
       setLoopRange(null);
+      slotTimesRef.current = null; // force rebuild on next play
     };
 
     // bfcache + iPad PWA standalone reopens — always reset, not only when persisted
