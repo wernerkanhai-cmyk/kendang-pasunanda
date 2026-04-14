@@ -798,7 +798,10 @@ function App() {
   const handleUseTemplate = async (template, targetName, targetFolder) => {
     const name = (targetName || template.name || 'Naamloos').trim();
     const folder = (targetFolder || 'Algemeen').trim() || 'Algemeen';
-    const patternsCopy = JSON.parse(JSON.stringify(template.patterns ?? []));
+    const patternsCopy = JSON.parse(JSON.stringify(template.patterns ?? [])).map(p => ({
+      ...p,
+      id: p.id || crypto.randomUUID(),
+    }));
     const fresh = await _persist({
       id: null,
       name,
