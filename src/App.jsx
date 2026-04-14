@@ -66,7 +66,6 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [stepBackCount, setStepBackCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
-  const [loopingPatternId, setLoopingPatternId] = useState(null);
   const loopingPatternIdRef = useRef(null);
   const [loopRange, setLoopRange] = useState(null); // { patternId, startSlot, endSlot } local slots
   const loopRangeRef = useRef(null);
@@ -1186,7 +1185,6 @@ function App() {
       samplerRef.current?.silenceAll();
       setIsPlaying(false);
       setIsRecording(false);
-      setLoopingPatternId(null);
       loopingPatternIdRef.current = null;
       loopRangeRef.current = null;
       setLoopRange(null);
@@ -1561,74 +1559,11 @@ function App() {
     }
   };
 
-  const handleLoopPattern = async (patternId) => {
-    const ctx = schedulerRef.current?.audioCtx;
-    if (ctx?.state === 'suspended') await ctx.resume();
-    if (sampleSetRef.current === 'vox') {
-      await samplerRef.current?.waitForVox();
-    }
-
-    if (loopingPatternIdRef.current === patternId) {
-      // Stop loop — herstel normale song totalSlots
-      loopingPatternIdRef.current = null;
-      setLoopingPatternId(null);
-      loopRangeRef.current = null;
-      setLoopRange(null);
-      schedulerRef.current.pause();
-      setIsPlaying(false);
-      const total = song.reduce((sum, p) => sum + p.anak.length, 0);
-      schedulerRef.current.setTotalSlots(total);
-      return;
-    }
-    // Stop eventuele andere playback
-    if (isPlaying) {
-      schedulerRef.current.pause();
-      setIsPlaying(false);
-    }
-    const globalStart = localToGlobal(patternId, 0, song);
-    const pattern = song.find(p => p.id === patternId);
-    if (!pattern) return;
-
-    // Use the active selection as loop range if a range is selected on this pattern
-    const hasSelection = activeSlot?.patternId === patternId
-      && activeSlot.startIndex !== activeSlot.endIndex;
-
-    let loopStartGlobal, loopEndGlobal;
-    if (hasSelection) {
-      const selStart = Math.min(activeSlot.startIndex, activeSlot.endIndex);
-      const selEnd = Math.max(activeSlot.startIndex, activeSlot.endIndex);
-      const clampedEnd = Math.min(pattern.anak.length, selEnd);
-      loopStartGlobal = globalStart + selStart;
-      loopEndGlobal = globalStart + clampedEnd;
-      const newLoopRange = { patternId, startSlot: selStart, endSlot: clampedEnd };
-      loopRangeRef.current = newLoopRange;
-      setLoopRange(newLoopRange);
-    } else {
-      loopStartGlobal = globalStart;
-      loopEndGlobal = globalStart + pattern.anak.length;
-      loopRangeRef.current = null;
-      setLoopRange(null);
-    }
-
-    loopingPatternIdRef.current = patternId;
-    setLoopingPatternId(patternId);
-    schedulerRef.current.stopAtEnd = false;
-    schedulerRef.current.setTotalSlots(loopEndGlobal);
-    // Build slot time table for this loop range
-    slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
-    await schedulerRef.current.play(false, loopStartGlobal);
-    const ctx2 = schedulerRef.current.audioCtx;
-    const latMs2 = ctx2 ? ((ctx2.outputLatency || 0) + (ctx2.baseLatency || 0)) * 1000 : 0;
-    const msUntilLoop = Math.max(0, (schedulerRef.current.playStartAudioTime - ctx2.currentTime) * 1000);
-    playStartWallTimeRef.current = Date.now() + msUntilLoop + latMs2;
-    setIsPlaying(true);
-  };
 
   const handleClearRulerLoop = () => {
     loopRangeRef.current = null;
     setLoopRange(null);
     loopingPatternIdRef.current = null;
-    setLoopingPatternId(null);
     setLoopedSections([]);
     if (schedulerRef.current) {
       const total = song.reduce((sum, p) => sum + p.anak.length, 0);
@@ -1655,8 +1590,7 @@ function App() {
         loopRangeRef.current = null;
         setLoopRange(null);
         loopingPatternIdRef.current = null;
-        setLoopingPatternId(null);
-        if (schedulerRef.current) {
+          if (schedulerRef.current) {
           const total = songRef.current.reduce((sum, p) => sum + p.anak.length, 0);
           schedulerRef.current.stopAtEnd = true;
           if (isPlaying) {
@@ -1687,8 +1621,7 @@ function App() {
         loopRangeRef.current = null;
         setLoopRange(null);
         loopingPatternIdRef.current = null;
-        setLoopingPatternId(null);
-        if (schedulerRef.current) {
+          if (schedulerRef.current) {
           schedulerRef.current.stopAtEnd = false;
           if (isPlaying) {
             schedulerRef.current.setPendingLoopAfterCurrentMeasure(globalStart, globalEnd);
@@ -1724,7 +1657,6 @@ function App() {
     loopRangeRef.current = newLoopRange;
     setLoopRange(newLoopRange);
     loopingPatternIdRef.current = patternId;
-    setLoopingPatternId(patternId);
     if (schedulerRef.current) schedulerRef.current.stopAtEnd = false;
     if (isPlaying) {
       // Zet pending loop — scheduler wisselt na einde huidige maat (max 1 maat wachten)
@@ -3299,8 +3231,6 @@ function App() {
                       deleteMeasure={() => deleteMeasure(pattern.id, activeSlot ? activeSlot.startIndex : 0)}
                       deleteMeasuresFromEnd={(count) => deleteMeasuresFromEnd(pattern.id, count)}
                       measureOffset={measureOffset}
-                      loopingPatternId={loopingPatternId}
-                      onLoopPattern={handleLoopPattern}
                       loopRange={loopRange}
                       soloTrack={mutedTrack}
                       onToggleSolo={toggleSolo}

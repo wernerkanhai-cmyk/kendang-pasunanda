@@ -58,8 +58,6 @@ const PatternEditor = ({
   deleteMeasure,
   deleteMeasuresFromEnd,
   measureOffset = 0,
-  loopingPatternId,
-  onLoopPattern,
   loopRange = null,
   soloTrack = null,
   onToggleSolo,
