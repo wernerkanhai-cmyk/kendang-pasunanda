@@ -39,6 +39,7 @@ export function flattenSongForDb(song) {
       tempo_track: {
         enabled: p?.tempoTrackEnabled === true,
         points: p?.tempoTrack ?? [],
+        annotations: p?.annotations ?? {},
       },
       lines: {
         anak: chunkInstrument(p?.anak ?? []),
@@ -89,6 +90,7 @@ export function rehydrateSongFromDb(row) {
         gong: p.gong ?? [],
         tempoTrack: tempo.points ?? [],
         tempoTrackEnabled: tempo.enabled === true,
+        annotations: tempo.annotations ?? {},
       };
     });
   return {

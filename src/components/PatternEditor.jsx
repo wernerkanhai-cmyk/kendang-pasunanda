@@ -159,6 +159,7 @@ const [showBeheer, setShowBeheer] = useState(true);
   const selectedRange = useRef(null);
   const [bpmEditing, setBpmEditing] = useState(false);
   const [transportMinimized, setTransportMinimized] = useState(false);
+  const [editingName, setEditingName] = useState(false);
   const [bpmInput, setBpmInput] = useState('');
   const bpmDragRef = useRef(null); // { startY, moved }
   const totalMeasures = Math.ceil(pattern.anak.length / 48);
@@ -225,6 +226,16 @@ const [showBeheer, setShowBeheer] = useState(true);
   
   const handleNameChange = (e) => {
     updatePattern({ ...pattern, name: e.target.value });
+  };
+
+  const handleAnnotationChange = (measureIdx, text) => {
+    const annotations = { ...(pattern.annotations || {}) };
+    if (text.trim()) {
+      annotations[measureIdx] = text;
+    } else {
+      delete annotations[measureIdx];
+    }
+    updatePattern({ ...pattern, annotations });
   };
 
   const getActiveRange = () => {
@@ -638,8 +649,12 @@ const [showBeheer, setShowBeheer] = useState(true);
           value={pattern.name}
           onChange={handleNameChange}
           onFocus={(e) => {
-            // Prevent iOS from jumping the viewport when the input is near the bottom
+            setEditingName(true);
             setTimeout(() => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' }), 50);
+          }}
+          onBlur={() => {
+            // Small delay so clicking an annotation field doesn't close editing
+            setTimeout(() => setEditingName(false), 200);
           }}
           className="pattern-name-input"
           style={{ fontSize: '16px' }}
@@ -1453,20 +1468,39 @@ const [showBeheer, setShowBeheer] = useState(true);
           const displayLoop = handleDrag ?? loopRangeObj;
           const mw = 48 * slotWidth;
           return (
-            <div className="measure-ruler" style={{ position: 'relative', display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', height: '22px', userSelect: 'none' }}>
+            <div className="measure-ruler" style={{ position: 'relative', display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px', minHeight: '22px', userSelect: 'none' }}>
               {/* Spacer om uit te lijnen met de grid (solo-knop breedte) */}
               <div style={{ flexShrink: 0, width: SOLO_BTN_W + 'px' }} />
               {Array.from({ length: totalMeasures }).map((_, i) => {
                 const isDragging = rulerDrag && i >= Math.min(rulerDrag.start, rulerDrag.current) && i <= Math.max(rulerDrag.start, rulerDrag.current);
+                const annotation = pattern.annotations?.[i] || '';
                 return (
                   <div key={i}
-                    style={{ width: mw + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'crosshair', color: isDragging ? '#d4af37' : '#64748b', background: isDragging ? 'rgba(212,175,55,0.2)' : 'transparent', display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden' }}
+                    style={{ width: mw + 'px', flexShrink: 0, paddingLeft: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'crosshair', color: isDragging ? '#d4af37' : '#64748b', background: isDragging ? 'rgba(212,175,55,0.2)' : 'transparent', display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden' }}
                     onPointerDown={(e) => handleRulerPointerDown(e, i)}
                     onDoubleClick={() => handleRulerDoubleClick(i)}
                   >
-                    {i + 1 + measureOffset}
-                    {isLocked && i === 0 && (
-                      <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '0.65rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pattern.name}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      {i + 1 + measureOffset}
+                      {isLocked && i === 0 && (
+                        <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '0.65rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pattern.name}</span>
+                      )}
+                      {!isLocked && annotation && !editingName && (
+                        <span style={{ color: '#94a3b8', fontSize: '0.55rem', fontWeight: 'normal', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{annotation}</span>
+                      )}
+                    </div>
+                    {!isLocked && editingName && (
+                      <input
+                        type="text"
+                        value={annotation}
+                        onChange={(e) => handleAnnotationChange(i, e.target.value)}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onDoubleClick={(e) => e.stopPropagation()}
+                        onFocus={(e) => { e.stopPropagation(); setEditingName(true); }}
+                        placeholder="..."
+                        style={{ background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', border: 'none', borderBottom: '1px solid #475569', borderRadius: 0, fontSize: '0.55rem', padding: '1px 2px', width: '90%', outline: 'none', fontStyle: 'italic' }}
+                      />
                     )}
                   </div>
                 );

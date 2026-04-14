@@ -162,7 +162,7 @@ function calculateTripletArcs(slots) {
 }
 
 // Draw one 4-bar row for a single pattern (or a 4-bar chunk of a longer pattern)
-function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, rowX, rowY, measureOffset, cfg = DEFAULT_PDF_SETTINGS) {
+function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, rowX, rowY, measureOffset, cfg = DEFAULT_PDF_SETTINGS, annotations = {}) {
   const trackY_anak   = rowY + NAME_H;
   const nullY_anak    = trackY_anak + Math.floor(TRACK_H / 2);
   const trackY_indung = trackY_anak + TRACK_H + SEPARATOR_H;
@@ -220,6 +220,16 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       ctx.font = `${MAAT_NUM_SIZE}px Inter, sans-serif`;
       ctx.textBaseline = 'bottom';
       ctx.fillText(String(bar + 1 + measureOffset), x + 5, trackY_anak - 3);
+
+      // Annotation text next to measure number
+      const annoKey = measureOffset + bar; // global measure index
+      const annoText = annotations[annoKey] || annotations[bar];
+      if (annoText) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = `italic ${Math.round(MAAT_NUM_SIZE * 0.75)}px Inter, sans-serif`;
+        const numWidth = ctx.measureText(String(bar + 1 + measureOffset)).width;
+        ctx.fillText(annoText, x + 8 + numWidth, trackY_anak - 3);
+      }
     }
   }
 
@@ -502,6 +512,7 @@ export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) 
         indung:        pattern.indung.slice(slotStart, slotStart + SLOTS_PER_ROW),
         gong:          localGong,
         measureOffset: measureOffset + chunk * BARS_PER_ROW,
+        annotations:   pattern.annotations ?? {},
       });
     }
 
@@ -554,6 +565,7 @@ export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) 
         rowY,
         row.measureOffset,
         cfg,
+        row.annotations,
       );
     });
 
