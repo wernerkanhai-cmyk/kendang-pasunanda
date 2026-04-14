@@ -104,6 +104,36 @@ export class SamplePlayer {
     }
   }
 
+  /**
+   * Force-recreate the AudioContext when it's in an unrecoverable state.
+   * Re-decodes all loaded samples into the new context.
+   */
+  async resetAudioContext() {
+    // Close the old context
+    if (this.audioCtx) {
+      try { this.audioCtx.close(); } catch (_) {}
+    }
+    if (this._keepAliveId) { clearInterval(this._keepAliveId); this._keepAliveId = null; }
+    this.audioCtx = null;
+    this.masterGain = null;
+
+    // Create fresh context
+    this._initCtx();
+
+    // Re-decode all loaded samples into the new context
+    const reloadPromises = [];
+    for (const [key, buf] of Object.entries(this.buffers)) {
+      if (buf && buf.getChannelData) {
+        // We can't re-decode from the AudioBuffer — need to re-fetch.
+        // Skip; samples will be re-fetched on next loadAll() or play attempt.
+      }
+    }
+    // Reload all samples
+    await this.loadAll();
+    this._warmup();
+    return this.audioCtx;
+  }
+
   /** Master output node — route all audio through this so it can be silenced. */
   getMasterDestination() {
     if (!this.masterGain) this._initCtx();

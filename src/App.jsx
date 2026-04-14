@@ -1195,9 +1195,22 @@ function App() {
     const onPageShow = () => resetPlayback();
     window.addEventListener('pageshow', onPageShow);
 
-    // iOS PWA suspend/resume — when the app becomes visible again, kill any stale scheduler
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') resetPlayback();
+    // iOS PWA suspend/resume — when the app becomes visible again, kill any stale
+    // scheduler and recover the AudioContext if it's in a broken state.
+    const onVisibility = async () => {
+      if (document.visibilityState === 'visible') {
+        resetPlayback();
+        // Check if AudioContext is dead — if so, fully recreate it
+        const ctx = samplerRef.current?.audioCtx;
+        if (!ctx || ctx.state === 'closed' || ctx.state === 'suspended') {
+          try {
+            const newCtx = await samplerRef.current.resetAudioContext();
+            if (schedulerRef.current && newCtx) {
+              schedulerRef.current.setAudioContext(newCtx);
+            }
+          } catch (_) {}
+        }
+      }
     };
     document.addEventListener('visibilitychange', onVisibility);
 
