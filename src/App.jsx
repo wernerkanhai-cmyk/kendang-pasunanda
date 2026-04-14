@@ -120,6 +120,12 @@ function App() {
   // Persist current working song so it survives page reloads and deploys
   useEffect(() => {
     localStorage.setItem('kendangCurrentSong', JSON.stringify(song));
+    // If activePatternId points to a pattern that no longer exists in the song,
+    // reset to the first pattern so the transport bar stays visible.
+    if (song.length > 0 && !song.some(p => p.id === activePatternId)) {
+      setActivePatternId(song[0].id);
+      setActiveSlot({ patternId: song[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+    }
   }, [song]);
   useEffect(() => {
     if (activePatternId) localStorage.setItem('kendangCurrentPatternId', activePatternId);
