@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useT } from '../i18n';
 
-const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActivate, onMoveUp, onMoveDown }) => {
+const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActivate, onMoveUp, onMoveDown, isLocked }) => {
   const t = useT();
   // Close on outside tap — ignore the tap that opened the panel
   useEffect(() => {
@@ -96,7 +96,8 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
                   {pattern.name}
                 </button>
 
-                {/* Up/down */}
+                {/* Up/down — hidden in practice mode */}
+                {!isLocked && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
                   <button
                     onPointerDown={(e) => { e.stopPropagation(); onMoveUp(pattern.id); }}
@@ -119,6 +120,7 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
                     }}
                   >▼</button>
                 </div>
+                )}
               </div>
             );
           })}

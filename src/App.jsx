@@ -3184,6 +3184,7 @@ function App() {
             }}
             onMoveUp={movePatternUp}
             onMoveDown={movePatternDown}
+            isLocked={isLocked}
           />
           {(() => {
             let offset = 0;
