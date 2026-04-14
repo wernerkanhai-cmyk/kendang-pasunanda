@@ -3252,6 +3252,7 @@ function App() {
                       inheritedBpm={patternInheritedBpm}
                       realtimeBpm={realtimeBpm}
                       handleBpmChange={handleBpmChange}
+                      onDrumTrigger={handleDrumTrigger}
                       isRecording={isRecording}
                       isPlaying={isPlaying}
                       togglePlay={togglePlay}

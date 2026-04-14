@@ -23,6 +23,7 @@ const PatternEditor = ({
   inheritedBpm,
   realtimeBpm = null,
   handleBpmChange,
+  onDrumTrigger,
   isRecording,
   isPlaying,
   togglePlay,
@@ -355,6 +356,30 @@ const [showBeheer, setShowBeheer] = useState(true);
            e.preventDefault();
            handleClear();
         }
+        return;
+      }
+
+      // Symbol input via keyboard: N C V S A J L G F ; : ?
+      // Maps both lowercase and uppercase to the correct symbol
+      const KEY_TO_SYMBOL = {
+        'n': 'N', 'N': 'N',   // tung
+        'c': 'C', 'C': 'C',   // dong
+        'v': 'V', 'V': 'V',   // det
+        's': 'S', 'S': 'S',   // dededet
+        'a': 'A', 'A': 'A',   // pling
+        'j': 'J', 'J': 'J',   // pang
+        'l': 'L', 'L': 'L',   // plak
+        'g': 'G', 'G': 'G',   // pak
+        'f': 'F', 'F': 'F',   // peung
+        ';': ';',              // ping
+        ':': ':',              // pong
+        '?': '?',              // ting
+        '.': '.',              // rest
+      };
+      const symbol = KEY_TO_SYMBOL[e.key];
+      if (symbol && onDrumTrigger) {
+        e.preventDefault();
+        onDrumTrigger(symbol, activeSlot?.trackId || 'anak');
       }
     };
 
