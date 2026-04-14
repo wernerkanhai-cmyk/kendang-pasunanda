@@ -1509,12 +1509,34 @@ const [showBeheer, setShowBeheer] = useState(true);
             <div style={{ flexShrink: 0, width: '24px' }} />
           </div>
 
-          {/* Transparent separator (preserves spacing) + loop button */}
-          <div style={{ height: '14px', width: '100%', margin: '4px 0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          {/* Transparent separator (preserves spacing) + loop + metronome buttons */}
+          <div style={{ height: '14px', width: '100%', margin: '4px 0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '3px' }}>
+            {isLocked && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setMetronomeMode(v => v ? '' : 'on'); }}
+                style={{
+                  flexShrink: 0, width: '20px', height: '20px',
+                  background: metronomeMode ? 'rgba(251,146,60,0.2)' : 'transparent',
+                  color: metronomeMode ? '#fb923c' : '#94a3b8',
+                  border: `1px solid ${metronomeMode ? '#f97316' : '#475569'}`,
+                  borderRadius: '3px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  pointerEvents: 'auto',
+                  boxShadow: metronomeMode ? '0 0 4px rgba(251,146,60,0.4)' : 'none',
+                }}
+                title={metronomeMode ? 'Metronoom uit' : 'Metronoom aan'}
+              >
+                <svg width="10" height="12" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
+                  <line x1="5.5" y1="2.5" x2="8.5" y2="10"/>
+                  <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
+                </svg>
+              </button>
+            )}
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
               style={{
-                flexShrink: 0, width: '20px', height: '20px', marginLeft: '4px',
+                flexShrink: 0, width: '20px', height: '20px',
                 background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
                 color: isLooped ? '#d4af37' : '#f97316',
                 border: `1px solid ${isLooped ? '#d4af37' : '#f97316'}`,
