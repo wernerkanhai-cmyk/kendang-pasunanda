@@ -757,10 +757,9 @@ const [showBeheer, setShowBeheer] = useState(true);
                 })()}
               </div>
            ) : (
-              <button 
-                className="btn-secondary" 
-                onClick={(e) => { e.stopPropagation(); handleSaveLocal(); }} 
-                disabled={!activeRangeObj}
+              <button
+                className="btn-secondary"
+                onPointerDown={(e) => { e.stopPropagation(); if (activeRangeObj) handleSaveLocal(); }}
                 style={{ 
                   padding: '0.3rem 0.5rem', 
                   fontSize: '1rem', 
