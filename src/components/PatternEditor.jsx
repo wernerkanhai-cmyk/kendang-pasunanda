@@ -1122,8 +1122,8 @@ const [showBeheer, setShowBeheer] = useState(true);
 
                  {!transportMinimized && <>
                  <button
-                   onClick={(e) => { e.stopPropagation(); onLoopPattern(pattern.id); }}
-                   style={{ background: loopingPatternId === pattern.id ? '#f97316' : 'transparent', color: loopingPatternId === pattern.id ? '#fff' : '#94a3b8', border: `1px solid ${loopingPatternId === pattern.id ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
+                   onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
+                   style={{ background: isLooped ? '#f97316' : 'transparent', color: isLooped ? '#fff' : '#94a3b8', border: `1px solid ${isLooped ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
                    title={t('loopSection')}
                  >↺</button>
 
