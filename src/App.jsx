@@ -1458,7 +1458,19 @@ function App() {
   const handleBpmChange = (delta) => {
     const newBpm = Math.max(20, Math.min(140, bpm + delta));
     setBpm(newBpm);
-    if (schedulerRef.current) schedulerRef.current.setBpm(newBpm);
+    if (schedulerRef.current) {
+      schedulerRef.current.setBpm(newBpm);
+      // If playing, rebuild the slot-times table so the tempo change takes
+      // effect immediately (not just after the next play/seek).
+      if (isPlaying && slotTimesRef.current) {
+        const sched = schedulerRef.current;
+        const tempoFn = buildTempoAt(songRef.current, newBpm);
+        slotTimesRef.current = buildSlotTimesMs(sched.loopStart, sched.totalSlots, tempoFn);
+        // Resync wall clock so the cursor doesn't jump
+        const spsMs = sched.getSecondsPerSlot() * 1000;
+        playStartWallTimeRef.current = Date.now() - (sched.currentSlot - sched.loopStart) * spsMs + cursorOffsetMsRef.current;
+      }
+    }
   };
 
 
