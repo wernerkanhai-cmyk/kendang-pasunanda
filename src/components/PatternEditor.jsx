@@ -1489,8 +1489,8 @@ const [showBeheer, setShowBeheer] = useState(true);
                       {isLocked && i === 0 && (
                         <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '0.65rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pattern.name}</span>
                       )}
-                      {!isLocked && annotation && !editingName && (
-                        <span style={{ color: '#94a3b8', fontSize: '0.55rem', fontWeight: 'normal', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{annotation}</span>
+                      {annotation && !editingName && (
+                        <span style={{ color: isLocked ? '#d4af37' : '#94a3b8', fontSize: '0.55rem', fontWeight: 'normal', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{annotation}</span>
                       )}
                     </div>
                     {!isLocked && editingName && (
