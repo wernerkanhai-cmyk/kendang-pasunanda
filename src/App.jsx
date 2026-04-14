@@ -2465,6 +2465,22 @@ function App() {
             </svg>
           </button>
 
+          {/* ── Tempo toggle — only visible in practice mode ──────────── */}
+          {isLocked && (
+            <button
+              onClick={handleToggleAllTempoEnabled}
+              style={{
+                background: song.some(p => p.tempoTrackEnabled !== false) ? 'rgba(212,175,55,0.15)' : 'transparent',
+                color: song.some(p => p.tempoTrackEnabled !== false) ? '#d4af37' : '#888888',
+                border: `1px solid ${song.some(p => p.tempoTrackEnabled !== false) ? '#d4af37' : '#475569'}`,
+                borderRadius: '6px', padding: '0.4rem 0.6rem', cursor: 'pointer',
+                fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.03em',
+                boxShadow: song.some(p => p.tempoTrackEnabled !== false) ? '0 0 6px rgba(212,175,55,0.3)' : 'none',
+              }}
+              title={song.some(p => p.tempoTrackEnabled !== false) ? 'Tempo-automatisering uit — oefen op globaal BPM' : 'Tempo-automatisering aan'}
+            >{song.some(p => p.tempoTrackEnabled !== false) ? '♩ TEMPO' : '♩ GLOBAL'}</button>
+          )}
+
           {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
           <div style={{ position: 'relative' }}>
             <button
