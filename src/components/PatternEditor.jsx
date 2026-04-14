@@ -652,9 +652,13 @@ const [showBeheer, setShowBeheer] = useState(true);
             setEditingName(true);
             setTimeout(() => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' }), 50);
           }}
-          onBlur={() => {
-            // Small delay so clicking an annotation field doesn't close editing
-            setTimeout(() => setEditingName(false), 200);
+          onBlur={(e) => {
+            // Check if the focus is moving to an annotation input — if so, keep editing open.
+            setTimeout(() => {
+              const active = document.activeElement;
+              if (active && active.dataset?.annotationField) return;
+              setEditingName(false);
+            }, 50);
           }}
           className="pattern-name-input"
           style={{ fontSize: '16px' }}
@@ -1492,14 +1496,22 @@ const [showBeheer, setShowBeheer] = useState(true);
                     {!isLocked && editingName && (
                       <input
                         type="text"
+                        data-annotation-field="true"
                         value={annotation}
                         onChange={(e) => handleAnnotationChange(i, e.target.value)}
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => e.stopPropagation()}
                         onDoubleClick={(e) => e.stopPropagation()}
                         onFocus={(e) => { e.stopPropagation(); setEditingName(true); }}
+                        onBlur={(e) => {
+                          setTimeout(() => {
+                            const active = document.activeElement;
+                            if (active && (active.dataset?.annotationField || active.classList?.contains('pattern-name-input'))) return;
+                            setEditingName(false);
+                          }, 50);
+                        }}
                         placeholder="..."
-                        style={{ background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', border: 'none', borderBottom: '1px solid #475569', borderRadius: 0, fontSize: '0.55rem', padding: '1px 2px', width: '90%', outline: 'none', fontStyle: 'italic' }}
+                        style={{ background: 'rgba(255,255,255,0.08)', color: '#e2e8f0', border: 'none', borderBottom: '1px solid #475569', borderRadius: 0, fontSize: '16px', padding: '1px 2px', width: '90%', outline: 'none', fontStyle: 'italic' }}
                       />
                     )}
                   </div>
