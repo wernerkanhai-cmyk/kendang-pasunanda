@@ -222,7 +222,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem('kendangLibrarySort', librarySort);
   }, [librarySort]);
-  const [templateDialog, setTemplateDialog] = useState(null); // { template, name, folder } when a template is being instantiated
   const [pendingDelete, setPendingDelete] = useState(null); // { type: 'song'|'folder', key } — highlights the active delete button
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [changePasswordValue, setChangePasswordValue] = useState('');
@@ -2708,64 +2707,6 @@ function App() {
             </div>
           )}
 
-          {/* Use template dialog — pick a name and folder before instantiating */}
-          {templateDialog && (
-            <div
-              onClick={() => setTemplateDialog(null)}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{ background: '#1e293b', border: '1px solid #d4af37', borderRadius: '12px', padding: '1.5rem', width: '360px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-              >
-                <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#d4af37' }}>
-                  📦 Template gebruiken
-                </div>
-                <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
-                  Maakt een bewerkbare kopie van <strong style={{ color: '#fcd34d' }}>{templateDialog.template.name}</strong> in jouw library.
-                </div>
-                <label style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Naam van de nieuwe song:</label>
-                <input
-                  type="text"
-                  value={templateDialog.name}
-                  onChange={(e) => setTemplateDialog({ ...templateDialog, name: e.target.value })}
-                  autoFocus
-                  style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
-                />
-                <label style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Map:</label>
-                <input
-                  type="text"
-                  value={templateDialog.folder}
-                  onChange={(e) => setTemplateDialog({ ...templateDialog, folder: e.target.value })}
-                  style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
-                />
-                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '0.3rem' }}>
-                  <button
-                    onClick={() => setTemplateDialog(null)}
-                    style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >Annuleer</button>
-                  <button
-                    onClick={async () => {
-                      const dlg = templateDialog;
-                      setTemplateDialog(null);
-                      setShowSongLibrary(false);
-                      await handleUseTemplate(dlg.template, dlg.name, dlg.folder);
-                    }}
-                    disabled={!templateDialog.name.trim()}
-                    style={{
-                      background: templateDialog.name.trim() ? '#d4af37' : '#1e293b',
-                      color: templateDialog.name.trim() ? '#1e293b' : '#475569',
-                      border: 'none', borderRadius: '6px',
-                      padding: '0.4rem 0.9rem',
-                      cursor: templateDialog.name.trim() ? 'pointer' : 'default',
-                      fontSize: '0.85rem', fontWeight: 'bold',
-                    }}
-                  >Maak song</button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Move song to folder dialog */}
           {moveSongTarget && (() => {
             const existingFolders = Array.from(new Set(savedSongs.map(s => s.folder || 'Algemeen'))).sort();
@@ -2946,7 +2887,11 @@ function App() {
                               {tpl.category && <span style={{ color: '#a37f1e', fontSize: '0.7rem' }}>· {tpl.category}</span>}
                             </span>
                             <button
-                              onClick={() => setTemplateDialog({ template: tpl, name: tpl.name, folder: 'Algemeen' })}
+                              onClick={async () => {
+                                setShowSongLibrary(false);
+                                await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
+                                showToast(`"${tpl.name}" geladen`);
+                              }}
                               style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
                             >Gebruik</button>
                             {isAdmin && (
