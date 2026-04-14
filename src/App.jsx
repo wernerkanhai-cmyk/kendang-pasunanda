@@ -222,6 +222,7 @@ function App() {
   }, [user]);
 
   const [showSongLibrary, setShowSongLibrary] = useState(false);
+  const [newSongFolderMode, setNewSongFolderMode] = useState(false);
   const [renamingFolder, setRenamingFolder] = useState(null); // folder name being renamed
   const [renameFolderInput, setRenameFolderInput] = useState('');
   const [moveSongTarget, setMoveSongTarget] = useState(null); // { id, name, currentFolder } for move dialog
@@ -2259,18 +2260,20 @@ function App() {
                     placeholder={t('songNamePlaceholder')} />
                   {(() => {
                     const existingFolders = Array.from(new Set(savedSongs.map(s => s.folder || 'Algemeen'))).sort();
-                    const isCustom = songFolder && !existingFolders.includes(songFolder);
+                    const isCustom = newSongFolderMode || (songFolder && !existingFolders.includes(songFolder));
                     return isCustom ? (
-                      <input type="text" autoFocus value={songFolder} onChange={(e) => setSongFolder(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Escape') setSongFolder('Algemeen'); }}
+                      <input type="text" autoFocus value={songFolder}
+                        onChange={(e) => setSongFolder(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Escape') { setSongFolder('Algemeen'); setNewSongFolderMode(false); } }}
                         onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
+                        onBlur={() => { if (!songFolder) setSongFolder('Algemeen'); setNewSongFolderMode(false); }}
                         style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
                         placeholder={t('folderPlaceholder')} />
                     ) : (
                       <select
                         value={songFolder || 'Algemeen'}
                         onChange={(e) => {
-                          if (e.target.value === '__NEW__') setSongFolder('');
+                          if (e.target.value === '__NEW__') { setSongFolder(''); setNewSongFolderMode(true); }
                           else setSongFolder(e.target.value);
                         }}
                         style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px', cursor: 'pointer' }}
