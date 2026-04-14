@@ -677,8 +677,8 @@ const [showBeheer, setShowBeheer] = useState(true);
           title={t('manageTooltip')}
         >{t('manage')}</button>
 
-        {/* Snippet Library Controls — kept for isNamingSnippet inline form */}
-        <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: showBeheer && !isLocked ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
+        {/* Snippet Library Controls */}
+        <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: !isLocked ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
            {isNamingSnippet ? (
               <div style={{ position: 'relative' }}>
                 <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', padding: '2px', borderRadius: '4px', gap: '4px' }}>
