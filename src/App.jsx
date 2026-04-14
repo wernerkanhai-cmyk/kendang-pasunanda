@@ -2977,19 +2977,34 @@ function App() {
                                 style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
                                 title="Mapnaam wijzigen"
                               >✏</button>
-                              <button
-                                onClick={() => handleDeleteFolder(folder)}
-                                style={{
-                                  background: pendingDelete?.type === 'folder' && pendingDelete.key === folder ? 'rgba(239,68,68,0.25)' : 'transparent',
-                                  border: `1px solid ${pendingDelete?.type === 'folder' && pendingDelete.key === folder ? '#ef4444' : 'transparent'}`,
-                                  borderRadius: '4px',
-                                  color: '#ef4444',
-                                  cursor: 'pointer',
-                                  padding: '0.15rem 0.3rem',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}
-                                title="Hele map verwijderen"
-                              ><TrashIcon size={13} /></button>
+                              {(() => {
+                                const folderSongs = byFolder[folder];
+                                const selectedInFolder = folderSongs.filter(s => exportSelection.has(s.id));
+                                const allSelected = selectedInFolder.length === folderSongs.length;
+                                const hasSelection = selectedInFolder.length > 0;
+                                return (
+                                  <button
+                                    onClick={async () => {
+                                      if (allSelected) {
+                                        await handleDeleteFolder(folder);
+                                      } else if (hasSelection) {
+                                        await handleDeleteSelection();
+                                      }
+                                    }}
+                                    disabled={!hasSelection}
+                                    style={{
+                                      background: 'transparent',
+                                      border: '1px solid transparent',
+                                      borderRadius: '4px',
+                                      color: hasSelection ? '#ef4444' : '#334155',
+                                      cursor: hasSelection ? 'pointer' : 'default',
+                                      padding: '0.15rem 0.3rem',
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}
+                                    title={allSelected ? 'Hele map verwijderen' : hasSelection ? `Verwijder ${selectedInFolder.length} geselecteerde song${selectedInFolder.length === 1 ? '' : 's'}` : 'Selecteer eerst songs om te verwijderen'}
+                                  ><TrashIcon size={13} /></button>
+                                );
+                              })()}
                             </>
                           )}
                         </div>
