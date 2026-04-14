@@ -15,9 +15,10 @@ export class AudioScheduler {
     this.nextNoteTime = 0.0;
     
     // Lookahead (ms) before timer wakes up
-    this.lookahead = 25.0;
-    // Schedule ahead time (s) to put events in queue
-    this.scheduleAheadTime = 0.1;
+    this.lookahead = 15.0;
+    // Schedule ahead time (s) to put events in queue — lower = less latency,
+    // but too low risks audio glitches on slow devices.
+    this.scheduleAheadTime = 0.05;
     
     this.timerID = null;
     this.totalSlots = 192;
