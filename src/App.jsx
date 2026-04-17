@@ -2769,7 +2769,7 @@ function App() {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '520px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '520px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '80dvh', display: 'flex', flexDirection: 'column', gap: '1rem' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('songLibraryTitle')}</span>
@@ -2819,7 +2819,6 @@ function App() {
                     onChange={(e) => setSongSearchQuery(e.target.value)}
                     placeholder={t('searchPlaceholder')}
                     style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
-                    autoFocus
                   />
                   <select
                     value={librarySort}
