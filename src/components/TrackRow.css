@@ -191,6 +191,30 @@
   margin-bottom: 16px;
 }
 
+/* Accent marker (›) above top-hand notes, below bottom-hand notes */
+.accent-marker {
+  position: absolute;
+  z-index: 11;
+  left: 2px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #d4af37;
+  line-height: 1;
+  pointer-events: none;
+}
+.accent-top {
+  bottom: 50%;
+  margin-bottom: 22px;
+}
+.accent-bottom {
+  top: 50%;
+  margin-top: 26px;
+}
+.theme-indung .accent-top {
+  margin-bottom: 30px;
+}
+
 /* Rhythmic Beams (8ths / 16ths) */
 .rhythmic-beam {
   position: absolute;

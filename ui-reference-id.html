@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Kendang Pasunanda — Referensi UI</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f172a; font-family: 'Inter', system-ui, sans-serif; color: #e2e8f0; }
+  .page { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
+  h1 { font-size: 1.4rem; color: #fbbf24; margin-bottom: 0.3rem; }
+  .subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 2rem; }
+  .screenshot { width: 100%; border-radius: 8px; border: 1px solid #334155; margin-bottom: 2.5rem; }
+  .section { margin-bottom: 2rem; }
+  .section-title {
+    font-size: 0.9rem; font-weight: bold; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #38bdf8; padding-bottom: 0.4rem;
+    border-bottom: 1px solid #1e293b; margin-bottom: 0.6rem;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  tr { border-bottom: 1px solid #1e293b; }
+  tr:last-child { border-bottom: none; }
+  td { padding: 0.45rem 0.6rem; vertical-align: top; font-size: 0.82rem; }
+  .col-icon { width: 60px; color: #fbbf24; font-weight: 600; white-space: nowrap; }
+  .col-name { width: 200px; color: #e2e8f0; font-weight: 600; }
+  .col-desc { color: #94a3b8; line-height: 1.5; }
+  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #1e293b; color: #475569; font-size: 0.7rem; text-align: center; }
+
+  @media print {
+    body { background: #fff; color: #1e293b; }
+    .section-title { color: #1d4ed8; border-color: #e2e8f0; }
+    .col-icon { color: #b45309; }
+    .col-name { color: #1e293b; }
+    .col-desc { color: #475569; }
+    tr { border-color: #e2e8f0; }
+    .footer { color: #94a3b8; border-color: #e2e8f0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Kendang Pasunanda — Referensi UI</h1>
+  <p class="subtitle">Ringkasan semua elemen kontrol dalam aplikasi</p>
+
+  <img src="ui-screenshot.png" alt="Kendang Pasunanda screenshot" class="screenshot">
+
+  <div class="section">
+    <div class="section-title">Header</div>
+    <table>
+      <tr>
+        <td class="col-icon">🎵</td>
+        <td class="col-name">Menu Lagu</td>
+        <td class="col-desc">Simpan (Update / Save as new / Save copy), lagu baru, buka pustaka, terbitkan sebagai templat (admin)</td>
+      </tr>
+      <tr>
+        <td class="col-icon">☰</td>
+        <td class="col-name">Ikhtisar Komposisi</td>
+        <td class="col-desc">SongMap: lihat baris, susun ulang, navigasi cepat ke baris tertentu</td>
+      </tr>
+      <tr>
+        <td class="col-icon">▸ Instrument</td>
+        <td class="col-name">Panel Instrumen</td>
+        <td class="col-desc">DrumPad dan pengaturan suara. Klik segitiga = buka/tutup. Klik ganda bilah = buka/tutup. Seret bilah = pindahkan</td>
+      </tr>
+      <tr>
+        <td class="col-icon">A</td>
+        <td class="col-name">Volume Anak</td>
+        <td class="col-desc">Seret atas/bawah untuk volume. Klik ganda = atur ulang ke 100%</td>
+      </tr>
+      <tr>
+        <td class="col-icon">I</td>
+        <td class="col-name">Volume Indung</td>
+        <td class="col-desc">Seret atas/bawah untuk volume. Klik ganda = atur ulang ke 100%</td>
+      </tr>
+      <tr>
+        <td class="col-icon">◎</td>
+        <td class="col-name">Mode Latihan</td>
+        <td class="col-desc">Aktif/nonaktif. Memblokir input not. Warna emas = aktif. Playhead otomatis tergulir ke tampilan saat beralih</td>
+      </tr>
+      <tr>
+        <td class="col-icon">⋯</td>
+        <td class="col-name">Menu Alat</td>
+        <td class="col-desc">Ekspor PDF, pengaturan tata letak PDF, panduan, pilihan bahasa, akun (email, ubah kata sandi, status online/offline), keluar</td>
+      </tr>
+      <tr>
+        <td class="col-icon">⏱</td>
+        <td class="col-name">Offset Sinkronisasi Kursor</td>
+        <td class="col-desc">Penggeser untuk kompensasi penundaan Bluetooth/AirPlay. Rentang: -3000 hingga +500 ms. ↺ = atur ulang ke 0</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Per Baris (Seksi)</div>
+    <table>
+      <tr>
+        <td class="col-icon">Nama</td>
+        <td class="col-name">Nama Baris</td>
+        <td class="col-desc">Klik untuk mengedit. Mengisi ruang yang tersedia hingga Manage</td>
+      </tr>
+      <tr>
+        <td class="col-icon">≡</td>
+        <td class="col-name">Manage</td>
+        <td class="col-desc">Tampilkan/sembunyikan tombol penyimpanan snippet dan manajer snippet</td>
+      </tr>
+      <tr>
+        <td class="col-icon">💾</td>
+        <td class="col-name">Simpan Snippet</td>
+        <td class="col-desc">Pilih rentang terlebih dahulu. Pilih nama dan folder (dropdown dengan folder yang ada atau buat folder baru)</td>
+      </tr>
+      <tr>
+        <td class="col-icon">▾ Place at cursor</td>
+        <td class="col-name">Sisipkan Snippet</td>
+        <td class="col-desc">Dropdown untuk menyisipkan snippet tersimpan pada posisi kursor. Bisa berkali-kali berturut-turut</td>
+      </tr>
+      <tr>
+        <td class="col-icon">⚙️</td>
+        <td class="col-name">Manajer Snippet</td>
+        <td class="col-desc">Ganti nama, pindahkan, ganti nama/hapus folder, hapus massal via kotak centang, lihat templat, ekspor/impor</td>
+      </tr>
+      <tr>
+        <td class="col-icon">📋</td>
+        <td class="col-name">Duplikat</td>
+        <td class="col-desc">Buat salinan baris ini</td>
+      </tr>
+      <tr>
+        <td class="col-icon">🗑</td>
+        <td class="col-name">Hapus</td>
+        <td class="col-desc">Hapus baris ini. Dialog konfirmasi akan muncul</td>
+      </tr>
+      <tr>
+        <td class="col-icon">-1+</td>
+        <td class="col-name">Birama</td>
+        <td class="col-desc">Tambah (+) atau hapus (-) birama pada baris ini</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tempo (Per Baris)</div>
+    <table>
+      <tr>
+        <td class="col-icon">▸ / ▾</td>
+        <td class="col-name">Buka/Tutup Tempo</td>
+        <td class="col-desc">Klik = panel ini. Klik ganda = semua panel tempo sekaligus. Saat pemutaran: baris aktif terbuka otomatis</td>
+      </tr>
+      <tr>
+        <td class="col-icon">♩ BPM</td>
+        <td class="col-name">Rentang Tempo</td>
+        <td class="col-desc">Menampilkan rentang BPM baris ini. Klik ganda di area tempo = tambah titik. Seret titik = sesuaikan</td>
+      </tr>
+      <tr>
+        <td class="col-icon">ON / OFF</td>
+        <td class="col-name">Tempo Aktif/Nonaktif</td>
+        <td class="col-desc">Aktifkan otomatisasi tempo per baris. Nonaktif = BPM global. Tempo terakhir diwariskan ke baris berikutnya</td>
+      </tr>
+      <tr>
+        <td class="col-icon">ALL</td>
+        <td class="col-name">Semua Aktif/Nonaktif</td>
+        <td class="col-desc">Aktifkan atau nonaktifkan semua trek tempo di lagu sekaligus</td>
+      </tr>
+      <tr>
+        <td class="col-icon">+1 / −1</td>
+        <td class="col-name">Penyetelan Halus</td>
+        <td class="col-desc">Klik = +1 atau -1 BPM. Tahan = mengulang (mempercepat setelah 1 detik). Muncul di popup zoom</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Bilah Transport (Mengambang)</div>
+    <table>
+      <tr>
+        <td class="col-icon">⠿</td>
+        <td class="col-name">Pegangan Seret</td>
+        <td class="col-desc">Seret bilah transport ke posisi lain di layar</td>
+      </tr>
+      <tr>
+        <td class="col-icon">BPM ▲▼</td>
+        <td class="col-name">Tempo Global</td>
+        <td class="col-desc">Rentang 20–140 BPM. Klik angka = ketik nilai. Seret atas/bawah = sesuaikan. Panah = +1/-1</td>
+      </tr>
+      <tr>
+        <td class="col-icon">◀</td>
+        <td class="col-name">Mundur</td>
+        <td class="col-desc">Klik = awal birama saat ini. Sekali lagi = birama sebelumnya. Klik ganda = awal lagu</td>
+      </tr>
+      <tr>
+        <td class="col-icon">▶</td>
+        <td class="col-name">Putar / Stop</td>
+        <td class="col-desc">Mulai/berhenti pemutaran. Lagu berhenti otomatis di akhir kecuali ada loop yang aktif</td>
+      </tr>
+      <tr>
+        <td class="col-icon">↺</td>
+        <td class="col-name">Loop</td>
+        <td class="col-desc">Aktif/nonaktifkan loop seksi ini. Saat dinonaktifkan selagi pemutaran: iterasi saat ini diselesaikan dahulu</td>
+      </tr>
+      <tr>
+        <td class="col-icon">♩ ▾</td>
+        <td class="col-name">Metronom</td>
+        <td class="col-desc">Klik = aktif/nonaktif. Ketuk ▾ = opsi: hitungan 4 sebelum mulai, hitungan 8 sebelum mulai, klik saat pemutaran, penggeser volume</td>
+      </tr>
+      <tr>
+        <td class="col-icon">Ketuk 2x bilah</td>
+        <td class="col-name">Minimalkan</td>
+        <td class="col-desc">Klik ganda pada bilah transport = minimalkan hingga hanya ◀ dan ▶. Sekali lagi = pulihkan</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Trek (Anak / Indung)</div>
+    <table>
+      <tr>
+        <td class="col-icon">●</td>
+        <td class="col-name">Lingkaran Bisukan</td>
+        <td class="col-desc">Hijau = trek berbunyi (dengan cahaya). Klik = bisukan (abu-abu). Terletak di antara anak dan indung</td>
+      </tr>
+      <tr>
+        <td class="col-icon">1 2 3 4</td>
+        <td class="col-name">Penggaris Birama</td>
+        <td class="col-desc">Klik ganda = loop 1 birama. Seret beberapa birama = loop lebih lebar. Klik ganda di mana saja = hapus loop</td>
+      </tr>
+      <tr>
+        <td class="col-icon">▼</td>
+        <td class="col-name">Playhead</td>
+        <td class="col-desc">Segitiga biru. Seret untuk memindahkan kursor. Bergulir otomatis saat mundur dan beralih mode</td>
+      </tr>
+      <tr>
+        <td class="col-icon">Sel</td>
+        <td class="col-name">Kisi Notasi</td>
+        <td class="col-desc">Klik = menempatkan kursor. Masukkan not via pad atau keyboard. Klik ganda pada not = hapus. Seret = pindahkan</td>
+      </tr>
+      <tr>
+        <td class="col-icon">⟳</td>
+        <td class="col-name">Loop Seksi</td>
+        <td class="col-desc">Di kanan bawah trek. Loop hanya baris ini. Klik beberapa baris = gabungkan</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lainnya</div>
+    <table>
+      <tr>
+        <td class="col-icon">+ Regel</td>
+        <td class="col-name">Sisipkan Baris</td>
+        <td class="col-desc">Muncul di antara dua baris. Menyisipkan baris kosong baru pada posisi tersebut</td>
+      </tr>
+      <tr>
+        <td class="col-icon">+ Add Section</td>
+        <td class="col-name">Tambah Baris</td>
+        <td class="col-desc">Menambahkan baris kosong baru di bagian bawah lagu</td>
+      </tr>
+      <tr>
+        <td class="col-icon">●</td>
+        <td class="col-name">Indikator Perubahan</td>
+        <td class="col-desc">Titik kuning di samping nama lagu = perubahan belum tersimpan. Hilang setelah Update atau simpan otomatis (5 dtk)</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Pintasan Keyboard</div>
+    <table>
+      <tr><td class="col-icon">Spasi</td><td class="col-name">Putar / Stop</td><td class="col-desc"></td></tr>
+      <tr><td class="col-icon">Cmd+Z</td><td class="col-name">Batalkan</td><td class="col-desc"></td></tr>
+      <tr><td class="col-icon">Cmd+Shift+Z</td><td class="col-name">Ulangi</td><td class="col-desc"></td></tr>
+      <tr><td class="col-icon">Backspace</td><td class="col-name">Hapus Seleksi</td><td class="col-desc"></td></tr>
+      <tr><td class="col-icon">N C X V A J ; : L G F S</td><td class="col-name">Masukkan Suara</td><td class="col-desc">Setiap tombol sesuai dengan salah satu teknik pukulan kendang</td></tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    Kendang Pasunanda — Sequencer &amp; Solfège &nbsp;|&nbsp; &copy; 2026 Werner Kanhai. Hak cipta dilindungi.
+  </div>
+
+</div>
+</body>
+</html>

@@ -564,6 +564,12 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                   {slot.bottom}
                 </span>
               )}
+              {slot.accentTop && slot.top !== '' && slot.top !== SYMBOL_REST && (
+                <span className="accent-marker accent-top">›</span>
+              )}
+              {slot.accentBottom && slot.bottom !== '' && slot.bottom !== SYMBOL_REST && (
+                <span className="accent-marker accent-bottom">›</span>
+              )}
               {/* Quarter rest per hand: centered in the beat (6 slots offset) */}
               {index % 12 === 0 && quarterRests.has(`${index}-top`) && (
                 <span className={`kendang-font slot-rest pos-above color-${trackId}`} style={{ transform: `translateX(${5.5 * slotWidth}px)` }}>{SYMBOL_REST}</span>

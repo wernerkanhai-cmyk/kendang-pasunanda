@@ -1,4 +1,13 @@
 /**
+ * Kendang Pasunanda — patternLogic.js
+ * © 2026 Werner Kanhai. Alle rechten voorbehouden.
+ *
+ * Gedeponeerd als onderdeel van I-DEPOT bij BOIP.
+ * Dit bestand bevat intellectueel eigendom specifiek voor het
+ * Sundanese kendang notatiesysteem 'Kendang Pasunanda'.
+ */
+
+/**
  * 48-Slot Matrix Math Engine
  * - 1 Beat (Tel) = 12 Slots
  * - 1 Bar (Maat) = 4 Beats = 48 Slots
@@ -15,15 +24,10 @@ export const generateEmptySlots = (count) => {
     // 12 slots per quarter note. Place a '.' on the downbeat on BOTH lines.
     return {
       top: (i % 12 === 0) ? SYMBOL_REST : '',
-      bottom: (i % 12 === 0) ? SYMBOL_REST : '',
-      accentTop: false,
-      accentBottom: false,
+      bottom: (i % 12 === 0) ? SYMBOL_REST : ''
     };
   });
 };
-
-// Gain multiplier applied to accented notes during playback
-export const ACCENT_GAIN = 1.3;
 
 /** Rounds a slot index down to the nearest beat boundary (every 12 slots). */
 export const slotToBeat = (slot) => Math.floor(slot / 12) * 12;
@@ -40,8 +44,7 @@ export const createEmptyPattern = (name = 'Song 1') => {
     indung: generateEmptySlots(192),  // Bottom track
     gong: [],                         // Array of slot indices (multiples of 6) where gong plays
     tempoTrack: [],                   // Array of { slot, bpm } tempo nodes; empty = use global BPM
-    tempoTrackEnabled: false,         // When false, automation data is kept but global BPM is used
-    annotations: {},                  // { measureIndex: "text" } — per-measure annotations
+    tempoTrackEnabled: false          // When false, automation data is kept but global BPM is used
   };
 };
 
@@ -79,11 +82,9 @@ export const sanitizePattern = (pattern) => {
     const safe = track.slice(0, SLOTS).map(s => ({
       top:    typeof s?.top    === 'string' ? s.top    : '',
       bottom: typeof s?.bottom === 'string' ? s.bottom : '',
-      accentTop:    s?.accentTop    === true,
-      accentBottom: s?.accentBottom === true,
     }));
     // Pad to full length if shorter than expected
-    while (safe.length < SLOTS) safe.push({ top: '', bottom: '', accentTop: false, accentBottom: false });
+    while (safe.length < SLOTS) safe.push({ top: '', bottom: '' });
     return safe;
   };
   return {
@@ -95,46 +96,7 @@ export const sanitizePattern = (pattern) => {
     gong:       Array.isArray(pattern?.gong)       ? pattern.gong.filter(n => typeof n === 'number' && n >= 0) : [],
     tempoTrack: Array.isArray(pattern?.tempoTrack) ? pattern.tempoTrack : [],
     tempoTrackEnabled: pattern?.tempoTrackEnabled === true,  // default false for existing data
-    annotations: (pattern?.annotations && typeof pattern.annotations === 'object') ? pattern.annotations : {},
   };
-};
-
-/**
- * Toggle accent on every note within [startSlot..endSlot] on the given track.
- * If any note in the range is un-accented → accent all notes; otherwise remove all accents.
- * Rests (.) and empty slots are ignored.
- */
-export const toggleAccentInRange = (pattern, trackId, startSlot, endSlot) => {
-  const track = pattern?.[trackId];
-  if (!Array.isArray(track)) return pattern;
-  const from = Math.max(0, Math.min(startSlot, endSlot));
-  const to   = Math.min(track.length - 1, Math.max(startSlot, endSlot));
-
-  // Decide the target state: if any note is not accented, we turn them all ON; otherwise all OFF.
-  let anyUnaccented = false;
-  for (let i = from; i <= to; i++) {
-    const s = track[i];
-    if (!s) continue;
-    const topIsNote    = s.top    !== '' && s.top    !== SYMBOL_REST;
-    const bottomIsNote = s.bottom !== '' && s.bottom !== SYMBOL_REST;
-    if ((topIsNote && !s.accentTop) || (bottomIsNote && !s.accentBottom)) {
-      anyUnaccented = true;
-      break;
-    }
-  }
-  const target = anyUnaccented;
-
-  const newTrack = track.map((s, i) => {
-    if (i < from || i > to) return s;
-    const topIsNote    = s.top    !== '' && s.top    !== SYMBOL_REST;
-    const bottomIsNote = s.bottom !== '' && s.bottom !== SYMBOL_REST;
-    return {
-      ...s,
-      accentTop:    topIsNote    ? target : false,
-      accentBottom: bottomIsNote ? target : false,
-    };
-  });
-  return { ...pattern, [trackId]: newTrack };
 };
 
 export const writeSymbolToPattern = (pattern, trackId, slotIndex, symbol) => {

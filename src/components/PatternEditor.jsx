@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
-import { generateEmptySlots, writeSymbolToPattern, getHandForSymbol, SYMBOL_REST } from '../engine/patternLogic';
+import { generateEmptySlots, writeSymbolToPattern, getHandForSymbol, toggleAccentInRange, SYMBOL_REST } from '../engine/patternLogic';
 import { useT } from '../i18n';
 
 const PatternEditor = ({ 
@@ -290,8 +290,13 @@ const [showBeheer, setShowBeheer] = useState(true);
     const newIndung = [...pattern.indung];
     const getTrack = (id) => id === 'anak' ? newAnak : newIndung;
 
-    // Clear source slot
-    getTrack(fromTrackId)[fromSlot] = { ...getTrack(fromTrackId)[fromSlot], [fromHand]: '' };
+    // Remember source accent so it follows the note
+    const fromAccentKey = fromHand === 'top' ? 'accentTop' : 'accentBottom';
+    const toAccentKey   = toHand   === 'top' ? 'accentTop' : 'accentBottom';
+    const sourceAccent  = getTrack(fromTrackId)[fromSlot]?.[fromAccentKey] === true;
+
+    // Clear source slot (symbol + its accent)
+    getTrack(fromTrackId)[fromSlot] = { ...getTrack(fromTrackId)[fromSlot], [fromHand]: '', [fromAccentKey]: false };
 
     // If there are notes AFTER the source in the same beat on the same hand,
     // replace source with a rest (to preserve the beat gap in notation)
@@ -303,8 +308,8 @@ const [showBeheer, setShowBeheer] = useState(true);
       fromTrack[fromSlot] = { ...fromTrack[fromSlot], [fromHand]: SYMBOL_REST };
     }
 
-    // Place note at destination
-    getTrack(toTrackId)[toSlot] = { ...getTrack(toTrackId)[toSlot], [toHand]: symbol };
+    // Place note at destination (carrying the source accent)
+    getTrack(toTrackId)[toSlot] = { ...getTrack(toTrackId)[toSlot], [toHand]: symbol, [toAccentKey]: sourceAccent };
 
     // Auto-fill rests before destination in its beat (same as handleInsertSymbol)
     if (symbol !== SYMBOL_REST) {
@@ -316,6 +321,15 @@ const [showBeheer, setShowBeheer] = useState(true);
     }
 
     updatePattern({ ...pattern, anak: newAnak, indung: newIndung });
+  };
+
+  const handleToggleAccent = () => {
+    if (isLocked) return;
+    if (!activeSlot || activeSlot.patternId !== pattern.id) return;
+    const start = Math.min(activeSlot.startIndex, activeSlot.endIndex ?? activeSlot.startIndex);
+    const end   = Math.max(activeSlot.startIndex, activeSlot.endIndex ?? activeSlot.startIndex);
+    const updated = toggleAccentInRange(pattern, activeSlot.trackId, start, end);
+    updatePattern(updated);
   };
 
   const handleInsertSymbol = (trackId, slotIndex, symbol) => {
@@ -366,6 +380,16 @@ const [showBeheer, setShowBeheer] = useState(true);
         if (range) {
            e.preventDefault();
            handleClear();
+        }
+        return;
+      }
+
+      // '>' (Shift+.) toggles accent on every note in the active selection
+      if (e.key === '>') {
+        const range = getActiveRange();
+        if (range) {
+          e.preventDefault();
+          handleToggleAccent();
         }
         return;
       }
@@ -1443,6 +1467,12 @@ const [showBeheer, setShowBeheer] = useState(true);
             style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
             title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selection to grid'}
           >Q</button>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleToggleAccent(); }}
+            disabled={!activeRangeObj}
+            style={{ background: 'transparent', color: activeRangeObj ? '#d4af37' : '#475569', border: `1px solid ${activeRangeObj ? '#d4af37' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', fontSize: '0.95rem', fontWeight: 'bold', height: '1.7rem', lineHeight: 1, boxSizing: 'border-box' }}
+            title="Toggle accent op selectie (›)"
+          >›</button>
         </div>
       )}
 

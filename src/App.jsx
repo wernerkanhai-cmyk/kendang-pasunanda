@@ -938,26 +938,27 @@ function App() {
 
     const track = pattern[trackId].map(s => ({ ...s }));
 
-    // Verzamel alle noten in de selectie die niet op het grid staan
+    // Verzamel alle noten in de selectie die niet op het grid staan (incl. accent)
     const notes = [];
     for (let i = start; i <= end; i++) {
       const slot = track[i];
       if (!slot) continue;
-      if (slot.top    && slot.top    !== '') notes.push({ from: i, hand: 'top',    symbol: slot.top });
-      if (slot.bottom && slot.bottom !== '') notes.push({ from: i, hand: 'bottom', symbol: slot.bottom });
+      if (slot.top    && slot.top    !== '') notes.push({ from: i, hand: 'top',    symbol: slot.top,    accent: slot.accentTop    === true });
+      if (slot.bottom && slot.bottom !== '') notes.push({ from: i, hand: 'bottom', symbol: slot.bottom, accent: slot.accentBottom === true });
     }
     if (notes.every(n => n.from % gridResolution === 0)) return; // al op grid
 
-    // Wis originele posities in selectie
+    // Wis originele posities in selectie (incl. accents)
     for (let i = start; i <= end; i++) {
-      track[i] = { ...track[i], top: '', bottom: '' };
+      track[i] = { ...track[i], top: '', bottom: '', accentTop: false, accentBottom: false };
     }
 
     // Zet noten op dichtstbijzijnde gridpunt + auto-fill één voorgaand ruspunt
     for (const note of notes) {
       const snapped  = Math.round(note.from / gridResolution) * gridResolution;
       const clamped  = Math.max(0, Math.min(track.length - 1, snapped));
-      track[clamped] = { ...track[clamped], [note.hand]: note.symbol };
+      const accentKey = note.hand === 'top' ? 'accentTop' : 'accentBottom';
+      track[clamped] = { ...track[clamped], [note.hand]: note.symbol, [accentKey]: note.accent };
       // Auto-fill: place rest at the single preceding grid position if empty
       const prevPos = Math.floor((clamped - 1) / gridResolution) * gridResolution;
       if (prevPos >= 0 && prevPos < clamped) {
@@ -1144,7 +1145,7 @@ function App() {
           const slot = tickPattern[track][localSlot];
           if (slot) {
             const tvol = (trackVolumesRef.current[track] ?? 1.0) * (sampleSetRef.current === 'vox' ? voxVolumeRef.current : 1.0);
-            sampler.playSlot(slot.top, slot.bottom, track, audioTime, tvol);
+            sampler.playSlot(slot.top, slot.bottom, track, audioTime, tvol, slot.accentTop === true, slot.accentBottom === true);
           }
         });
         if ((tickPattern.gong || []).includes(localSlot)) sampler.playGong(audioTime);

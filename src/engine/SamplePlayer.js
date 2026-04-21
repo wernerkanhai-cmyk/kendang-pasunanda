@@ -289,7 +289,7 @@ export class SamplePlayer {
    * Speel een slot af (top + bottom tegelijk), met combo-detectie in vox-modus.
    * Als sampleSet === 'vox' en de twee sounds vormen een combo: speel de combo.
    */
-  playSlot(topSymbol, bottomSymbol, track, when = 0, trackGain = 1.0) {
+  playSlot(topSymbol, bottomSymbol, track, when = 0, trackGain = 1.0, accentTop = false, accentBottom = false) {
     const topSound    = topSymbol    && topSymbol    !== '.' ? SYMBOL_TO_SOUND[topSymbol]    : null;
     const bottomSound = bottomSymbol && bottomSymbol !== '.' ? SYMBOL_TO_SOUND[bottomSymbol] : null;
 
@@ -297,14 +297,15 @@ export class SamplePlayer {
       const key = [topSound, bottomSound].sort().join('+');
       const combo = COMBO_MAP[key];
       if (combo) {
-        this._playVoxCombo(combo, track, when, trackGain);
+        const comboGain = trackGain * ((accentTop || accentBottom) ? 1.3 : 1.0);
+        this._playVoxCombo(combo, track, when, comboGain);
         return;
       }
     }
 
-    // Geen combo: speel individueel
-    if (topSound)    this._playSingle(topSound,    track, when, trackGain);
-    if (bottomSound) this._playSingle(bottomSound, track, when, trackGain);
+    // Geen combo: speel individueel (elk met eigen accent)
+    if (topSound)    this._playSingle(topSound,    track, when, trackGain * (accentTop    ? 1.3 : 1.0));
+    if (bottomSound) this._playSingle(bottomSound, track, when, trackGain * (accentBottom ? 1.3 : 1.0));
   }
 
   /** Speel een enkel drumsymbool af (bijv. vanuit DrumPad of live input) */
