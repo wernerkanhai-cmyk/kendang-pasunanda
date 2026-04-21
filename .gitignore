@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# i-DEPOT snapshot (private IP registration material)
+i-depot/
+i-depot-*.zip
+
+# Claude Code local settings (per-machine)
+.claude/settings.local.json
