@@ -5,7 +5,7 @@
  * opzichte van `import.meta.env.BASE_URL`. Sample-URLs binnen een manifest zijn
  * altijd relatief aan BASE_URL.
  *
- * Schema (zie public/packs/*/pack.json voor concrete voorbeelden):
+ * Schema (zie public/packs/[id]/pack.json voor concrete voorbeelden):
  *   instrument: { id, type:'instrument', tracks[], sounds{}, samples{urlTemplate,variants}, auxiliary?, ... }
  *   voice:      { id, type:'voice', samples{urlTemplate, soundFileNames, missing?}, combos[]? }
  *   notation:   { id, type:'notation', font{family,url}, restGlyph, soundToGlyph{} }

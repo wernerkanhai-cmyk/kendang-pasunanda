@@ -8,6 +8,8 @@ import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
 import { useTemplates } from './hooks/useTemplates';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
+import { packRegistry } from './engine/PackRegistry';
+import { errorLog } from './utils/errorLog';
 import { useT, useLanguage, LANGUAGES } from './i18n';
 import { useSongs } from './hooks/useSongs';
 import { loadSong as loadSongFromCloud } from './services/songRepo';
@@ -1101,7 +1103,20 @@ function App() {
     sampler.setSampleSet(sampleSetRef.current);
     // Maak de gedeelde AudioContext direct aan (voor sampler én scheduler)
     const sharedCtx = sampler.getContext();
-    sampler.loadAll();
+
+    // Default packs laden (instrument + voice). Loopt async, blokkeert
+    // de scheduler-setup niet — die heeft de packs pas nodig bij playback.
+    (async () => {
+      try {
+        const instrumentPack = await packRegistry.load('sunda-kendang');
+        sampler.setInstrumentPack(instrumentPack);
+        await sampler.loadAll();
+        const voicePack = await packRegistry.load('sunda-vox-werner');
+        sampler.setVoicePack(voicePack);
+      } catch (e) {
+        errorLog.error('App', 'pack load failed', e?.message || String(e));
+      }
+    })();
 
     // Helper: map global slot → { pattern, localSlot }
     const resolveSlot = (globalSlot) => {
