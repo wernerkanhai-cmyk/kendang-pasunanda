@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import { migrateSlotArray } from '../engine/patternLogic';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (v) => typeof v === 'string' && UUID_RE.test(v);
@@ -20,13 +21,26 @@ function flattenSnippet(snippet) {
   };
 }
 
+function migrateSnippetData(data) {
+  if (!data) return data;
+  // Legacy raw-array vorm: data === array van slot-objecten
+  if (Array.isArray(data)) return migrateSlotArray(data);
+  // Nieuwe vorm: { anak, indung, gong }
+  return {
+    ...data,
+    ...(Array.isArray(data.anak)   ? { anak:   migrateSlotArray(data.anak)   } : {}),
+    ...(Array.isArray(data.indung) ? { indung: migrateSlotArray(data.indung) } : {}),
+  };
+}
+
 function rehydrateSnippet(row) {
   if (!row) return null;
   return {
     id: row.id,
     name: row.name,
     folder: row.folder ?? 'Algemeen',
-    data: row.content ?? {},
+    // Migreer legacy glyph-data naar soundIds bij elke load.
+    data: migrateSnippetData(row.content ?? {}),
   };
 }
 

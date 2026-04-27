@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { deduplicateGongByBeat } from '../engine/patternLogic';
+import { deduplicateGongByBeat, glyphFor } from '../engine/patternLogic';
 
 // ─── Page geometry ─────────────────────────────────────────────────────────────
 // A4 portrait at ~210 dpi gives a crisp result while keeping file size sane.
@@ -162,7 +162,7 @@ function calculateTripletArcs(slots) {
 }
 
 // Draw one 4-bar row for a single pattern (or a 4-bar chunk of a longer pattern)
-function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, rowX, rowY, measureOffset, cfg = DEFAULT_PDF_SETTINGS, annotations = {}) {
+function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, rowX, rowY, measureOffset, cfg = DEFAULT_PDF_SETTINGS, annotations = {}, notationPack = null) {
   const trackY_anak   = rowY + NAME_H;
   const nullY_anak    = trackY_anak + Math.floor(TRACK_H / 2);
   const trackY_indung = trackY_anak + TRACK_H + SEPARATOR_H;
@@ -343,7 +343,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
         ctx.globalAlpha  = 1.0;
         ctx.textBaseline = hand === 'top' ? 'bottom' : 'top';
-        ctx.fillText(sym, x, hand === 'top' ? nullY - symTop : nullY + symBot);
+        // sym is een soundId; vertaal naar het glyph van de actieve NotationPack.
+        ctx.fillText(glyphFor(sym, notationPack), x, hand === 'top' ? nullY - symTop : nullY + symBot);
       }
       ctx.globalAlpha = 1.0;
     }
@@ -566,6 +567,7 @@ export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) 
         row.measureOffset,
         cfg,
         row.annotations,
+        cfg.notationPack || null,
       );
     });
 

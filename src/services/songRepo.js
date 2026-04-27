@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import { sanitizePattern } from '../engine/patternLogic';
 
 const SLOTS_PER_MEASURE = 48;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -82,7 +83,9 @@ export function rehydrateSongFromDb(row) {
         lineByInstrument[line.instrument] = flat;
       }
       const tempo = p.tempo_track ?? {};
-      return {
+      // sanitizePattern migreert legacy glyph-data naar het soundId-formaat
+      // van stap 4 — bestaande Supabase-songs blijven werkend zonder migratie-script.
+      return sanitizePattern({
         id: p.id,
         name: p.name,
         anak: lineByInstrument.anak ?? [],
@@ -91,7 +94,7 @@ export function rehydrateSongFromDb(row) {
         tempoTrack: tempo.points ?? [],
         tempoTrackEnabled: tempo.enabled === true,
         annotations: tempo.annotations ?? {},
-      };
+      });
     });
   return {
     id: row.id,

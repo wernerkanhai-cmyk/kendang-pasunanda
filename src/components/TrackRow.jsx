@@ -1,24 +1,35 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import './TrackRow.css';
-import { SYMBOL_REST, TOP_HAND_SYMBOLS, BOTTOM_HAND_SYMBOLS, deduplicateGongByBeat } from '../engine/patternLogic';
+import {
+  SYMBOL_REST,
+  TOP_HAND_SOUNDS,
+  BOTTOM_HAND_SOUNDS,
+  LEGACY_GLYPH_TO_SOUND,
+  deduplicateGongByBeat,
+  glyphFor,
+} from '../engine/patternLogic';
 
+// Drum-picker — gegroepeerd per drum-zone, met soundIds als onderliggende waarde.
+// De visuele glyph wordt op render-time uit de actieve NotationPack gehaald.
 const DRUM_MENU = [
-  { label: 'Ketipung', sounds: [{ symbol: 'N', name: 'Tung' }] },
-  { label: 'Gedug',    sounds: [{ symbol: 'C', name: 'Dong' }, { symbol: '?', name: 'Ting' }, { symbol: 'V', name: 'Det' }] },
-  { label: 'Kumpyang', sounds: [{ symbol: 'A', name: 'Pling' }, { symbol: 'J', name: 'Pang' }, { symbol: ';', name: 'Ping' }, { symbol: ':', name: 'Pong' }, { symbol: 'L', name: 'Plak' }] },
-  { label: 'Kutiplak', sounds: [{ symbol: 'G', name: 'Pak' }, { symbol: 'F', name: 'Peung' }] },
+  { label: 'Ketipung', sounds: [{ soundId: 'tung', name: 'Tung' }] },
+  { label: 'Gedug',    sounds: [{ soundId: 'dong', name: 'Dong' }, { soundId: 'ting', name: 'Ting' }, { soundId: 'det', name: 'Det' }] },
+  { label: 'Kumpyang', sounds: [{ soundId: 'pling', name: 'Pling' }, { soundId: 'pang', name: 'Pang' }, { soundId: 'ping', name: 'Ping' }, { soundId: 'pong', name: 'Pong' }, { soundId: 'plak', name: 'Plak' }] },
+  { label: 'Kutiplak', sounds: [{ soundId: 'pak', name: 'Pak' }, { soundId: 'peung', name: 'Peung' }] },
 ];
 
-const getVerticalPositionClass = (symbol, hand) => {
-  if (symbol === SYMBOL_REST) {
+const getVerticalPositionClass = (value, hand) => {
+  if (value === SYMBOL_REST) {
       return hand === 'top' ? 'pos-above' : 'pos-below';
   }
-  if (TOP_HAND_SYMBOLS.includes(symbol))    return 'pos-above';
-  if (BOTTOM_HAND_SYMBOLS.includes(symbol)) return 'pos-below';
+  // Sta legacy glyph-data toe (auto-migratie tijdens transitie).
+  const sound = LEGACY_GLYPH_TO_SOUND[value] || value;
+  if (TOP_HAND_SOUNDS.includes(sound))    return 'pos-above';
+  if (BOTTOM_HAND_SOUNDS.includes(sound)) return 'pos-below';
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, isLocked = false }) => {
+const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, isLocked = false }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
   const lastTapRef = useRef({ slotIndex: -1, time: 0 });
@@ -541,7 +552,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
             >
-              {/* Data symbols (notes and data rests) */}
+              {/* Data symbols (notes and data rests) — soundId → glyph via NotationPack */}
               {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
                 <span
                   draggable
@@ -550,7 +561,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                   onTouchStart={(e) => handleTouchStart(e, index, 'top', slot.top)}
                   className={`kendang-font ${isRestTop ? 'slot-rest' : 'slot-symbol'} ${posClassTop} color-${trackId} draggable-note`}
                 >
-                  {slot.top}
+                  {glyphFor(slot.top, notationPack)}
                 </span>
               )}
               {slot.bottom !== '' && !collapsedRests.has(`${index}-bottom`) && (
@@ -561,7 +572,7 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
                   onTouchStart={(e) => handleTouchStart(e, index, 'bottom', slot.bottom)}
                   className={`kendang-font ${isRestBottom ? 'slot-rest' : 'slot-symbol'} ${posClassBottom} color-${trackId} draggable-note`}
                 >
-                  {slot.bottom}
+                  {glyphFor(slot.bottom, notationPack)}
                 </span>
               )}
               {slot.accentTop && slot.top !== '' && slot.top !== SYMBOL_REST && (
@@ -604,14 +615,14 @@ const TrackRow = ({ trackId, slots, theme, activeRange, loopRange = null, onSlot
             <div key={drum.label} style={{ marginBottom: '0.45rem' }}>
               <div style={{ fontSize: '0.6rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 'bold', marginBottom: '3px' }}>{drum.label}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                {drum.sounds.map(({ symbol, name }) => (
+                {drum.sounds.map(({ soundId, name }) => (
                   <button
-                    key={symbol}
-                    onClick={(e) => { e.stopPropagation(); onInsertSymbol(popup.slotIndex, symbol); setPopup(null); }}
+                    key={soundId}
+                    onClick={(e) => { e.stopPropagation(); onInsertSymbol(popup.slotIndex, soundId); setPopup(null); }}
                     style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#0f172a', border: '1px solid #334155', borderRadius: '4px', padding: '3px 7px', cursor: 'pointer' }}
                     title={name}
                   >
-                    <span className="kendang-font" style={{ fontSize: '1.1rem', color: trackId === 'anak' ? '#111' : '#cc0000', lineHeight: 1 }}>{symbol}</span>
+                    <span className="kendang-font" style={{ fontSize: '1.1rem', color: trackId === 'anak' ? '#111' : '#cc0000', lineHeight: 1 }}>{glyphFor(soundId, notationPack)}</span>
                     <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{name}</span>
                   </button>
                 ))}

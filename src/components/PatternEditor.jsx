@@ -5,10 +5,12 @@ import TempoTrack from './TempoTrack';
 import { generateEmptySlots, writeSymbolToPattern, getHandForSymbol, toggleAccentInRange, SYMBOL_REST } from '../engine/patternLogic';
 import { useT } from '../i18n';
 
-const PatternEditor = ({ 
-  pattern, 
-  isActive, 
-  onFocus, 
+const PatternEditor = ({
+  pattern,
+  notationPack,
+  instrumentPack,
+  isActive,
+  onFocus,
   updatePattern, 
   activeSlot, 
   setActiveSlot, 
@@ -394,33 +396,27 @@ const [showBeheer, setShowBeheer] = useState(true);
         return;
       }
 
-      // Symbol input via keyboard: N C V S A J L G F ; : ?
-      // Maps both lowercase and uppercase to the correct symbol
-      const KEY_TO_SYMBOL = {
-        'n': 'N', 'N': 'N',   // tung
-        'c': 'C', 'C': 'C',   // dong
-        'v': 'V', 'V': 'V',   // det
-        's': 'S', 'S': 'S',   // dededet
-        'a': 'A', 'A': 'A',   // pling
-        'j': 'J', 'J': 'J',   // pang
-        'l': 'L', 'L': 'L',   // plak
-        'g': 'G', 'G': 'G',   // pak
-        'f': 'F', 'F': 'F',   // peung
-        ';': ';',              // ping
-        ':': ':',              // pong
-        '?': '?',              // ting
-        '.': '.',              // rest
-      };
-      const symbol = KEY_TO_SYMBOL[e.key];
-      if (symbol && onDrumTrigger) {
+      // Keyboard input: typ het glyph van het geluid dat je wilt spelen.
+      // De mapping volgt de actieve NotationPack (soundToGlyph), zodat een
+      // gebruiker met een andere notatie zijn eigen glyph-toetsen krijgt.
+      // De rest is universeel '.'.
+      const keyToSound = {};
+      keyToSound['.'] = '.';
+      const map = notationPack?.soundToGlyph || {};
+      for (const [sound, glyph] of Object.entries(map)) {
+        keyToSound[glyph] = sound;
+        if (/^[A-Z]$/.test(glyph)) keyToSound[glyph.toLowerCase()] = sound;
+      }
+      const sound = keyToSound[e.key];
+      if (sound && onDrumTrigger) {
         e.preventDefault();
-        onDrumTrigger(symbol, activeSlot?.trackId || 'anak');
+        onDrumTrigger(sound, activeSlot?.trackId || 'anak');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isActive, activeSlot, pattern, isPlaying, isLocked]); // isLocked ensures handleClear sees latest lock state
+  }, [isActive, activeSlot, pattern, isPlaying, isLocked, notationPack]); // isLocked ensures handleClear sees latest lock state
 
   const handleCopy = () => {
     const range = getActiveRange() || selectedRange.current;
@@ -1592,6 +1588,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               <TrackRow
                 trackId="anak"
                 slots={pattern.anak}
+                notationPack={notationPack}
                 theme="anak"
                 activeRange={activeRangeObj?.trackId === 'anak' ? activeRangeObj : null}
                 loopRange={loopRangeObj}
@@ -1663,6 +1660,7 @@ const [showBeheer, setShowBeheer] = useState(true);
               <TrackRow
                 trackId="indung"
                 slots={pattern.indung}
+                notationPack={notationPack}
                 theme="indung"
                 activeRange={activeRangeObj?.trackId === 'indung' ? activeRangeObj : null}
                 loopRange={loopRangeObj}

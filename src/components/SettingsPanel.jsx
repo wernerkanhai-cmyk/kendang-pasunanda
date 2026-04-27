@@ -1,4 +1,4 @@
-import { DEFAULT_SOUND_SETTINGS, SYMBOL_TO_SOUND } from '../engine/SamplePlayer';
+import { DEFAULT_SOUND_SETTINGS } from '../engine/SamplePlayer';
 import { useT } from '../i18n';
 
 const SOUND_LABELS = {
@@ -7,11 +7,6 @@ const SOUND_LABELS = {
   ping: 'Ping', pong: 'Pong', plak: 'Plak', pak: 'Pak',
   peung: 'Peung', gong: 'Gong',
 };
-
-// Omgekeerde mapping: sound → symbol (voor preview)
-const SOUND_TO_SYMBOL = Object.fromEntries(
-  Object.entries(SYMBOL_TO_SOUND).map(([sym, snd]) => [snd, sym])
-);
 
 const pitchToSemitones = (pitch) => Math.round(12 * Math.log2(pitch) * 10) / 10;
 const semitonesToPitch = (st) => Math.pow(2, st / 12);
@@ -49,7 +44,7 @@ export default function SoundSettingsContent({ settings, onChange, onPlay, curso
         return (
           <div key={sound} style={{ display: 'grid', gridTemplateColumns: '4.5rem 1fr 1fr 1.5rem', gap: '0.4rem', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #1a2535' }}>
             <span
-              onClick={() => { const sym = sound === 'gong' ? null : SOUND_TO_SYMBOL[sound]; if (onPlay && sym) onPlay(sym); }}
+              onClick={() => { if (onPlay && sound !== 'gong') onPlay(sound); }}
               style={{ color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', cursor: onPlay ? 'pointer' : 'default', userSelect: 'none' }}
               title={onPlay ? 'Tik om te beluisteren' : undefined}
             >{SOUND_LABELS[sound]}</span>

@@ -2,6 +2,22 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { listSnippets, saveSnippet as saveSnippetRpc, deleteSnippet as deleteSnippetRpc } from '../services/snippetRepo';
 import { cacheList, readList, putItem, deleteItem } from '../lib/offlineStore';
+import { migrateSlotArray } from '../engine/patternLogic';
+
+// Migreer een offline-gecachte snippet (legacy glyph-data → soundIds).
+const migrateCachedSnippet = (s) => {
+  if (!s?.data) return s;
+  const d = s.data;
+  if (Array.isArray(d)) return { ...s, data: migrateSlotArray(d) };
+  return {
+    ...s,
+    data: {
+      ...d,
+      ...(Array.isArray(d.anak)   ? { anak:   migrateSlotArray(d.anak)   } : {}),
+      ...(Array.isArray(d.indung) ? { indung: migrateSlotArray(d.indung) } : {}),
+    },
+  };
+};
 
 export function useSnippets() {
   const { user } = useAuth();
@@ -28,7 +44,7 @@ export function useSnippets() {
         try {
           const cached = await readList('snippets', user.id);
           if (cached.length > 0) {
-            setSnippets(cached);
+            setSnippets(cached.map(migrateCachedSnippet));
             return;
           }
         } catch (_) { /* ignore */ }

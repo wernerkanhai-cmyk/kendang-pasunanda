@@ -1,4 +1,15 @@
 import { supabase } from '../lib/supabaseClient';
+import { sanitizePattern, migrateSlotArray } from '../engine/patternLogic';
+
+const migrateSnippetData = (data) => {
+  if (!data) return data;
+  if (Array.isArray(data)) return migrateSlotArray(data);
+  return {
+    ...data,
+    ...(Array.isArray(data.anak)   ? { anak:   migrateSlotArray(data.anak)   } : {}),
+    ...(Array.isArray(data.indung) ? { indung: migrateSlotArray(data.indung) } : {}),
+  };
+};
 
 /**
  * Song templates — stored in the `templates` table, readable by all
@@ -20,7 +31,8 @@ export async function listTemplates() {
     name: row.name,
     category: row.category || 'Algemeen',
     bpm: row.bpm ?? 100,
-    patterns: row.content ?? [],
+    // Migreer legacy glyph-patronen naar het soundId-formaat van stap 4.
+    patterns: Array.isArray(row.content) ? row.content.map(sanitizePattern) : [],
     created_at: row.created_at,
   }));
 }
@@ -61,7 +73,7 @@ export async function listSnippetTemplates() {
     id: row.id,
     name: row.name,
     category: row.category || 'Algemeen',
-    data: row.content ?? {},
+    data: migrateSnippetData(row.content ?? {}),
     created_at: row.created_at,
   }));
 }

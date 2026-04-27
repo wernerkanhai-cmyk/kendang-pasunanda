@@ -82,6 +82,10 @@ function App() {
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
 
+  // Actieve packs (geladen tijdens init useEffect via packRegistry).
+  const [notationPack, setNotationPack] = useState(null);
+  const [instrumentPack, setInstrumentPack] = useState(null);
+
   // Sample set: 'kendang' of 'vox'
   const [sampleSet, setSampleSet] = useState(() => localStorage.getItem('kendangSampleSet') || 'kendang');
   const sampleSetRef = useRef(sampleSet);
@@ -202,13 +206,14 @@ function App() {
     loadSongFromCloud(currentSongId)
       .then((cloud) => {
         if (!alive || !cloud) return;
-        // Compare the cloud patterns with what we have locally. If they
-        // differ the cloud version wins (it was saved from another device
-        // or an auto-save that didn't make it into this localStorage).
-        const cloudJson = JSON.stringify(cloud.patterns);
+        // Sanitize: legacy glyph-data wordt hierin naar soundIds gemigreerd.
+        const sanitized = Array.isArray(cloud.patterns)
+          ? cloud.patterns.map(sanitizePattern)
+          : cloud.patterns;
+        const cloudJson = JSON.stringify(sanitized);
         const localJson = JSON.stringify(song);
         if (cloudJson !== localJson) {
-          setSong(cloud.patterns);
+          setSong(sanitized);
           lastSavedSnapshotRef.current = cloudJson;
         }
         if (cloud.name && cloud.name !== songName) setSongName(cloud.name);
@@ -1110,11 +1115,13 @@ function App() {
     (async () => {
       try {
         // Notation eerst zodat de font snel geregistreerd is (eerste paint).
-        const notationPack = await packRegistry.load('neodamina-werner');
-        loadNotationFont(notationPack);
+        const np = await packRegistry.load('neodamina-werner');
+        loadNotationFont(np);
+        setNotationPack(np);
 
-        const instrumentPack = await packRegistry.load('sunda-kendang');
-        sampler.setInstrumentPack(instrumentPack);
+        const ip = await packRegistry.load('sunda-kendang');
+        sampler.setInstrumentPack(ip);
+        setInstrumentPack(ip);
         await sampler.loadAll();
 
         const voicePack = await packRegistry.load('sunda-vox-werner');
@@ -2505,7 +2512,7 @@ function App() {
                   {/* PDF */}
                   <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('pdfSection')}</div>
                   <button
-                    onClick={() => { exportSequencerToPDF(song, songName, pdfSettings); setShowToolsMenu(false); }}
+                    onClick={() => { exportSequencerToPDF(song, songName, { ...pdfSettings, notationPack }); setShowToolsMenu(false); }}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
                   >{t('exportPdf')}</button>
                   <button
@@ -3118,6 +3125,8 @@ function App() {
           {/* Content — verborgen wanneer ingeklapt */}
           <div style={{ flex: 1, overflow: 'auto', minHeight: 0, display: drumCollapsed ? 'none' : 'block' }}>
             <DrumPad
+              notationPack={notationPack}
+              instrumentPack={instrumentPack}
               onTrigger={handleDrumTrigger}
               inputMode={inputMode}
               setInputMode={setInputMode}
@@ -3214,6 +3223,8 @@ function App() {
                   >
                     <PatternEditor
                       pattern={pattern}
+                      notationPack={notationPack}
+                      instrumentPack={instrumentPack}
                       isActive={pattern.id === activePatternId}
                       onFocus={() => setActivePatternId(pattern.id)}
                       updatePattern={(newPat) => updatePattern(pattern.id, newPat)}

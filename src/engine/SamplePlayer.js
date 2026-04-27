@@ -267,14 +267,28 @@ export class SamplePlayer {
   }
 
   /**
-   * Speel een slot af (top + bottom tegelijk), met combo-detectie in vox-modus.
+   * Resolve een slot-waarde naar een soundId.
+   *   - leeg / '.' / null     → null (niets te spelen)
+   *   - bekende soundId       → soundId (pass-through)
+   *   - legacy glyph          → soundId via compat-mapping
    */
-  playSlot(topSymbol, bottomSymbol, track, when = 0, trackGain = 1.0, accentTop = false, accentBottom = false) {
-    const topSound    = topSymbol    && topSymbol    !== '.' ? SYMBOL_TO_SOUND[topSymbol]    : null;
-    const bottomSound = bottomSymbol && bottomSymbol !== '.' ? SYMBOL_TO_SOUND[bottomSymbol] : null;
+  _resolveSound(value) {
+    if (!value || value === '.') return null;
+    if (this.instrumentPack?.sounds?.[value]) return value;
+    return SYMBOL_TO_SOUND[value] || null;
+  }
 
-    if (this.sampleSet === 'vox' && topSound && bottomSound) {
-      const key = [topSound, bottomSound].sort().join('+');
+  /**
+   * Speel een slot af (top + bottom tegelijk), met combo-detectie in vox-modus.
+   * `topSound` / `bottomSound` mogen soundIds zijn (nieuwe data) of legacy
+   * glyphs (bv. 'N', 'C') — beide worden ondersteund.
+   */
+  playSlot(topSound, bottomSound, track, when = 0, trackGain = 1.0, accentTop = false, accentBottom = false) {
+    const top    = this._resolveSound(topSound);
+    const bottom = this._resolveSound(bottomSound);
+
+    if (this.sampleSet === 'vox' && top && bottom) {
+      const key = [top, bottom].sort().join('+');
       const combo = this._comboLookup[key];
       if (combo) {
         const comboGain = trackGain * ((accentTop || accentBottom) ? 1.3 : 1.0);
@@ -283,14 +297,13 @@ export class SamplePlayer {
       }
     }
 
-    if (topSound)    this._playSingle(topSound,    track, when, trackGain * (accentTop    ? 1.3 : 1.0));
-    if (bottomSound) this._playSingle(bottomSound, track, when, trackGain * (accentBottom ? 1.3 : 1.0));
+    if (top)    this._playSingle(top,    track, when, trackGain * (accentTop    ? 1.3 : 1.0));
+    if (bottom) this._playSingle(bottom, track, when, trackGain * (accentBottom ? 1.3 : 1.0));
   }
 
-  /** Speel een enkel drumsymbool af (DrumPad / live input) */
-  play(symbol, track, when = 0, trackGain = 1.0) {
-    if (symbol === '.' || !symbol) return;
-    const sound = SYMBOL_TO_SOUND[symbol];
+  /** Speel een enkel geluid af (DrumPad / live input). Accepteert soundId of legacy glyph. */
+  play(value, track, when = 0, trackGain = 1.0) {
+    const sound = this._resolveSound(value);
     if (!sound) return;
     this._playSingle(sound, track, when, trackGain);
   }

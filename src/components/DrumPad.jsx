@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import ensembleImg from '../assets/drums_ensemble.png';
 import gongImg from '../assets/Gong.png';
 import './DrumPad.css';
 import SoundSettingsContent from './SettingsPanel';
 import { useT } from '../i18n';
+import { glyphFor, SYMBOL_REST } from '../engine/patternLogic';
 
 // ── SVG pie helpers ──────────────────────────────────────────────────────────
 // Convention: 0° = top (12 o'clock), clockwise
@@ -30,40 +31,43 @@ const labelAt = (cx, cy, r, a1, a2) => {
 // ── Drum zone data ────────────────────────────────────────────────────────────
 // Positions are % of the ensemble image. Zones follow the PDF layout.
 
+// Drum-zones gebruiken soundIds als canonieke identifier. De NotationPack
+// bepaalt welke glyph getoond wordt; de naam blijft de Sundanese
+// onomatopee — dat is een eigenschap van het instrument, niet de notatie.
 const DRUMS = [
   {
     id: 'ketipung', label: 'Ketipung',
     top: '31%', left: '18%', size: '18%',
     zones: [
-      { symbol: 'N', track: 'anak', name: 'Tung', a1: 0, a2: 360, fill: 'rgba(55,50,65,0.55)' }
+      { soundId: 'tung', track: 'anak', name: 'Tung', a1: 0, a2: 360, fill: 'rgba(55,50,65,0.55)' }
     ]
   },
   {
     id: 'gedug', label: 'Gedug',
     top: '62%', left: '33%', size: '29%',
     zones: [
-      { symbol: 'C', track: 'indung', name: 'Dong', a1: 300, a2: 60,  fill: 'rgba(55,40,25,0.65)' },
-      { symbol: '?', track: 'indung', name: 'Ting', a1: 60,  a2: 180, fill: 'rgba(80,65,40,0.55)' },
-      { symbol: 'V', track: 'indung', name: 'Det',  a1: 180, a2: 300, fill: 'rgba(65,50,30,0.55)' }
+      { soundId: 'dong', track: 'indung', name: 'Dong', a1: 300, a2: 60,  fill: 'rgba(55,40,25,0.65)' },
+      { soundId: 'ting', track: 'indung', name: 'Ting', a1: 60,  a2: 180, fill: 'rgba(80,65,40,0.55)' },
+      { soundId: 'det',  track: 'indung', name: 'Det',  a1: 180, a2: 300, fill: 'rgba(65,50,30,0.55)' }
     ]
   },
   {
     id: 'kumpyang', label: 'Kumpyang',
     top: '62%', left: '59%', size: '26%',
     zones: [
-      { symbol: 'A', track: 'indung', name: 'Pling', a1: 270, a2: 342, fill: 'rgba(65,65,70,0.55)' },
-      { symbol: 'J', track: 'indung', name: 'Pang',  a1: 342, a2: 54,  fill: 'rgba(72,72,78,0.55)' },
-      { symbol: ';', track: 'indung', name: 'Ping',  a1: 54,  a2: 126, fill: 'rgba(60,60,65,0.55)' },
-      { symbol: ':', track: 'indung', name: 'Pong',  a1: 126, a2: 198, fill: 'rgba(55,55,60,0.55)' },
-      { symbol: 'L', track: 'indung', name: 'Plak',  a1: 198, a2: 270, fill: 'rgba(18,18,22,0.85)' }
+      { soundId: 'pling', track: 'indung', name: 'Pling', a1: 270, a2: 342, fill: 'rgba(65,65,70,0.55)' },
+      { soundId: 'pang',  track: 'indung', name: 'Pang',  a1: 342, a2: 54,  fill: 'rgba(72,72,78,0.55)' },
+      { soundId: 'ping',  track: 'indung', name: 'Ping',  a1: 54,  a2: 126, fill: 'rgba(60,60,65,0.55)' },
+      { soundId: 'pong',  track: 'indung', name: 'Pong',  a1: 126, a2: 198, fill: 'rgba(55,55,60,0.55)' },
+      { soundId: 'plak',  track: 'indung', name: 'Plak',  a1: 198, a2: 270, fill: 'rgba(18,18,22,0.85)' }
     ]
   },
   {
     id: 'kutiplak', label: 'Kutiplak',
     top: '41%', left: '77%', size: '19%',
     zones: [
-      { symbol: 'G', track: 'anak', name: 'Pak',   a1: 270, a2: 450, fill: 'rgba(70,70,80,0.55)' },
-      { symbol: 'F', track: 'anak', name: 'Peung', a1: 90,  a2: 270, fill: 'rgba(85,85,95,0.50)' }
+      { soundId: 'pak',   track: 'anak', name: 'Pak',   a1: 270, a2: 450, fill: 'rgba(70,70,80,0.55)' },
+      { soundId: 'peung', track: 'anak', name: 'Peung', a1: 90,  a2: 270, fill: 'rgba(85,85,95,0.50)' }
     ]
   }
 ];
@@ -92,9 +96,9 @@ const DrumZone = ({ drum, onTrigger }) => {
         {isFull ? (
           // Single full-circle zone (Ketipung)
           <g
-            onClick={() => onTrigger(drum.zones[0].symbol, drum.zones[0].track)}
+            onClick={() => onTrigger(drum.zones[0].soundId, drum.zones[0].track)}
             style={{ cursor: 'pointer' }}
-            title={`${drum.zones[0].name} (${drum.zones[0].symbol})`}
+            title={drum.zones[0].name}
           >
             <circle cx="50" cy="50" r="47" className="pie-wedge" fill={drum.zones[0].fill} stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
             <text x="50" y="55" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold" style={{ pointerEvents: 'none' }}>
@@ -107,9 +111,9 @@ const DrumZone = ({ drum, onTrigger }) => {
             return (
               <g
                 key={i}
-                onClick={() => onTrigger(z.symbol, z.track)}
+                onClick={() => onTrigger(z.soundId, z.track)}
                 style={{ cursor: 'pointer' }}
-                title={`${z.name} (${z.symbol})`}
+                title={z.name}
               >
                 <path
                   d={wedgePath(50, 50, 47, z.a1, z.a2)}
@@ -144,25 +148,35 @@ const DrumZone = ({ drum, onTrigger }) => {
 
 // ── Main DrumPad ──────────────────────────────────────────────────────────────
 
-const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soundSettings, onSoundSettingsChange, cursorOffsetMs, onCursorOffsetChange }) => {
+const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTrigger, gongActive = false, soundSettings, onSoundSettingsChange, cursorOffsetMs, onCursorOffsetChange }) => {
   const t = useT();
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState('pad');
 
-  const LEGEND = [
-    { key: 'N', name: 'Tung' }, { key: 'C', name: 'Dong' }, { key: '?', name: 'Ting' },
-    { key: 'V', name: 'Det' },  { key: 'A', name: 'Pling' },{ key: 'J', name: 'Pang' },
-    { key: ';', name: 'Ping' }, { key: ':', name: 'Pong' }, { key: 'L', name: 'Plak' },
-    { key: 'G', name: 'Pak' },  { key: 'F', name: 'Peung' },{ key: 'S', name: 'Dededet' },
-  ];
+  // Legenda — afgeleid van de actieve NotationPack zodat de toetshint en glyph
+  // automatisch meegaan bij een notatiewissel.
+  const LEGEND = useMemo(() => {
+    const sounds = [
+      { soundId: 'tung', name: 'Tung' },     { soundId: 'dong', name: 'Dong' },
+      { soundId: 'ting', name: 'Ting' },     { soundId: 'det',  name: 'Det' },
+      { soundId: 'pling', name: 'Pling' },   { soundId: 'pang', name: 'Pang' },
+      { soundId: 'ping', name: 'Ping' },     { soundId: 'pong', name: 'Pong' },
+      { soundId: 'plak', name: 'Plak' },     { soundId: 'pak',  name: 'Pak' },
+      { soundId: 'peung', name: 'Peung' },   { soundId: 'dededet', name: 'Dededet' },
+    ];
+    return sounds.map(s => ({ ...s, glyph: glyphFor(s.soundId, notationPack) }));
+  }, [notationPack]);
 
-  const COMBO_LEGEND = [
-    { keys: ['G', 'C'], name: 'Bang'   },  // Pak + Dong
-    { keys: ['J', 'C'], name: 'Blang'  },  // Pang + Dong
-    { keys: ['L', 'V'], name: 'Blap'   },  // Plak + Det
-    { keys: ['J', 'N'], name: 'Plang'  },  // Pang + Tung
-    { keys: ['F', 'N'], name: 'Tleung' },  // Peung + Tung
-  ];
+  const COMBO_LEGEND = useMemo(() => {
+    const combos = [
+      { sounds: ['pak', 'dong'],  name: 'Bang'   },
+      { sounds: ['pang', 'dong'], name: 'Blang'  },
+      { sounds: ['plak', 'det'],  name: 'Blap'   },
+      { sounds: ['pang', 'tung'], name: 'Plang'  },
+      { sounds: ['peung', 'tung'],name: 'Tleung' },
+    ];
+    return combos.map(c => ({ ...c, glyphs: c.sounds.map(s => glyphFor(s, notationPack)) }));
+  }, [notationPack]);
 
   const tabBtn = (id, label) => (
     <button
@@ -195,10 +209,10 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
         {showLegend && (
           <div style={{ marginBottom: '0.4rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3px 6px', marginBottom: '0.4rem' }}>
-              {LEGEND.map(({ key, name }) => (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem' }}>
-                  <kbd style={{ fontSize: '0.6rem', background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '3px', padding: '0 3px', lineHeight: '1.4', fontFamily: 'monospace' }}>{key}</kbd>
-                  <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{key}</span>
+              {LEGEND.map(({ soundId, name, glyph }) => (
+                <div key={soundId} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem' }}>
+                  <kbd style={{ fontSize: '0.6rem', background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '3px', padding: '0 3px', lineHeight: '1.4', fontFamily: 'monospace' }}>{glyph}</kbd>
+                  <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{glyph}</span>
                   <span style={{ color: '#94a3b8' }}>{name}</span>
                 </div>
               ))}
@@ -206,11 +220,11 @@ const DrumPad = ({ onTrigger, inputMode, onGongTrigger, gongActive = false, soun
             <div style={{ borderTop: '1px solid #334155', paddingTop: '0.3rem' }}>
               <div style={{ fontSize: '0.6rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 'bold', marginBottom: '3px' }}>Combinatieslagen</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px 6px' }}>
-                {COMBO_LEGEND.map(({ keys, name }) => (
+                {COMBO_LEGEND.map(({ glyphs, name }) => (
                   <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.65rem' }}>
-                    <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{keys[0]}</span>
+                    <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{glyphs[0]}</span>
                     <span style={{ color: '#475569', fontSize: '0.6rem' }}>+</span>
-                    <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{keys[1]}</span>
+                    <span className="kendang-font" style={{ fontSize: '0.95rem', color: '#d4af37', lineHeight: 1 }}>{glyphs[1]}</span>
                     <span style={{ color: '#94a3b8' }}>{name}</span>
                   </div>
                 ))}

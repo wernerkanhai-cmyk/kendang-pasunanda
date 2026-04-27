@@ -2,6 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { listSongs, saveSong as saveSongRpc, loadSong as loadSongRpc, deleteSong as deleteSongRpc } from '../services/songRepo';
 import { cacheList, readList, putItem, deleteItem } from '../lib/offlineStore';
+import { sanitizePattern } from '../engine/patternLogic';
+
+// Migreer een offline-gecachte song (legacy glyph-data → soundIds).
+const migrateCachedSong = (s) => {
+  if (!s?.patterns || !Array.isArray(s.patterns)) return s;
+  return { ...s, patterns: s.patterns.map(sanitizePattern) };
+};
 
 /**
  * Reactive cache + sync hook for songs stored in Supabase.
@@ -39,7 +46,7 @@ export function useSongs() {
         try {
           const cached = await readList('songs', user.id);
           if (cached.length > 0) {
-            setSongs(cached);
+            setSongs(cached.map(migrateCachedSong));
             return;
           }
         } catch (_) { /* ignore */ }
