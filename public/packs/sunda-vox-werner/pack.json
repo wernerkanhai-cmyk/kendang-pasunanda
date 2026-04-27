@@ -1,0 +1,76 @@
+{
+  "id": "sunda-vox-werner",
+  "schemaVersion": 1,
+  "type": "voice",
+  "name": "Vocaal — Werner",
+  "description": "Live opgenomen vocale uitingen per slag (Sundanese stijl).",
+  "compatibleInstruments": ["sunda-kendang"],
+  "samples": {
+    "variants": 4,
+    "urlTemplate": "audio/KENDANG VOX/{TRACK}/VOX_{TRACK}_{SoundFile}_{n}.wav",
+    "soundFileNames": {
+      "tung":    "Tung",
+      "dong":    "Dong",
+      "ting":    "Ting",
+      "det":     "Det",
+      "dededet": "Dedet",
+      "pling":   "Pling",
+      "pang":    "Pang",
+      "ping":    "Ping",
+      "pong":    "Pong",
+      "plak":    "Plak",
+      "pak":     "Pak",
+      "peung":   "Peung"
+    },
+    "missing": [
+      { "track": "indung", "sound": "pling" }
+    ]
+  },
+  "combos": [
+    {
+      "id": "bang",
+      "sounds": ["dong", "pak"],
+      "fileName": "Bang",
+      "urlTemplates": {
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+      }
+    },
+    {
+      "id": "blang",
+      "sounds": ["dong", "pang"],
+      "fileName": "Blang",
+      "urlTemplates": {
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+      }
+    },
+    {
+      "id": "blap",
+      "sounds": ["det", "plak"],
+      "fileName": "Blap",
+      "urlTemplates": {
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+      }
+    },
+    {
+      "id": "plang",
+      "sounds": ["pang", "tung"],
+      "fileName": "Plang",
+      "urlTemplates": {
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+      }
+    },
+    {
+      "id": "tleung",
+      "sounds": ["peung", "tung"],
+      "fileName": "Tleung",
+      "urlTemplates": {
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+      }
+    }
+  ]
+}

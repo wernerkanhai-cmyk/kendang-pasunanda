@@ -1,0 +1,53 @@
+{
+  "id": "sunda-kendang",
+  "schemaVersion": 1,
+  "type": "instrument",
+  "name": "Kendang Sunda",
+  "region": "Sunda, Jawa Barat",
+  "description": "Indung & anak kendang — Sundanese pasundan-traditie.",
+  "tracks": [
+    {
+      "id": "anak",
+      "label": "Anak",
+      "labelLong": "Anak (kleine kendang)",
+      "position": "top",
+      "color": "red",
+      "soundIds": ["tung", "dong", "ting", "det", "dededet", "pling", "pang", "ping", "pong", "plak", "pak", "peung"]
+    },
+    {
+      "id": "indung",
+      "label": "Indung",
+      "labelLong": "Indung (grote kendang)",
+      "position": "bottom",
+      "color": "black",
+      "soundIds": ["tung", "dong", "ting", "det", "dededet", "pang", "ping", "pong", "plak", "pak", "peung"]
+    }
+  ],
+  "sounds": {
+    "tung":    { "label": "Tung",    "hand": "bottom", "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "dong":    { "label": "Dong",    "hand": "bottom", "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "ting":    { "label": "Ting",    "hand": "bottom", "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "det":     { "label": "Det",     "hand": "bottom", "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "dededet": { "label": "Dededet", "hand": "bottom", "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "pling":   { "label": "Pling",   "hand": "top",    "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "pang":    { "label": "Pang",    "hand": "top",    "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "ping":    { "label": "Ping",    "hand": "top",    "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "pong":    { "label": "Pong",    "hand": "top",    "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "plak":    { "label": "Plak",    "hand": "top",    "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "pak":     { "label": "Pak",     "hand": "top",    "defaults": { "gain": 3.0, "pitch": 1.0 } },
+    "peung":   { "label": "Peung",   "hand": "top",    "defaults": { "gain": 3.0, "pitch": 1.0 } }
+  },
+  "samples": {
+    "variants": 4,
+    "urlTemplate": "audio/{track}_{sound}_{n}.wav"
+  },
+  "auxiliary": {
+    "gong": {
+      "label": "Gong",
+      "url": "audio/gong_01.wav",
+      "defaults": { "gain": 3.0, "pitch": 1.0 }
+    }
+  },
+  "compatibleVoicePacks": ["sunda-vox-werner"],
+  "defaultNotationPack": "neodamina-werner"
+}

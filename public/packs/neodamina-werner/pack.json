@@ -1,0 +1,28 @@
+{
+  "id": "neodamina-werner",
+  "schemaVersion": 1,
+  "type": "notation",
+  "name": "NeoDamina (Werner edit)",
+  "description": "Standaard Sundanese kendang-notatie, font NeoDamina (Werner edit).",
+  "font": {
+    "family": "Kendang",
+    "url": "fonts/NeoDamina Werner edit.ttf",
+    "format": "truetype"
+  },
+  "restGlyph": ".",
+  "soundToGlyph": {
+    "tung":    "N",
+    "dong":    "C",
+    "ting":    "?",
+    "det":     "V",
+    "dededet": "S",
+    "pling":   "A",
+    "pang":    "J",
+    "ping":    ";",
+    "pong":    ":",
+    "plak":    "L",
+    "pak":     "G",
+    "peung":   "F"
+  },
+  "compatibleInstruments": ["sunda-kendang"]
+}
