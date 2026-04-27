@@ -1,13 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* --- Custom Font Declaration --- */
-@font-face {
-  font-family: 'Kendang';
-  src: url('/fonts/NeoDamina Werner edit.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* @font-face voor de notatie-font wordt runtime geïnjecteerd door
+   src/engine/notationFont.js, op basis van de actieve NotationPack
+   (default: neodamina-werner). Zo kan de gebruiker later van notatie
+   wisselen zonder build-time herconfiguratie. */
 
 :root {
   color-scheme: dark;

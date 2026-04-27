@@ -9,6 +9,7 @@ import { useTemplates } from './hooks/useTemplates';
 import { AudioScheduler } from './engine/AudioScheduler';
 import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
 import { packRegistry } from './engine/PackRegistry';
+import { loadNotationFont } from './engine/notationFont';
 import { errorLog } from './utils/errorLog';
 import { useT, useLanguage, LANGUAGES } from './i18n';
 import { useSongs } from './hooks/useSongs';
@@ -1104,13 +1105,18 @@ function App() {
     // Maak de gedeelde AudioContext direct aan (voor sampler én scheduler)
     const sharedCtx = sampler.getContext();
 
-    // Default packs laden (instrument + voice). Loopt async, blokkeert
+    // Default packs laden (instrument + voice + notation). Loopt async, blokkeert
     // de scheduler-setup niet — die heeft de packs pas nodig bij playback.
     (async () => {
       try {
+        // Notation eerst zodat de font snel geregistreerd is (eerste paint).
+        const notationPack = await packRegistry.load('neodamina-werner');
+        loadNotationFont(notationPack);
+
         const instrumentPack = await packRegistry.load('sunda-kendang');
         sampler.setInstrumentPack(instrumentPack);
         await sampler.loadAll();
+
         const voicePack = await packRegistry.load('sunda-vox-werner');
         sampler.setVoicePack(voicePack);
       } catch (e) {

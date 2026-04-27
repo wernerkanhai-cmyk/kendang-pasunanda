@@ -25,7 +25,15 @@ const PRECACHE_URLS = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',
+  // Default notation pack — laadt bij boot. Het manifest verwijst naar
+  // het bijbehorende font, dat door de runtime /fonts/-rule wordt gecached.
+  '/packs/neodamina-werner/pack.json',
+  // Font van de default notation pack (iets snelle eerste-keer-offline UX).
   '/fonts/NeoDamina%20Werner%20edit.ttf',
+  // Default instrument & voice pack manifesten — runtime cache vult overige
+  // packs vanzelf, maar deze willen we offline bij eerste install al hebben.
+  '/packs/sunda-kendang/pack.json',
+  '/packs/sunda-vox-werner/pack.json',
 ];
 
 self.addEventListener('install', (event) => {
@@ -74,6 +82,13 @@ self.addEventListener('fetch', (event) => {
   // Audio samples: cache-first, fill on first request.
   if (url.pathname.startsWith('/audio/') && url.pathname.endsWith('.wav')) {
     event.respondWith(cacheFirst(req, AUDIO_CACHE));
+    return;
+  }
+
+  // Pack manifesten: cache-first onder STATIC. Klein, mag dood-cachen tot een
+  // nieuwe SW-versie binnenkomt — dan wordt STATIC sowieso opgeruimd.
+  if (url.pathname.startsWith('/packs/') && url.pathname.endsWith('.json')) {
+    event.respondWith(cacheFirst(req, STATIC_CACHE));
     return;
   }
 
