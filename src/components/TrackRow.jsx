@@ -224,7 +224,8 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
           if (notes.length < 2) continue; // need at least 2 notes for a triplet
           if (!notes.every(n => offsets.has(n))) continue;
           if (!notes.some(n => nonFirstOffsets.includes(n))) continue;
-          const below = !TOP_HAND_SYMBOLS.includes(firstSym);
+          const sound = LEGACY_GLYPH_TO_SOUND[firstSym] || firstSym;
+          const below = !TOP_HAND_SOUNDS.includes(sound);
           found.push({ start: groupStart, hand, below, type });
         }
       }
@@ -252,7 +253,8 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
         const has16T_first  = found.some(t => t.type === '16T' && t.start === beatStart && t.hand === hand);
         const has16T_second = found.some(t => t.type === '16T' && t.start === beatStart + 6 && t.hand === hand);
         if (has16T_first && has16T_second) continue;
-        const below = !TOP_HAND_SYMBOLS.includes(firstSym);
+        const sound = LEGACY_GLYPH_TO_SOUND[firstSym] || firstSym;
+        const below = !TOP_HAND_SOUNDS.includes(sound);
         found.push({ start: beatStart, hand, below, type: '8T' });
       }
     }

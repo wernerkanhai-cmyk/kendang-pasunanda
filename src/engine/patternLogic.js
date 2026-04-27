@@ -252,9 +252,3 @@ export const writeSymbolToPattern = (pattern, trackId, slotIndex, value) => {
   return newPattern;
 };
 
-// ----- Compat-shims voor de transitie ----------------------------------------
-// Bestaande call-sites verwijzen nog naar TOP_HAND_SYMBOLS / BOTTOM_HAND_SYMBOLS
-// uit het glyph-tijdperk. Geef ze de soundId-array — werkt voor de migratie omdat
-// pattern-data nu soundIds bevat.
-export const TOP_HAND_SYMBOLS    = TOP_HAND_SOUNDS;
-export const BOTTOM_HAND_SYMBOLS = BOTTOM_HAND_SOUNDS;
