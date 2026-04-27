@@ -3150,11 +3150,11 @@ function App() {
             position: 'fixed',
             left: drumPos.x,
             top: drumPos.y,
-            // Bij collapse: alleen de hoogte krimpt; de breedte blijft gelijk
-            // zodat de header nooit op 0 kan vallen door auto-sizing.
-            width: drumSize.w,
+            // Bij collapse: een kwart van de gekozen breedte (met een minimum
+            // zodat de header altijd leesbaar blijft).
+            width: drumCollapsed ? Math.max(140, Math.round(drumSize.w / 4)) : drumSize.w,
             height: drumCollapsed ? 'auto' : (drumSize.h ?? 'auto'),
-            minWidth: '180px',
+            minWidth: drumCollapsed ? '140px' : '180px',
             minHeight: drumCollapsed ? 0 : '160px',
             zIndex: 100,
             display: 'flex',
