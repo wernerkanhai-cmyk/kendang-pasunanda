@@ -1,6 +1,11 @@
 import { supabase } from '../lib/supabaseClient';
 import { sanitizePattern } from '../engine/patternLogic';
 
+// Velden op een pattern die GEEN track-data zijn (en dus niet als song-line
+// naar Supabase moeten). Alle andere array-achtige velden behandelen we als
+// tracks — zo werken nieuwe instrument-packs (lanang/wadon, …) drop-in.
+const PATTERN_META_KEYS = new Set(['id', 'name', 'gong', 'tempoTrack', 'tempoTrackEnabled', 'annotations']);
+
 const SLOTS_PER_MEASURE = 48;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -33,20 +38,26 @@ export function flattenSongForDb(song) {
     title: song?.name ?? 'Untitled',
     folder: song?.folder ?? null,
     bpm: song?.bpm ?? 100,
-    patterns: (song?.patterns ?? []).map((p, idx) => ({
-      pattern_index: idx,
-      name: p?.name ?? `Pattern ${idx + 1}`,
-      gong: p?.gong ?? [],
-      tempo_track: {
-        enabled: p?.tempoTrackEnabled === true,
-        points: p?.tempoTrack ?? [],
-        annotations: p?.annotations ?? {},
-      },
-      lines: {
-        anak: chunkInstrument(p?.anak ?? []),
-        indung: chunkInstrument(p?.indung ?? []),
-      },
-    })),
+    patterns: (song?.patterns ?? []).map((p, idx) => {
+      // Iedere niet-meta key die een array is, is een track. Zo wordt elk
+      // instrument-pack ondersteund zonder hier hardcoded velden te benoemen.
+      const lines = {};
+      for (const [key, value] of Object.entries(p ?? {})) {
+        if (PATTERN_META_KEYS.has(key)) continue;
+        if (Array.isArray(value)) lines[key] = chunkInstrument(value);
+      }
+      return {
+        pattern_index: idx,
+        name: p?.name ?? `Pattern ${idx + 1}`,
+        gong: p?.gong ?? [],
+        tempo_track: {
+          enabled: p?.tempoTrackEnabled === true,
+          points: p?.tempoTrack ?? [],
+          annotations: p?.annotations ?? {},
+        },
+        lines,
+      };
+    }),
   };
 }
 
@@ -84,12 +95,13 @@ export function rehydrateSongFromDb(row) {
       }
       const tempo = p.tempo_track ?? {};
       // sanitizePattern migreert legacy glyph-data naar het soundId-formaat
-      // van stap 4 — bestaande Supabase-songs blijven werkend zonder migratie-script.
+      // van stap 4. Alle song_lines komen ongeacht hun instrument-id mee als
+      // velden op het pattern, zodat nieuwe packs (lanang/wadon, …) werken
+      // zonder hier hardcoded velden te hebben.
       return sanitizePattern({
         id: p.id,
         name: p.name,
-        anak: lineByInstrument.anak ?? [],
-        indung: lineByInstrument.indung ?? [],
+        ...lineByInstrument,
         gong: p.gong ?? [],
         tempoTrack: tempo.points ?? [],
         tempoTrackEnabled: tempo.enabled === true,

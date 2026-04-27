@@ -87,6 +87,10 @@ function App() {
   const [instrumentPack, setInstrumentPack] = useState(null);
   const [voicePack, setVoicePack] = useState(null);
 
+  // Ref voor scheduler-callbacks die buiten React's render cycle draaien.
+  const instrumentPackRef = useRef(null);
+  useEffect(() => { instrumentPackRef.current = instrumentPack; }, [instrumentPack]);
+
   // Welke voice pack wordt geactiveerd zodra de user op vox toggelt.
   // Default is sunda-vox-werner; in stap 7 koppelen we hier een keuze-UI aan.
   const [voicePackId, setVoicePackId] = useState(() => localStorage.getItem('kendangVoicePackId') || 'sunda-vox-werner');
@@ -1196,14 +1200,17 @@ function App() {
         const resolved = resolveSlot(globalSlot);
         if (!resolved) return;
         const { tickPattern, localSlot } = resolved;
-        ['anak', 'indung'].forEach(track => {
-          if (mutedTrackRef.current === track) return;
-          const slot = tickPattern[track][localSlot];
+        // Tracks komen uit de actieve InstrumentPack; fallback naar de Sundanese
+        // anak/indung als de pack nog niet geladen is bij eerste tick.
+        const activeTracks = instrumentPackRef.current?.tracks?.map(t => t.id) ?? ['anak', 'indung'];
+        for (const track of activeTracks) {
+          if (mutedTrackRef.current === track) continue;
+          const slot = tickPattern[track]?.[localSlot];
           if (slot) {
             const tvol = (trackVolumesRef.current[track] ?? 1.0) * (sampleSetRef.current === 'vox' ? voxVolumeRef.current : 1.0);
             sampler.playSlot(slot.top, slot.bottom, track, audioTime, tvol, slot.accentTop === true, slot.accentBottom === true);
           }
-        });
+        }
         if ((tickPattern.gong || []).includes(localSlot)) sampler.playGong(audioTime);
       }
     );

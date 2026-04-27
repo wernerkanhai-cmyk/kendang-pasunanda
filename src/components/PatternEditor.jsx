@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Fragment } from 'react';
 import ReactDOM from 'react-dom';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
@@ -1573,110 +1573,89 @@ const [showBeheer, setShowBeheer] = useState(true);
           style={{ position: 'relative' }}
           ref={tracksContainerRef}
         >
-          {/* Track name labels */}
-          <span style={{ position: 'absolute', top: 2, left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, zIndex: 5, userSelect: 'none', pointerEvents: 'none' }}>Anak</span>
-
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <button
-              onPointerDown={(e) => { e.stopPropagation(); onToggleSolo('anak'); }}
-              style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title={soloTrack === 'anak' ? 'Anak gedempt — klik om aan te zetten' : 'Anak aan — klik om te dempen'}
-            >
-              <div style={{ width: '5px', height: '5px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === 'anak' ? '#475569' : '#22c55e', boxShadow: soloTrack === 'anak' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
-            </button>
-            <div style={{ flex: 1 }}>
-              <TrackRow
-                trackId="anak"
-                slots={pattern.anak}
-                notationPack={notationPack}
-                theme="anak"
-                activeRange={activeRangeObj?.trackId === 'anak' ? activeRangeObj : null}
-                loopRange={loopRangeObj}
-                onSlotClick={(index, isShift) => handleSlotClick('anak', index, isShift || touchSelectMode)}
-                gridResolution={gridResolution}
-                slotWidth={slotWidth}
-                onNoteMove={handleNoteMove}
-                gong={pattern.gong || []}
-                onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('anak', slotIndex, symbol)}
-                onClearSlot={(slotIndex) => clearSlotWithRestFill('anak', slotIndex)}
-                isLocked={isLocked}
-              />
-            </div>
-            {/* Rechter gutter spacer — spiegelt solo-knop breedte */}
-            <div style={{ flexShrink: 0, width: '24px' }} />
-          </div>
-
-          {/* Transparent separator (preserves spacing) + loop + metronome buttons */}
-          <div style={{ height: '14px', width: '100%', margin: '4px 0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '3px' }}>
-            {isLocked && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setMetronomeMode(v => v ? '' : 'on'); }}
-                style={{
-                  flexShrink: 0, width: '20px', height: '20px',
-                  background: metronomeMode ? 'rgba(167,139,250,0.2)' : 'transparent',
-                  color: metronomeMode ? '#a78bfa' : '#94a3b8',
-                  border: `1px solid ${metronomeMode ? '#8b5cf6' : '#475569'}`,
-                  borderRadius: '3px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  pointerEvents: 'auto',
-                  boxShadow: metronomeMode ? '0 0 4px rgba(167,139,250,0.4)' : 'none',
-                }}
-                title={metronomeMode ? 'Metronoom uit' : 'Metronoom aan'}
-              >
-                <svg width="10" height="12" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
-                  <line x1="5.5" y1="2.5" x2="8.5" y2="10"/>
-                  <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
-                </svg>
-              </button>
-            )}
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
-              style={{
-                flexShrink: 0, width: '20px', height: '20px',
-                background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
-                color: isLooped ? '#d4af37' : '#f97316',
-                border: `1px solid ${isLooped ? '#d4af37' : '#f97316'}`,
-                borderRadius: '3px', cursor: 'pointer',
-                fontSize: '0.75rem', fontWeight: 'bold',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                pointerEvents: 'auto',
-                boxShadow: isLooped ? '0 0 6px rgba(212,175,55,0.5)' : 'none',
-              }}
-              title="Loop deze section"
-            >⟳</button>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-            <span style={{ position: 'absolute', top: 2, left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, zIndex: 5, userSelect: 'none', pointerEvents: 'none' }}>Indung</span>
-            <button
-              onPointerDown={(e) => { e.stopPropagation(); onToggleSolo('indung'); }}
-              style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title={soloTrack === 'indung' ? 'Indung gedempt — klik om aan te zetten' : 'Indung aan — klik om te dempen'}
-            >
-              <div style={{ width: '5px', height: '5px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === 'indung' ? '#475569' : '#22c55e', boxShadow: soloTrack === 'indung' ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
-            </button>
-            <div style={{ flex: 1 }}>
-              <TrackRow
-                trackId="indung"
-                slots={pattern.indung}
-                notationPack={notationPack}
-                theme="indung"
-                activeRange={activeRangeObj?.trackId === 'indung' ? activeRangeObj : null}
-                loopRange={loopRangeObj}
-                onSlotClick={(index, isShift) => handleSlotClick('indung', index, isShift || touchSelectMode)}
-                gridResolution={gridResolution}
-                slotWidth={slotWidth}
-                onNoteMove={handleNoteMove}
-                gong={pattern.gong || []}
-                onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol('indung', slotIndex, symbol)}
-                onClearSlot={(slotIndex) => clearSlotWithRestFill('indung', slotIndex)}
-                isLocked={isLocked}
-              />
-            </div>
-            {/* Rechter gutter spacer */}
-            <div style={{ flexShrink: 0, width: '24px' }} />
-          </div>
+          {/* Tracks worden in een loop gerenderd zodat een instrumentPack met
+              andere track-IDs (bv. lanang/wadon) drop-in werkt. Tussen track 0
+              en track 1 verschijnt de separator met metronoom + loop-knop. */}
+          {(instrumentPack?.tracks || []).map((track, trackIdx) => (
+            <Fragment key={track.id}>
+              <div style={{ display: 'flex', alignItems: 'center', position: trackIdx > 0 ? 'relative' : undefined }}>
+                {trackIdx > 0 && (
+                  <span style={{ position: 'absolute', top: 2, left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, zIndex: 5, userSelect: 'none', pointerEvents: 'none' }}>{track.label}</span>
+                )}
+                {trackIdx === 0 && (
+                  <span style={{ position: 'absolute', top: 2, left: SOLO_BTN_W + 4, fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', opacity: 0.7, zIndex: 5, userSelect: 'none', pointerEvents: 'none' }}>{track.label}</span>
+                )}
+                <button
+                  onPointerDown={(e) => { e.stopPropagation(); onToggleSolo(track.id); }}
+                  style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  title={soloTrack === track.id ? `${track.label} gedempt — klik om aan te zetten` : `${track.label} aan — klik om te dempen`}
+                >
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === track.id ? '#475569' : '#22c55e', boxShadow: soloTrack === track.id ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
+                </button>
+                <div style={{ flex: 1 }}>
+                  <TrackRow
+                    trackId={track.id}
+                    slots={pattern[track.id] || []}
+                    notationPack={notationPack}
+                    theme={track.id}
+                    activeRange={activeRangeObj?.trackId === track.id ? activeRangeObj : null}
+                    loopRange={loopRangeObj}
+                    onSlotClick={(index, isShift) => handleSlotClick(track.id, index, isShift || touchSelectMode)}
+                    gridResolution={gridResolution}
+                    slotWidth={slotWidth}
+                    onNoteMove={handleNoteMove}
+                    gong={pattern.gong || []}
+                    onInsertSymbol={(slotIndex, symbol) => handleInsertSymbol(track.id, slotIndex, symbol)}
+                    onClearSlot={(slotIndex) => clearSlotWithRestFill(track.id, slotIndex)}
+                    isLocked={isLocked}
+                  />
+                </div>
+                {/* Rechter gutter spacer — spiegelt solo-knop breedte */}
+                <div style={{ flexShrink: 0, width: '24px' }} />
+              </div>
+              {trackIdx === 0 && (instrumentPack?.tracks?.length ?? 0) > 1 && (
+                <div style={{ height: '14px', width: '100%', margin: '4px 0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '3px' }}>
+                  {isLocked && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMetronomeMode(v => v ? '' : 'on'); }}
+                      style={{
+                        flexShrink: 0, width: '20px', height: '20px',
+                        background: metronomeMode ? 'rgba(167,139,250,0.2)' : 'transparent',
+                        color: metronomeMode ? '#a78bfa' : '#94a3b8',
+                        border: `1px solid ${metronomeMode ? '#8b5cf6' : '#475569'}`,
+                        borderRadius: '3px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        pointerEvents: 'auto',
+                        boxShadow: metronomeMode ? '0 0 4px rgba(167,139,250,0.4)' : 'none',
+                      }}
+                      title={metronomeMode ? 'Metronoom uit' : 'Metronoom aan'}
+                    >
+                      <svg width="10" height="12" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
+                        <line x1="5.5" y1="2.5" x2="8.5" y2="10"/>
+                        <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
+                      </svg>
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
+                    style={{
+                      flexShrink: 0, width: '20px', height: '20px',
+                      background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
+                      color: isLooped ? '#d4af37' : '#f97316',
+                      border: `1px solid ${isLooped ? '#d4af37' : '#f97316'}`,
+                      borderRadius: '3px', cursor: 'pointer',
+                      fontSize: '0.75rem', fontWeight: 'bold',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      pointerEvents: 'auto',
+                      boxShadow: isLooped ? '0 0 6px rgba(212,175,55,0.5)' : 'none',
+                    }}
+                    title="Loop deze section"
+                  >⟳</button>
+                </div>
+              )}
+            </Fragment>
+          ))}
 
         {/* Playhead */}
         {playheadSlot !== null && (

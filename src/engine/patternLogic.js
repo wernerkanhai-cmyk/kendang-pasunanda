@@ -147,10 +147,16 @@ export const createEmptyPattern = (name = 'Song 1') => {
   };
 };
 
+// Velden die op een pattern bestaan maar GEEN track-data zijn. Alle overige
+// array-velden behandelen we generiek als tracks — zo werkt elk instrument-pack
+// (anak/indung, lanang/wadon, …) drop-in.
+const PATTERN_META_KEYS = new Set(['id', 'name', 'gong', 'tempoTrack', 'tempoTrackEnabled', 'annotations']);
+
 /**
  * Sanity-check a pattern loaded from localStorage / Supabase / external source.
- * Truncates to 192 slots, ensures slot shape, migrates legacy glyph values to
- * soundIds (via migrateSlotValue).
+ * Truncates tracks tot 192 slots, ensures slot shape, migrates legacy glyph
+ * values to soundIds (via migrateSlotValue). Track-velden worden generiek
+ * gedetecteerd: elk array-veld dat geen meta-veld is, geldt als track.
  */
 export const sanitizePattern = (pattern) => {
   const SLOTS = 192;
@@ -165,17 +171,31 @@ export const sanitizePattern = (pattern) => {
     while (safe.length < SLOTS) safe.push({ top: '', bottom: '', accentTop: false, accentBottom: false });
     return safe;
   };
-  return {
-    ...pattern,
+
+  const out = {
     id:         typeof pattern?.id   === 'string' ? pattern.id   : crypto.randomUUID(),
     name:       typeof pattern?.name === 'string' ? pattern.name : 'Pattern',
-    anak:       sanitizeTrack(pattern?.anak),
-    indung:     sanitizeTrack(pattern?.indung),
     gong:       Array.isArray(pattern?.gong)       ? pattern.gong.filter(n => typeof n === 'number' && n >= 0) : [],
     tempoTrack: Array.isArray(pattern?.tempoTrack) ? pattern.tempoTrack : [],
     tempoTrackEnabled: pattern?.tempoTrackEnabled === true,
     annotations: (pattern?.annotations && typeof pattern.annotations === 'object') ? pattern.annotations : {},
   };
+
+  for (const [key, value] of Object.entries(pattern ?? {})) {
+    if (PATTERN_META_KEYS.has(key)) continue;
+    if (Array.isArray(value)) {
+      out[key] = sanitizeTrack(value);
+    } else if (out[key] === undefined) {
+      out[key] = value;
+    }
+  }
+  return out;
+};
+
+/** Geef de track-IDs op een pattern terug (alle non-meta array-velden). */
+export const getPatternTrackIds = (pattern) => {
+  if (!pattern) return [];
+  return Object.keys(pattern).filter(k => !PATTERN_META_KEYS.has(k) && Array.isArray(pattern[k]));
 };
 
 /**
