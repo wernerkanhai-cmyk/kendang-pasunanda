@@ -11,8 +11,21 @@ const SOUND_LABELS = {
 const pitchToSemitones = (pitch) => Math.round(12 * Math.log2(pitch) * 10) / 10;
 const semitonesToPitch = (st) => Math.pow(2, st / 12);
 
-export default function SoundSettingsContent({ settings, onChange, onPlay, cursorOffsetMs = 0, onCursorOffsetChange }) {
+export default function SoundSettingsContent({
+  settings,
+  onChange,
+  onPlay,
+  cursorOffsetMs = 0,
+  onCursorOffsetChange,
+  // Pack-selector props (optioneel — alleen getoond als availablePacks meegegeven is)
+  availablePacks,
+  notationPackId,
+  onNotationPackChange,
+  voicePackId,
+  onVoicePackChange,
+}) {
   const t = useT();
+  const showPackSelectors = !!availablePacks;
   const handleGain = (sound, value) =>
     onChange({ ...settings, [sound]: { ...settings[sound], gain: parseFloat(value) } });
 
@@ -22,8 +35,52 @@ export default function SoundSettingsContent({ settings, onChange, onPlay, curso
   const handleReset = (sound) =>
     onChange({ ...settings, [sound]: { ...DEFAULT_SOUND_SETTINGS[sound] } });
 
+  const selectStyle = {
+    flex: 1, background: '#0f172a', color: '#e2e8f0',
+    border: '1px solid #334155', borderRadius: '4px',
+    fontSize: '0.7rem', padding: '0.2rem 0.3rem',
+  };
+  const labelStyle = { color: '#64748b', fontSize: '0.65rem', minWidth: '4.5rem', textTransform: 'uppercase', letterSpacing: '0.06em' };
+
   return (
     <div style={{ overflowY: 'auto', flex: 1, padding: '0.25rem 0' }}>
+      {/* Pack-selectors (notation + voice). Instrument-wisseling is bewust niet
+          beschikbaar: die hangt vast aan de song-data en zou bestaande tracks
+          ontwrichten — een nieuwe instrument-keuze hoort bij een nieuwe song. */}
+      {showPackSelectors && (
+        <div style={{ borderBottom: '1px solid #334155', paddingBottom: '0.4rem', marginBottom: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+          {availablePacks.notation?.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={labelStyle}>Notatie</span>
+              <select
+                value={notationPackId || ''}
+                onChange={(e) => onNotationPackChange?.(e.target.value)}
+                style={selectStyle}
+              >
+                {availablePacks.notation.map(p => (
+                  <option key={p.id} value={p.id}>{p.name || p.id}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {availablePacks.voice?.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={labelStyle}>Stem</span>
+              <select
+                value={voicePackId || ''}
+                onChange={(e) => onVoicePackChange?.(e.target.value || null)}
+                style={selectStyle}
+              >
+                <option value="">— geen vocale stem —</option>
+                {availablePacks.voice.map(p => (
+                  <option key={p.id} value={p.id}>{p.name || p.id}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Reset all + column headers */}
       <div style={{ display: 'grid', gridTemplateColumns: '4.5rem 1fr 1fr 1.5rem', gap: '0.4rem', marginBottom: '0.25rem', paddingBottom: '0.25rem', borderBottom: '1px solid #334155', alignItems: 'center' }}>
         <button

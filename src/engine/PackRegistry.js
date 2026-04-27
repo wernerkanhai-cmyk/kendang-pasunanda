@@ -128,6 +128,26 @@ export class PackRegistry {
   }
 
   /**
+   * Ontdek alle beschikbare packs via `public/packs/index.json` en
+   * laad hun manifesten. Returnt ze gegroepeerd op type.
+   */
+  async discoverAll() {
+    const indexUrl = `${this.baseUrl}packs/index.json`;
+    const res = await fetch(indexUrl);
+    if (!res.ok) throw new Error(`PackRegistry: index.json fetch failed (${res.status})`);
+    const idx = await res.json();
+    const ids = Array.isArray(idx?.packs) ? idx.packs : [];
+    const settled = await Promise.allSettled(ids.map(id => this.load(id)));
+    const grouped = { instrument: [], voice: [], notation: [] };
+    for (const r of settled) {
+      if (r.status !== 'fulfilled') continue;
+      const pack = r.value;
+      if (grouped[pack.type]) grouped[pack.type].push(pack);
+    }
+    return grouped;
+  }
+
+  /**
    * Bouw alle sample-URLs voor een instrument-pack als
    *   { sampleKey: absoluteUrl, ... }
    * waarbij sampleKey = `${track}_${sound}_${nn}`. Auxiliary (gong) komt erbij.

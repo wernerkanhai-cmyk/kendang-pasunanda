@@ -28,6 +28,8 @@ const PRECACHE_URLS = [
   // Default notation pack — laadt bij boot. Het manifest verwijst naar
   // het bijbehorende font, dat door de runtime /fonts/-rule wordt gecached.
   '/packs/neodamina-werner/pack.json',
+  // Pack-index voor de pack-selector UI.
+  '/packs/index.json',
   // Font van de default notation pack (iets snelle eerste-keer-offline UX).
   '/fonts/NeoDamina%20Werner%20edit.ttf',
   // Default instrument & voice pack manifesten — runtime cache vult overige
