@@ -85,6 +85,38 @@ function App() {
   // Actieve packs (geladen tijdens init useEffect via packRegistry).
   const [notationPack, setNotationPack] = useState(null);
   const [instrumentPack, setInstrumentPack] = useState(null);
+  const [voicePack, setVoicePack] = useState(null);
+
+  // Welke voice pack wordt geactiveerd zodra de user op vox toggelt.
+  // Default is sunda-vox-werner; in stap 7 koppelen we hier een keuze-UI aan.
+  const [voicePackId, setVoicePackId] = useState(() => localStorage.getItem('kendangVoicePackId') || 'sunda-vox-werner');
+  useEffect(() => {
+    localStorage.setItem('kendangVoicePackId', voicePackId);
+  }, [voicePackId]);
+
+  // Voice pack laden zodra het instrument klaar is — en herladen bij wisseling.
+  // Wordt expres apart van de init-useEffect gehouden zodat een runtime-switch
+  // (later via UI) zonder remount kan.
+  useEffect(() => {
+    if (!instrumentPack) return;
+    if (!voicePackId) {
+      samplerRef.current?.setVoicePack(null);
+      setVoicePack(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const vp = await packRegistry.load(voicePackId);
+        if (cancelled) return;
+        samplerRef.current?.setVoicePack(vp);
+        setVoicePack(vp);
+      } catch (e) {
+        errorLog.error('App', 'voice pack load failed', `${voicePackId} — ${e?.message || String(e)}`);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [voicePackId, instrumentPack]);
 
   // Sample set: 'kendang' of 'vox'
   const [sampleSet, setSampleSet] = useState(() => localStorage.getItem('kendangSampleSet') || 'kendang');
@@ -1110,11 +1142,10 @@ function App() {
     // Maak de gedeelde AudioContext direct aan (voor sampler én scheduler)
     const sharedCtx = sampler.getContext();
 
-    // Default packs laden (instrument + voice + notation). Loopt async, blokkeert
-    // de scheduler-setup niet — die heeft de packs pas nodig bij playback.
+    // Default instrument + notation packs laden. De voice pack wordt door
+    // een eigen effect (op voicePackId) geladen zodra het instrument klaar is.
     (async () => {
       try {
-        // Notation eerst zodat de font snel geregistreerd is (eerste paint).
         const np = await packRegistry.load('neodamina-werner');
         loadNotationFont(np);
         setNotationPack(np);
@@ -1123,9 +1154,6 @@ function App() {
         sampler.setInstrumentPack(ip);
         setInstrumentPack(ip);
         await sampler.loadAll();
-
-        const voicePack = await packRegistry.load('sunda-vox-werner');
-        sampler.setVoicePack(voicePack);
       } catch (e) {
         errorLog.error('App', 'pack load failed', e?.message || String(e));
       }
