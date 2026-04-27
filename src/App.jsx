@@ -392,9 +392,12 @@ function App() {
     } catch { return { w: 300, h: null }; }
   });
   const drumPanelRef = useRef(null);
-  const [drumCollapsed, setDrumCollapsed] = useState(false);
+  const [drumCollapsed, setDrumCollapsed] = useState(() => {
+    try { return localStorage.getItem('drumCollapsed') === '1'; } catch { return false; }
+  });
   useEffect(() => { localStorage.setItem('drumPos', JSON.stringify(drumPos)); }, [drumPos]);
   useEffect(() => { localStorage.setItem('drumSize', JSON.stringify(drumSize)); }, [drumSize]);
+  useEffect(() => { localStorage.setItem('drumCollapsed', drumCollapsed ? '1' : '0'); }, [drumCollapsed]);
 
   const drumInteractRef = useRef(null);
   const startDrumInteract = (type, clientX, clientY) => {
@@ -3147,9 +3150,11 @@ function App() {
             position: 'fixed',
             left: drumPos.x,
             top: drumPos.y,
-            width: drumCollapsed ? 'auto' : drumSize.w,
+            // Bij collapse: alleen de hoogte krimpt; de breedte blijft gelijk
+            // zodat de header nooit op 0 kan vallen door auto-sizing.
+            width: drumSize.w,
             height: drumCollapsed ? 'auto' : (drumSize.h ?? 'auto'),
-            minWidth: drumCollapsed ? 0 : '180px',
+            minWidth: '180px',
             minHeight: drumCollapsed ? 0 : '160px',
             zIndex: 100,
             display: 'flex',
