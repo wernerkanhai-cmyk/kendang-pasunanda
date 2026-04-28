@@ -16,9 +16,6 @@
 
 export const SYMBOL_REST = '.';
 
-// Gain multiplier applied to accented notes during playback
-export const ACCENT_GAIN = 1.3;
-
 // ----- Hand-toewijzing (per soundId, niet per glyph) -------------------------
 // Rechterhand (top-line in de TrackRow)
 export const TOP_HAND_SOUNDS    = ['pling', 'pang', 'ping', 'pong', 'plak', 'pak', 'peung'];
@@ -33,10 +30,6 @@ export const getHandForSound = (value) => {
   if (BOTTOM_HAND_SOUNDS.includes(sound)) return 'bottom';
   return 'top';
 };
-
-// Compat-alias — deze naam wordt nog door bestaande call-sites gebruikt en zal
-// in de loop van de transitie verdwijnen.
-export const getHandForSymbol = getHandForSound;
 
 // ----- Legacy migratie -------------------------------------------------------
 // Mapping zoals die VOOR stap 4 in code zat (NeoDamina-glyphs → soundId).
@@ -99,18 +92,6 @@ export const glyphFor = (value, notationPack) => {
   const mapped = notationPack?.soundToGlyph?.[value];
   if (mapped) return mapped;
   return value;
-};
-
-/** Reverse-lookup glyph → soundId via een NotationPack. */
-export const soundForGlyph = (glyph, notationPack) => {
-  if (!glyph) return '';
-  if (glyph === (notationPack?.restGlyph || SYMBOL_REST)) return SYMBOL_REST;
-  const map = notationPack?.soundToGlyph;
-  if (!map) return '';
-  for (const [sound, g] of Object.entries(map)) {
-    if (g === glyph) return sound;
-  }
-  return '';
 };
 
 // ----- Pattern factory -------------------------------------------------------
@@ -190,12 +171,6 @@ export const sanitizePattern = (pattern) => {
     }
   }
   return out;
-};
-
-/** Geef de track-IDs op een pattern terug (alle non-meta array-velden). */
-export const getPatternTrackIds = (pattern) => {
-  if (!pattern) return [];
-  return Object.keys(pattern).filter(k => !PATTERN_META_KEYS.has(k) && Array.isArray(pattern[k]));
 };
 
 /**

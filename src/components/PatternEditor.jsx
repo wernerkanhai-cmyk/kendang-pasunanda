@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, Fragment } from 'react';
 import ReactDOM from 'react-dom';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
-import { generateEmptySlots, writeSymbolToPattern, getHandForSymbol, toggleAccentInRange, SYMBOL_REST } from '../engine/patternLogic';
+import { generateEmptySlots, writeSymbolToPattern, getHandForSound, toggleAccentInRange, SYMBOL_REST } from '../engine/patternLogic';
 import { useT } from '../i18n';
 
 const PatternEditor = ({
@@ -338,7 +338,7 @@ const [showBeheer, setShowBeheer] = useState(true);
     if (isLocked) return;
     let updated = writeSymbolToPattern(pattern, trackId, slotIndex, symbol);
     if (symbol !== SYMBOL_REST) {
-      const hand = getHandForSymbol(symbol);
+      const hand = getHandForSound(symbol);
       const beatStart = Math.floor(slotIndex / 12) * 12;
       for (let g = beatStart; g < slotIndex; g += gridResolution) {
         const slot = updated[trackId][g];

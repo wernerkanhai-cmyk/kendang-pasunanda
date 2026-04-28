@@ -40,5 +40,3 @@ export const loadNotationFont = (notationPack) => {
   _activeStyleId = id;
   _activeNotationId = notationPack.id;
 };
-
-export const getActiveNotationId = () => _activeNotationId;

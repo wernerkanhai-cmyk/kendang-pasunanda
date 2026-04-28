@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import './App.css';
-import { createEmptyPattern, writeSymbolToPattern, getHandForSymbol, generateEmptySlots, SYMBOL_REST, sanitizePattern } from './engine/patternLogic';
+import { createEmptyPattern, writeSymbolToPattern, getHandForSound, generateEmptySlots, SYMBOL_REST, sanitizePattern } from './engine/patternLogic';
 import PatternEditor from './components/PatternEditor';
 import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
@@ -887,9 +887,8 @@ function App() {
     setImportFolderName('');
   };
 
-  // Load a factory template into the editor as a brand-new editable song.
-  // The template itself stays untouched in src/factory/presets.js. The user
-  // is asked for a name + folder via a small dialog (state below).
+  // Load a template (from Supabase) into the editor as a brand-new editable
+  // song. The original template stays untouched in the cloud.
   const handleUseTemplate = async (template, targetName, targetFolder) => {
     const name = (targetName || template.name || 'Naamloos').trim();
     const folder = (targetFolder || 'Algemeen').trim() || 'Algemeen';
@@ -1929,7 +1928,7 @@ function App() {
        // 'write' mode logic: 
        // User can write to the top line AND bottom line of the ACTIVE ROW simultaneously.
        
-       if (timeDiff < 80 && drumTapRef.current.symbolHand !== getHandForSymbol(symbol)) { 
+       if (timeDiff < 80 && drumTapRef.current.symbolHand !== getHandForSound(symbol)) { 
           // Simultaneous hit on DIFFERENT HANDS (top & bottom keys) - place them on the exact same slot
           targetSlotIndex = drumTapRef.current.slotIndex; 
        } else if (drumTapRef.current.trackId === targetTrack && timeDiff < 800) {
@@ -1969,7 +1968,7 @@ function App() {
        time: now, 
        slotIndex: targetSlotIndex, 
        trackId: targetTrack,
-       symbolHand: getHandForSymbol(symbol)
+       symbolHand: getHandForSound(symbol)
     };
 
     setUndoStack(prev => [...prev.slice(-49), song]);
@@ -1997,7 +1996,7 @@ function App() {
          // Starting from beatStart caused multiple consecutive dots — now we only
          // fill the one slot immediately before the new note.
          if (symbol !== SYMBOL_REST) {
-           const hand = getHandForSymbol(symbol);
+           const hand = getHandForSound(symbol);
            const step = gridResolution;
            const prevPos = Math.floor((targetSlotIndex - 1) / step) * step;
            if (prevPos >= 0 && prevPos < targetSlotIndex) {

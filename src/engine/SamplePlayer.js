@@ -18,7 +18,7 @@
  */
 
 import { errorLog } from '../utils/errorLog.js';
-import { packRegistry, sampleContext, resolveTemplate } from './PackRegistry.js';
+import { packRegistry } from './PackRegistry.js';
 
 // ----- Compat-shim: defaults van de Sundanese pack ----------------------------
 // Deze constanten worden nog door SettingsPanel.jsx en App.jsx geconsumeerd.
@@ -384,6 +384,3 @@ export class SamplePlayer {
   }
 }
 
-// resolveTemplate / sampleContext zijn beschikbaar via PackRegistry.js voor
-// debug / extensie. Niet hier opnieuw exporteren.
-void resolveTemplate; void sampleContext;
