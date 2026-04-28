@@ -121,6 +121,7 @@ const T = {
       { title: '14. PDF export', body: 'Click ⋯ → 📄 Export as PDF. Adjust layout via ⚙️ PDF layout settings.' },
       { title: '15. Account', body: 'Sign in with email and password. Change your password via ⋯ → Account → "Wachtwoord wijzigen". The online/offline status is shown under Account. Songs and snippets sync to the cloud automatically. The app works offline after the first load — cached songs, snippets, and audio samples are available without internet.' },
       { title: '16. Keyboard shortcuts', body: 'Space: Play/Stop | Cmd+Z: Undo | Cmd+Shift+Z: Redo | Backspace: Clear selection | N C X V A J ; : L G F S: Enter notes' },
+      { title: '17. Credits', body: 'This app was built entirely by Werner Kanhai.\nThe content — kendang tradition, notation and sounds — was passed on by Institut Seni Budaya Indonesia Bandung (ISBI), Pak Riky Oktradi, Pak Atay Suryaman, Pak Dedeh Emphet (Pusaka Sera) and Pak Enjang (Arjasari).\nThis app is dedicated to Pusaka Mande Muda: Ibu Ike Suwanda and Pak Enjang Tholib.\nHatur nuhun.' },
     ],
   },
   nl: {
@@ -220,6 +221,7 @@ const T = {
       { title: '14. PDF exporteren', body: 'Klik ⋯ → 📄 Exporteer als PDF. Pas de layout aan via ⚙️ PDF layout instellingen.' },
       { title: '15. Account', body: 'Log in met e-mail en wachtwoord. Wijzig je wachtwoord via ⋯ → Account → "Wachtwoord wijzigen". De online/offline-status wordt getoond onder Account. Songs en snippets synchroniseren automatisch naar de cloud. De app werkt offline na de eerste keer laden — gecachte songs, snippets en audiosamples zijn beschikbaar zonder internet.' },
       { title: '16. Sneltoetsen', body: 'Spatie: Play/Stop | Cmd+Z: Ongedaan | Cmd+Shift+Z: Opnieuw | Backspace: Wis selectie | N C X V A J ; : L G F S: Klanken invoeren' },
+      { title: '17. Credits', body: 'Deze app is volledig ontwikkeld door Werner Kanhai.\nDe inhoud — kendang-traditie, notatie en klanken — is doorgegeven door Institut Seni Budaya Indonesia Bandung (ISBI), Pak Riky Oktradi, Pak Atay Suryaman, Pak Dedeh Emphet (Pusaka Sera) en Pak Enjang (Arjasari).\nDeze app is opgedragen aan Pusaka Mande Muda: Ibu Ike Suwanda en Pak Enjang Tholib.\nHatur nuhun.' },
     ],
   },
   id: {
@@ -319,6 +321,7 @@ const T = {
       { title: '14. Ekspor PDF', body: 'Klik ⋯ → 📄 Ekspor sebagai PDF. Sesuaikan tata letak via ⚙️ Pengaturan tata letak PDF.' },
       { title: '15. Akun', body: 'Masuk dengan email dan kata sandi. Ubah kata sandi via ⋯ → Akun → "Ubah kata sandi". Status online/offline ditampilkan di bawah Akun. Lagu dan snippet disinkronkan ke cloud secara otomatis. Aplikasi berfungsi offline setelah pemuatan pertama — lagu, snippet, dan sampel audio yang di-cache tersedia tanpa internet.' },
       { title: '16. Pintasan keyboard', body: 'Spasi: Putar/Stop | Cmd+Z: Batalkan | Cmd+Shift+Z: Ulangi | Backspace: Hapus pilihan | N C X V A J ; : L G F S: Masukkan nada' },
+      { title: '17. Penghargaan', body: 'Aplikasi ini sepenuhnya dibangun oleh Werner Kanhai.\nIsi — tradisi kendang, notasi dan bunyi — diwariskan oleh Institut Seni Budaya Indonesia Bandung (ISBI), Pak Riky Oktradi, Pak Atay Suryaman, Pak Dedeh Emphet (Pusaka Sera) dan Pak Enjang (Arjasari).\nAplikasi ini dipersembahkan kepada Pusaka Mande Muda: Ibu Ike Suwanda dan Pak Enjang Tholib.\nHatur nuhun.' },
     ],
   },
 };

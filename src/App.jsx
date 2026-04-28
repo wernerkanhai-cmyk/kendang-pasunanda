@@ -3433,7 +3433,7 @@ function App() {
               {t('manualSections').map(({ title, body }) => (
                 <div key={title} style={{ marginBottom: '1rem' }}>
                   <div style={{ fontWeight: 'bold', color: '#f1f5f9', marginBottom: '0.3rem' }}>{title}</div>
-                  <div style={{ color: '#94a3b8' }}>{body}</div>
+                  <div style={{ color: '#94a3b8', whiteSpace: 'pre-line' }}>{body}</div>
                 </div>
               ))}
             </div>
