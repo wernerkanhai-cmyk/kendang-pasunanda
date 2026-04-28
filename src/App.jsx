@@ -2274,6 +2274,7 @@ function App() {
           <div className="branding">
             <h1>Kendang Pasunanda</h1>
             <p>{t('appSubtitle')}</p>
+            <p className="branding-credit">Powered by PUSAMADA</p>
           </div>
 
           {/* ── Song dropdown — naast de app naam ─────────────────────────── */}
