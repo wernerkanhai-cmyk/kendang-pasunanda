@@ -949,34 +949,50 @@ const [showBeheer, setShowBeheer] = useState(true);
                           acc[cat].push(s);
                           return acc;
                         }, {});
-                        return Object.keys(byCategory).sort().map(cat => (
-                          <div key={cat} style={{ marginBottom: '0.4rem' }}>
-                            <div style={{ fontSize: '0.65rem', color: '#a37f1e', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '0.15rem 0.5rem' }}>{cat}</div>
-                            {byCategory[cat].map(tpl => (
-                              <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem', background: 'rgba(212,175,55,0.05)', borderRadius: '4px', marginBottom: '2px' }}>
-                                <span style={{ flex: 1, fontSize: '0.85rem', color: '#fcd34d' }}>{tpl.name}</span>
+                        Object.values(byCategory).forEach(arr => arr.sort((a, b) => a.name.localeCompare(b.name)));
+                        return Object.keys(byCategory).sort().map(cat => {
+                          const subKey = `__SNIPPET_TEMPLATES__/${cat}`;
+                          const subCollapsed = collapsedSnippetFolders.has(subKey);
+                          const items = byCategory[cat];
+                          return (
+                            <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #3f2e10', marginBottom: '0.15rem' }}>
                                 <button
-                                  onClick={() => handleInsertSnippet?.(tpl)}
-                                  style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}
-                                >Insert</button>
-                                {isAdmin && (
-                                  <button
-                                    onClick={async () => {
-                                      if (!window.confirm(`Snippet template "${tpl.name}" verwijderen?`)) return;
-                                      try { await onRemoveSnippetTemplate?.(tpl.id); } catch (err) { alert(err?.message ?? 'Verwijderen mislukt'); }
-                                    }}
-                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
-                                    title="Template verwijderen"
-                                  >
-                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                                    </svg>
-                                  </button>
-                                )}
+                                  onClick={() => toggleSnippetFolderCollapsed(subKey)}
+                                  style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
+                                  title={subCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                                >{subCollapsed ? '▶' : '▼'}</button>
+                                <span
+                                  onClick={() => toggleSnippetFolderCollapsed(subKey)}
+                                  style={{ flex: 1, color: '#a37f1e', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                >{cat} <span style={{ color: '#7a5e16', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
-                            ))}
-                          </div>
-                        ));
+                              {!subCollapsed && items.map(tpl => (
+                                <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem 0.3rem 1rem', background: 'rgba(212,175,55,0.05)', borderRadius: '4px', marginBottom: '2px' }}>
+                                  <span style={{ flex: 1, fontSize: '0.85rem', color: '#fcd34d' }}>{tpl.name}</span>
+                                  <button
+                                    onClick={() => handleInsertSnippet?.(tpl)}
+                                    style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}
+                                  >Insert</button>
+                                  {isAdmin && (
+                                    <button
+                                      onClick={async () => {
+                                        if (!window.confirm(`Snippet template "${tpl.name}" verwijderen?`)) return;
+                                        try { await onRemoveSnippetTemplate?.(tpl.id); } catch (err) { alert(err?.message ?? 'Verwijderen mislukt'); }
+                                      }}
+                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+                                      title="Template verwijderen"
+                                    >
+                                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        });
                       })())}
                     </div>
                   ) : null;
