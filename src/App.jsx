@@ -337,6 +337,15 @@ function App() {
   };
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  // Welkomstmodal — toont de credits bij de eerste opening van de app.
+  // Vlag wordt in localStorage gezet zodra de gebruiker hem wegklikt.
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try { return localStorage.getItem('kendangWelcomeSeen') !== '1'; } catch { return false; }
+  });
+  const dismissWelcome = () => {
+    try { localStorage.setItem('kendangWelcomeSeen', '1'); } catch (_) { /* ignore */ }
+    setShowWelcome(false);
+  };
   const [showSongMenu, setShowSongMenu] = useState(false);
   const [pdfSettings, setPdfSettings] = useState(() => {
     try {
@@ -3468,6 +3477,37 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* ── Welkomstmodal — credits bij eerste opening ─────────────────── */}
+      {showWelcome && (() => {
+        const credits = (t('manualSections') || []).find(s => /credits|penghargaan/i.test(s.title));
+        if (!credits) return null;
+        return (
+          <div
+            onClick={dismissWelcome}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.78)', zIndex: 2100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ background: '#1e293b', border: '1px solid #d4af37', borderRadius: '12px', width: '100%', maxWidth: '560px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}
+            >
+              <div style={{ padding: '1.3rem 1.4rem 0.8rem', borderBottom: '1px solid #334155', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.7rem', color: '#d4af37', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '0.3rem' }}>{t('welcomeTitle')}</div>
+                <div style={{ fontWeight: 'bold', fontSize: '1.4rem', color: '#f1f5f9' }}>Kendang Pasunanda</div>
+              </div>
+              <div style={{ overflowY: 'auto', padding: '1.2rem 1.4rem', color: '#cbd5e1', fontSize: '0.85rem', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+                {credits.body}
+              </div>
+              <div style={{ padding: '0.8rem 1.4rem 1.1rem', borderTop: '1px solid #334155', display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={dismissWelcome}
+                  style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '6px', padding: '0.5rem 1.2rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 'bold' }}
+                >{t('welcomeClose')}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
