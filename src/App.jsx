@@ -1302,19 +1302,34 @@ function App() {
 
     // iOS PWA suspend/resume — when the app becomes visible again, kill any stale
     // scheduler and recover the AudioContext if it's in a broken state.
+    //
+    // Plus: zelfs een "running" AudioContext kan na lange inactiviteit een
+    // gedrifte output-latency hebben (BT-buffer-build-up, OS-power-management).
+    // We meten daarom hoe lang de pagina verborgen was en forceren een
+    // recreate boven de drempel — zo krijgt de cursor-sync een verse baseline.
+    const STALE_AFTER_MS = 30_000;
+    let hiddenAt = null;
     const onVisibility = async () => {
-      if (document.visibilityState === 'visible') {
-        resetPlayback();
-        // Check if AudioContext is dead — if so, fully recreate it
-        const ctx = samplerRef.current?.audioCtx;
-        if (!ctx || ctx.state === 'closed' || ctx.state === 'suspended') {
-          try {
-            const newCtx = await samplerRef.current.resetAudioContext();
-            if (schedulerRef.current && newCtx) {
-              schedulerRef.current.setAudioContext(newCtx);
-            }
-          } catch (_) {}
-        }
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now();
+        return;
+      }
+      // visibilityState === 'visible'
+      const wasHiddenFor = hiddenAt ? Date.now() - hiddenAt : 0;
+      hiddenAt = null;
+
+      resetPlayback();
+      const ctx = samplerRef.current?.audioCtx;
+      const ctxIsBroken = !ctx || ctx.state === 'closed' || ctx.state === 'suspended';
+      const wentStale   = wasHiddenFor > STALE_AFTER_MS;
+
+      if (ctxIsBroken || wentStale) {
+        try {
+          const newCtx = await samplerRef.current.resetAudioContext();
+          if (schedulerRef.current && newCtx) {
+            schedulerRef.current.setAudioContext(newCtx);
+          }
+        } catch (_) {}
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
