@@ -2935,52 +2935,81 @@ function App() {
                       !q || p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q)
                     );
                     if (q && matches.length === 0) return null;
-                    const folderName = '__TEMPLATES__';
-                    const isCollapsed = collapsedFolders.has(folderName);
+                    const rootFolder = '__TEMPLATES__';
+                    const rootCollapsed = collapsedFolders.has(rootFolder);
+
+                    // Group templates by category — categorie wordt gerenderd
+                    // als sub-folder zodat een grote bibliotheek overzichtelijk blijft.
+                    const byCategory = matches.reduce((acc, t) => {
+                      const c = t.category || 'Algemeen';
+                      if (!acc[c]) acc[c] = [];
+                      acc[c].push(t);
+                      return acc;
+                    }, {});
+                    Object.values(byCategory).forEach(arr => arr.sort((a, b) => a.name.localeCompare(b.name)));
+                    const categories = Object.keys(byCategory).sort();
+
                     return (
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #d4af37', marginBottom: '0.25rem' }}>
                           <button
-                            onClick={() => toggleFolderCollapsed(folderName)}
+                            onClick={() => toggleFolderCollapsed(rootFolder)}
                             style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
-                            title={isCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
-                          >{isCollapsed ? '▶' : '▼'}</button>
+                            title={rootCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                          >{rootCollapsed ? '▶' : '▼'}</button>
                           <span
-                            onClick={() => toggleFolderCollapsed(folderName)}
+                            onClick={() => toggleFolderCollapsed(rootFolder)}
                             style={{ flex: 1, color: '#d4af37', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                           >📦 Templates <span style={{ color: '#a37f1e', fontWeight: 'normal' }}>({matches.length})</span></span>
                         </div>
-                        {!isCollapsed && (matches.length === 0 ? (
+                        {!rootCollapsed && (matches.length === 0 ? (
                           <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
                             Nog geen templates beschikbaar.
                           </div>
-                        ) : matches.map((tpl) => (
-                          <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px' }}>
-                            <span style={{ flex: 1, color: '#fcd34d', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                              {tpl.name}
-                              {tpl.category && <span style={{ color: '#a37f1e', fontSize: '0.7rem' }}>· {tpl.category}</span>}
-                            </span>
-                            <button
-                              onClick={async () => {
-                                setShowSongLibrary(false);
-                                await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
-                                showToast(`"${tpl.name}" geladen`);
-                              }}
-                              style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
-                            >Gebruik</button>
-                            {isAdmin && (
-                              <button
-                                onClick={async () => {
-                                  if (!window.confirm(`Template "${tpl.name}" verwijderen?`)) return;
-                                  try { await removeTemplate(tpl.id); showToast('Template verwijderd'); }
-                                  catch (err) { alert(err?.message ?? 'Verwijderen mislukt'); }
-                                }}
-                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
-                                title="Template verwijderen"
-                              ><TrashIcon size={12} /></button>
-                            )}
-                          </div>
-                        )))}
+                        ) : categories.map(cat => {
+                          const subKey = `__TEMPLATES__/${cat}`;
+                          const subCollapsed = collapsedFolders.has(subKey);
+                          const items = byCategory[cat];
+                          return (
+                            <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #3f2e10', marginBottom: '0.15rem' }}>
+                                <button
+                                  onClick={() => toggleFolderCollapsed(subKey)}
+                                  style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
+                                  title={subCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                                >{subCollapsed ? '▶' : '▼'}</button>
+                                <span
+                                  onClick={() => toggleFolderCollapsed(subKey)}
+                                  style={{ flex: 1, color: '#a37f1e', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                >{cat} <span style={{ color: '#7a5e16', fontWeight: 'normal' }}>({items.length})</span></span>
+                              </div>
+                              {!subCollapsed && items.map((tpl) => (
+                                <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem 0.4rem 1rem', borderRadius: '6px' }}>
+                                  <span style={{ flex: 1, color: '#fcd34d', fontSize: '0.875rem' }}>{tpl.name}</span>
+                                  <button
+                                    onClick={async () => {
+                                      setShowSongLibrary(false);
+                                      await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
+                                      showToast(`"${tpl.name}" geladen`);
+                                    }}
+                                    style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
+                                  >Gebruik</button>
+                                  {isAdmin && (
+                                    <button
+                                      onClick={async () => {
+                                        if (!window.confirm(`Template "${tpl.name}" verwijderen?`)) return;
+                                        try { await removeTemplate(tpl.id); showToast('Template verwijderd'); }
+                                        catch (err) { alert(err?.message ?? 'Verwijderen mislukt'); }
+                                      }}
+                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+                                      title="Template verwijderen"
+                                    ><TrashIcon size={12} /></button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }))}
                       </div>
                     );
                   })()}
