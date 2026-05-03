@@ -148,7 +148,7 @@ const DrumZone = ({ drum, onTrigger }) => {
 
 // ── Main DrumPad ──────────────────────────────────────────────────────────────
 
-const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTrigger, gongActive = false, soundSettings, onSoundSettingsChange, cursorOffsetMs, onCursorOffsetChange, availablePacks, notationPackId, onNotationPackChange, voicePackId, onVoicePackChange }) => {
+const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTrigger, gongActive = false, soundSettings, onSoundSettingsChange, onPreviewSound, cursorOffsetMs, onCursorOffsetChange, availablePacks, notationPackId, onNotationPackChange, voicePackId, onVoicePackChange }) => {
   const t = useT();
   const [showLegend, setShowLegend] = useState(false);
   const [activeTab, setActiveTab] = useState('pad');
@@ -200,7 +200,8 @@ const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTri
 
       {activeTab === 'geluid' && soundSettings && onSoundSettingsChange && (
         <SoundSettingsContent settings={soundSettings} onChange={onSoundSettingsChange}
-          onPlay={onTrigger}
+          onPlay={onPreviewSound || onTrigger}
+          tracks={instrumentPack?.tracks}
           cursorOffsetMs={cursorOffsetMs} onCursorOffsetChange={onCursorOffsetChange}
           availablePacks={availablePacks}
           notationPackId={notationPackId}

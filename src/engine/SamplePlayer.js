@@ -20,25 +20,75 @@
 import { errorLog } from '../utils/errorLog.js';
 import { packRegistry } from './PackRegistry.js';
 
-// ----- Compat-shim: defaults van de Sundanese pack ----------------------------
-// Deze constanten worden nog door SettingsPanel.jsx en App.jsx geconsumeerd.
-// Ze zijn de Sunda-kendang defaults (id 'sunda-kendang') en raken vervangen
-// zodra de UI pack-aware wordt (stap 4/7).
+// ----- Sound settings: per-track (gain + pitch per geluid per track) ---------
+//
+// Schema:
+//   {
+//     tracks: { <trackId>: { <soundId>: { gain, pitch } } },
+//     aux:    { <auxId>:   { gain, pitch } }
+//   }
+//
+// De default-waarden hieronder zijn de Sunda-kendang baseline; bij wisseling
+// van instrumentPack genereert buildDefaultSoundSettings() een nieuwe basis.
 
-export const DEFAULT_SOUND_SETTINGS = {
-  tung:    { gain: 3.0, pitch: 1.0 },
-  dong:    { gain: 3.0, pitch: 1.0 },
-  ting:    { gain: 3.0, pitch: 1.0 },
-  det:     { gain: 3.0, pitch: 1.0 },
-  dededet: { gain: 3.0, pitch: 1.0 },
-  pling:   { gain: 3.0, pitch: 1.0 },
-  pang:    { gain: 3.0, pitch: 1.0 },
-  ping:    { gain: 3.0, pitch: 1.0 },
-  pong:    { gain: 3.0, pitch: 1.0 },
-  plak:    { gain: 3.0, pitch: 1.0 },
-  pak:     { gain: 3.0, pitch: 1.0 },
-  peung:   { gain: 3.0, pitch: 1.0 },
-  gong:    { gain: 3.0, pitch: 1.0 },
+const PER_SOUND_DEFAULT = { gain: 3.0, pitch: 1.0 };
+
+const SUNDA_TRACK_SOUNDS = {
+  anak:   ['tung', 'dong', 'ting', 'det', 'dededet', 'pling', 'pang', 'ping', 'pong', 'plak', 'pak', 'peung'],
+  indung: ['tung', 'dong', 'ting', 'det', 'dededet',          'pang', 'ping', 'pong', 'plak', 'pak', 'peung'],
+};
+
+const buildSundaDefaults = () => {
+  const tracks = {};
+  for (const [t, sounds] of Object.entries(SUNDA_TRACK_SOUNDS)) {
+    tracks[t] = Object.fromEntries(sounds.map(s => [s, { ...PER_SOUND_DEFAULT }]));
+  }
+  return { tracks, aux: { gong: { ...PER_SOUND_DEFAULT } } };
+};
+
+export const DEFAULT_SOUND_SETTINGS = buildSundaDefaults();
+
+/** Bouw default-settings uit een geladen instrumentPack (track.sounds.defaults). */
+export const buildDefaultSoundSettings = (instrumentPack) => {
+  if (!instrumentPack?.tracks) return buildSundaDefaults();
+  const tracks = {};
+  for (const t of instrumentPack.tracks) {
+    tracks[t.id] = {};
+    for (const sid of t.soundIds || []) {
+      const def = instrumentPack.sounds?.[sid]?.defaults || PER_SOUND_DEFAULT;
+      tracks[t.id][sid] = { ...def };
+    }
+  }
+  const aux = {};
+  if (instrumentPack.auxiliary) {
+    for (const [auxId, auxDef] of Object.entries(instrumentPack.auxiliary)) {
+      aux[auxId] = { ...(auxDef.defaults || PER_SOUND_DEFAULT) };
+    }
+  }
+  return { tracks, aux };
+};
+
+/**
+ * Migreer oude flat-shape sound-settings naar nieuwe per-track shape.
+ * Idempotent. De legacy waarden gaan naar elke track (anak + indung) zodat
+ * de gebruiker ze daarna apart kan bijstellen.
+ */
+export const migrateSoundSettings = (s) => {
+  if (s && typeof s === 'object' && s.tracks) return s; // al nieuwe shape
+  const base = buildSundaDefaults();
+  if (!s || typeof s !== 'object') return base;
+  const aux = { ...base.aux };
+  if (s.gong && typeof s.gong === 'object') aux.gong = { ...PER_SOUND_DEFAULT, ...s.gong };
+  const tracks = {};
+  for (const trackId of Object.keys(base.tracks)) {
+    tracks[trackId] = { ...base.tracks[trackId] };
+    for (const sid of Object.keys(base.tracks[trackId])) {
+      if (s[sid] && typeof s[sid] === 'object') {
+        tracks[trackId][sid] = { ...PER_SOUND_DEFAULT, ...s[sid] };
+      }
+    }
+  }
+  return { tracks, aux };
 };
 
 export const SYMBOL_TO_SOUND = {
@@ -102,7 +152,8 @@ export class SamplePlayer {
   }
 
   updateSettings(settings) {
-    this.settings = settings || {};
+    // Auto-migreer in geval er nog legacy flat-shape doorgegeven wordt.
+    this.settings = migrateSoundSettings(settings);
   }
 
   setSampleSet(set) {
@@ -311,7 +362,9 @@ export class SamplePlayer {
   _playSingle(sound, track, when, trackGain) {
     const variants = this._variantsFor(this.sampleSet);
     const n = String(Math.floor(Math.random() * variants) + 1).padStart(2, '0');
-    const s = this.settings[sound] || DEFAULT_SOUND_SETTINGS[sound] || {};
+    const s = this.settings.tracks?.[track]?.[sound]
+           || DEFAULT_SOUND_SETTINGS.tracks?.[track]?.[sound]
+           || PER_SOUND_DEFAULT;
     const gain = (s.gain ?? 1.0) * trackGain;
 
     if (this.sampleSet === 'vox') {
@@ -341,8 +394,8 @@ export class SamplePlayer {
     const auxId = 'gong';
     const aux = this.instrumentPack?.auxiliary?.[auxId];
     if (!aux) return;
-    const defaults = aux.defaults || {};
-    const s = this.settings[auxId] || defaults;
+    const defaults = aux.defaults || PER_SOUND_DEFAULT;
+    const s = this.settings.aux?.[auxId] || defaults;
     this._trigger(auxId, when, s.gain ?? 1.0, s.pitch ?? 1.0, this.buffers);
   }
 

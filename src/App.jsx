@@ -7,7 +7,7 @@ import DrumPad from './components/DrumPad';
 import { exportSequencerToPDF, DEFAULT_PDF_SETTINGS } from './utils/export';
 import { useTemplates } from './hooks/useTemplates';
 import { AudioScheduler } from './engine/AudioScheduler';
-import { SamplePlayer, DEFAULT_SOUND_SETTINGS } from './engine/SamplePlayer';
+import { SamplePlayer, DEFAULT_SOUND_SETTINGS, migrateSoundSettings } from './engine/SamplePlayer';
 import { packRegistry } from './engine/PackRegistry';
 import { loadNotationFont } from './engine/notationFont';
 import { errorLog } from './utils/errorLog';
@@ -166,12 +166,13 @@ function App() {
   }, [sampleSet]);
 
 
-  // Sound settings (volume + pitch per geluid)
+  // Sound settings — per-track gain + pitch per geluid. Legacy flat-shape
+  // wordt door migrateSoundSettings naar het nieuwe schema gebracht.
   const [soundSettings, setSoundSettings] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('kendangSoundSettings'));
-      return saved ? { ...DEFAULT_SOUND_SETTINGS, ...saved } : { ...DEFAULT_SOUND_SETTINGS };
-    } catch { return { ...DEFAULT_SOUND_SETTINGS }; }
+      return migrateSoundSettings(saved || DEFAULT_SOUND_SETTINGS);
+    } catch { return migrateSoundSettings(DEFAULT_SOUND_SETTINGS); }
   });
   const soundSettingsRef = useRef(soundSettings);
   useEffect(() => {
@@ -1905,6 +1906,13 @@ function App() {
     setStepBackCount(c => c + 1);
   };
 
+  // Preview-only trigger — speelt het geluid in de gevraagde track zonder
+  // ook in de actieve pattern te schrijven. Gebruikt door SettingsPanel
+  // om de gain/pitch-aanpassingen per track te kunnen beluisteren.
+  const handlePreviewSound = (sound, track) => {
+    samplerRef.current?.play(sound, track);
+  };
+
   const handleGongFromInstrument = () => {
     if (isLocked) return;
     samplerRef.current?.playGong();
@@ -3263,6 +3271,7 @@ function App() {
               })()}
               soundSettings={soundSettings}
               onSoundSettingsChange={setSoundSettings}
+              onPreviewSound={handlePreviewSound}
               cursorOffsetMs={cursorOffsetMs}
               onCursorOffsetChange={setCursorOffsetMs}
               availablePacks={availablePacks}
