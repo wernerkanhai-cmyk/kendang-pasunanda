@@ -135,29 +135,44 @@ const PATTERN_META_KEYS = new Set(['id', 'name', 'gong', 'tempoTrack', 'tempoTra
 
 /**
  * Sanity-check a pattern loaded from localStorage / Supabase / external source.
- * Truncates tracks tot 192 slots, ensures slot shape, migrates legacy glyph
- * values to soundIds (via migrateSlotValue). Track-velden worden generiek
- * gedetecteerd: elk array-veld dat geen meta-veld is, geldt als track.
+ * Migrates legacy glyph values to soundIds (via migrateSlotValue). Track-velden
+ * worden generiek gedetecteerd: elk array-veld dat geen meta-veld is, geldt als
+ * track.
+ *
+ * Track-lengte: respecteert de bestaande lengte van het patroon zodat
+ * verwijderde maten verwijderd blijven na een save/load round-trip. We ronden
+ * af op een veelvoud van 48 (één maat) en alle tracks krijgen dezelfde lengte.
+ * Een lege/ontbrekende pattern krijgt de default van 192 slots (4 maten).
  */
 export const sanitizePattern = (pattern) => {
-  const SLOTS = 192;
+  const MEASURE = 48;
+  const DEFAULT_SLOTS = 192;
+
+  // Bepaal de gewenste lengte uit de bestaande track-arrays.
+  let maxLen = 0;
+  for (const [key, value] of Object.entries(pattern ?? {})) {
+    if (PATTERN_META_KEYS.has(key)) continue;
+    if (Array.isArray(value) && value.length > maxLen) maxLen = value.length;
+  }
+  const targetLen = maxLen > 0 ? Math.ceil(maxLen / MEASURE) * MEASURE : DEFAULT_SLOTS;
+
   const sanitizeTrack = (track) => {
-    if (!Array.isArray(track) || track.length === 0) return generateEmptySlots(SLOTS);
-    const safe = track.slice(0, SLOTS).map(s => ({
+    if (!Array.isArray(track) || track.length === 0) return generateEmptySlots(targetLen);
+    const safe = track.slice(0, targetLen).map(s => ({
       top:    migrateSlotValue(typeof s?.top    === 'string' ? s.top    : ''),
       bottom: migrateSlotValue(typeof s?.bottom === 'string' ? s.bottom : ''),
       accentTop:    s?.accentTop    === true,
       accentBottom: s?.accentBottom === true,
     }));
-    while (safe.length < SLOTS) safe.push({ top: '', bottom: '', accentTop: false, accentBottom: false });
+    while (safe.length < targetLen) safe.push({ top: '', bottom: '', accentTop: false, accentBottom: false });
     return safe;
   };
 
   const out = {
     id:         typeof pattern?.id   === 'string' ? pattern.id   : crypto.randomUUID(),
     name:       typeof pattern?.name === 'string' ? pattern.name : 'Pattern',
-    gong:       Array.isArray(pattern?.gong)       ? pattern.gong.filter(n => typeof n === 'number' && n >= 0) : [],
-    tempoTrack: Array.isArray(pattern?.tempoTrack) ? pattern.tempoTrack : [],
+    gong:       Array.isArray(pattern?.gong)       ? pattern.gong.filter(n => typeof n === 'number' && n >= 0 && n < targetLen) : [],
+    tempoTrack: Array.isArray(pattern?.tempoTrack) ? pattern.tempoTrack.filter(n => typeof n?.slot !== 'number' || n.slot < targetLen) : [],
     tempoTrackEnabled: pattern?.tempoTrackEnabled === true,
     annotations: (pattern?.annotations && typeof pattern.annotations === 'object') ? pattern.annotations : {},
   };
