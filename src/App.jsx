@@ -1433,6 +1433,40 @@ function App() {
     }
   }, [isPlaying]);
 
+  // Wake Lock — voorkom dat iOS / Android het scherm uitschakelt zolang
+  // de song speelt. iOS Safari (16.4+) en moderne Android browsers ondersteunen
+  // navigator.wakeLock; op browsers zonder ondersteuning is dit een no-op.
+  // De browser laat de lock automatisch los bij visibility-hidden, dus bij
+  // terugkeer naar de tab vragen we hem opnieuw aan zolang we nog spelen.
+  useEffect(() => {
+    if (!isPlaying) return;
+    if (!('wakeLock' in navigator)) return;
+    let cancelled = false;
+    let lock = null;
+
+    const acquire = async () => {
+      try {
+        const next = await navigator.wakeLock.request('screen');
+        if (cancelled) { try { await next.release(); } catch (_) {} return; }
+        lock = next;
+        next.addEventListener('release', () => { if (lock === next) lock = null; });
+      } catch (_) { /* low-battery mode etc. — negeer */ }
+    };
+
+    acquire();
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && !lock && !cancelled) acquire();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      if (lock) { lock.release().catch(() => {}); lock = null; }
+    };
+  }, [isPlaying]);
+
   // Keep a ref to song so the scheduler closure can always read the latest version
   const bpmRef = useRef(bpm);
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
