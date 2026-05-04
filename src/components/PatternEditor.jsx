@@ -172,13 +172,17 @@ const [showBeheer, setShowBeheer] = useState(true);
   const baseSlotWidthRef = useRef(12);
   useEffect(() => {
     if (!timelineRef.current) return;
+    // Vaste opbouw rond de slots in een track-rij:
+    //   solo-knop-cel = 19px + 2px marginRight = 21px (links)
+    //   rechter gutter spacer = 24px
+    // Trek dat af zodat 4 maten (192 slots) zonder overflow in de viewport
+    // passen — anders valt het uiteinde rechts buiten beeld op een iPhone.
+    const TRACK_OVERHEAD = 45;
     const ro = new ResizeObserver(entries => {
       const w = entries[0].contentRect.width;
-      baseSlotWidthRef.current = w / 192;
-      // Min 1.5px per slot zodat alle 192 slots ook op een ~320px iPhone-
-      // viewport binnen de container passen — geen horizontale scroll, dus
-      // geen iOS rubber-band bounce.
-      setSlotWidth(Math.max(1.5, baseSlotWidthRef.current));
+      const usable = Math.max(0, w - TRACK_OVERHEAD);
+      baseSlotWidthRef.current = usable / 192;
+      setSlotWidth(Math.max(1, baseSlotWidthRef.current));
       setContainerWidth(w);
     });
     ro.observe(timelineRef.current);
