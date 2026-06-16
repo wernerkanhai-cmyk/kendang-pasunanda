@@ -106,58 +106,11 @@ const [showBeheer, setShowBeheer] = useState(true);
   const [touchSelectMode, setTouchSelectMode] = useState(false);
   const [rulerDrag, setRulerDrag] = useState(null); // { start, current } in measure indices
   const [handleDrag, setHandleDrag] = useState(null); // { side: 'start'|'end', start: slot, end: slot }
-  const [transportPos, setTransportPos] = useState(null);
-  const transportInteractRef = useRef(null);
-
-  // Position transport bar to the right of the song save button after layout is stable
-  useEffect(() => {
-    const measure = () => {
-      const btn = document.getElementById('songbuilder-btn');
-      if (!btn) return;
-      const r = btn.getBoundingClientRect();
-      if (r.width === 0) { requestAnimationFrame(measure); return; } // not laid out yet
-      const x = Math.min(r.right + 8, window.innerWidth - 268);
-      const y = Math.max(4, Math.round(r.top + r.height / 2 - 24));
-      setTransportPos({ x, y });
-    };
-    requestAnimationFrame(measure);
-  }, []);
-
-  const startTransportDrag = (clientX, clientY) => {
-    const btn = document.getElementById('songbuilder-btn');
-    const defX = btn ? Math.min(btn.getBoundingClientRect().right + 8, window.innerWidth - 268) : window.innerWidth / 2 - 120;
-    const defY = btn ? Math.max(4, Math.round(btn.getBoundingClientRect().top + btn.getBoundingClientRect().height / 2 - 24)) : window.innerHeight - 60;
-    const initX = transportPos?.x ?? defX;
-    const initY = transportPos?.y ?? defY;
-    transportInteractRef.current = { startX: clientX, startY: clientY, origX: initX, origY: initY };
-    const onMove = (ev) => {
-      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-      const d = transportInteractRef.current;
-      if (!d) return;
-      setTransportPos({
-        x: Math.max(0, Math.min(window.innerWidth - 260, d.origX + cx - d.startX)),
-        y: Math.max(0, Math.min(window.innerHeight - 50, d.origY + cy - d.startY)),
-      });
-    };
-    const onEnd = () => {
-      transportInteractRef.current = null;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onEnd);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onEnd);
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onEnd);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onEnd);
-  };
   const timelineRef = useRef(null);
   const tracksContainerRef = useRef(null);
   const playheadDragRef = useRef(false);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
-  const [transportMinimized, setTransportMinimized] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [blinkBtn, setBlinkBtn] = useState(null); // short flash on toolbar buttons
   const blink = (id, fn) => { fn(); setBlinkBtn(id); setTimeout(() => setBlinkBtn(null), 150); };
