@@ -16,6 +16,23 @@
   border-left: 4px solid var(--indung-color);
 }
 
+/* Witte outline (2px) rond de verticale kleur-balk links van elke regel, zodat
+   de zwarte anak-balk niet wegvalt tegen de donkere app-achtergrond. De balk
+   zelf blijft de border-left (geen layout-verschuiving); dit pseudo-element
+   tekent alleen het witte kader eromheen, de gekleurde kern schijnt erdoorheen. */
+.track-row.theme-anak::before,
+.track-row.theme-indung::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  width: 4px;
+  box-shadow: 0 0 0 2px #ffffff;
+  z-index: 7;
+  pointer-events: none;
+}
+
 .track-label {
   position: absolute;
   left: -2.5rem;
