@@ -522,6 +522,7 @@ function App() {
   };
 
   const handleUpdateSong = async () => {
+    if (isLocked) { showToast('Verlaat practice mode om op te slaan'); return; }
     if (!currentSongId) return;
     const fresh = await _persist({
       id: currentSongId,
@@ -537,6 +538,7 @@ function App() {
   };
 
   const handleSaveAsNew = async () => {
+    if (isLocked) { showToast('Verlaat practice mode om op te slaan'); return; }
     const fresh = await _persist({
       id: null,
       name: songName.trim() || 'Naamloos',
@@ -551,6 +553,7 @@ function App() {
   };
 
   const handleSaveAsCopy = async () => {
+    if (isLocked) { showToast('Verlaat practice mode om op te slaan'); return; }
     const baseName = songName.trim() || 'Naamloos';
     const copyName = `${baseName} (kopie)`;
     await _persist({
@@ -572,13 +575,16 @@ function App() {
   //      about to unload, so a refresh or app-switch never loses work.
   // Auto-save is silent (no toast spam). If it fails the unsaved-changes dot
   // stays visible so the user knows.
-  const autoSaveStateRef = useRef({ song, songName, songFolder, bpm, currentSongId, isModified: false, user: null });
+  const autoSaveStateRef = useRef({ song, songName, songFolder, bpm, currentSongId, isModified: false, user: null, isLocked: true });
   useEffect(() => {
-    autoSaveStateRef.current = { song, songName, songFolder, bpm, currentSongId, isModified: isModifiedSinceSave, user };
-  }, [song, songName, songFolder, bpm, currentSongId, isModifiedSinceSave, user]);
+    autoSaveStateRef.current = { song, songName, songFolder, bpm, currentSongId, isModified: isModifiedSinceSave, user, isLocked };
+  }, [song, songName, songFolder, bpm, currentSongId, isModifiedSinceSave, user, isLocked]);
 
   const flushAutoSave = useCallback(() => {
     const s = autoSaveStateRef.current;
+    // Geen auto-save in practice mode — tijdelijke oefen-aanpassingen (bv. tempo-toggle)
+    // mogen de opgeslagen song niet overschrijven.
+    if (s.isLocked) return;
     if (!s.user || !s.currentSongId || !s.isModified) return;
     _persist({
       id: s.currentSongId,
@@ -1599,6 +1605,21 @@ function App() {
     return loopStart + lo;
   };
 
+  // Herbouw de cursor-tabel op het actuele tempo en her-anker de audioklok-referentie,
+  // zodat de huidige slot op zijn plek blijft. Aanroepen bij élke tempo-wijziging tijdens
+  // het spelen (globale BPM-knop én tempo-automation aan/uit/aanpassen) — anders blijft
+  // de cursor op het oude tempo lopen terwijl de audio meteen meewisselt.
+  const resyncCursorTempo = (bpmForTempo) => {
+    const sched = schedulerRef.current;
+    if (!isPlaying || !sched?.audioCtx || !slotTimesRef.current) return;
+    const base = slotTimesRef.current.loopStart;
+    const table = buildSlotTimesMs(base, sched.totalSlots, buildTempoAt(songRef.current, bpmForTempo));
+    slotTimesRef.current = table;
+    const offsetMs = table.times[sched.currentSlot - base] ?? 0;
+    // nextNoteTime = audiotijd van currentSlot — exact dezelfde referentie als seekToSlot.
+    sched.playStartAudioTime = sched.nextNoteTime - offsetMs / 1000;
+  };
+
   // Keep tempo callback in sync with song + bpm state
   const tempoAtFnRef = useRef(null);
   useEffect(() => {
@@ -1608,6 +1629,20 @@ function App() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [song, bpm]);
+
+  // Tempo-signatuur: verandert alleen als tempo-automation aan/uit gaat of punten wijzigen,
+  // niet bij gewone noot-edits. Bij wijziging tijdens spelen: cursor opnieuw synchroniseren
+  // met het nieuwe tempo (de tempoAtFnRef-effect hierboven heeft de audio al bijgewerkt).
+  const tempoSignature = song.map(p =>
+    `${p.tempoTrackEnabled !== false ? 1 : 0}:${(p.tempoTrack || []).map(t => `${t.slot}@${t.bpm}`).join(',')}`
+  ).join('|');
+  const prevTempoSigRef = useRef(tempoSignature);
+  useEffect(() => {
+    if (prevTempoSigRef.current === tempoSignature) return;
+    prevTempoSigRef.current = tempoSignature;
+    resyncCursorTempo(bpmRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tempoSignature, isPlaying]);
 
   const handleUpdateTempoTrack = (patternId, newTempoTrack) => {
     setSong(prev => prev.map(p => p.id === patternId ? { ...p, tempoTrack: newTempoTrack } : p));
@@ -1633,21 +1668,9 @@ function App() {
     setBpm(newBpm);
     if (schedulerRef.current) {
       schedulerRef.current.setBpm(newBpm);
-      // If playing, rebuild the slot-times table so the tempo change takes
-      // effect immediately (not just after the next play/seek).
-      if (isPlaying && slotTimesRef.current) {
-        const sched = schedulerRef.current;
-        const tempoFn = buildTempoAt(songRef.current, newBpm);
-        slotTimesRef.current = buildSlotTimesMs(sched.loopStart, sched.totalSlots, tempoFn);
-        // Re-anchor de cursor-klok op het nieuwe tempo zodat de huidige slot niet verspringt.
-        const ctx = sched.audioCtx;
-        if (ctx) {
-          const i = sched.currentSlot - sched.loopStart;
-          const times = slotTimesRef.current.times;
-          const offsetMs = (i >= 0 && i < times.length) ? times[i] : 0;
-          sched.playStartAudioTime = ctx.currentTime - offsetMs / 1000;
-        }
-      }
+      // Tijdens spelen: cursor herbouwen + klok her-ankeren zodat het tempo direct
+      // meegaat (niet pas bij de volgende play/seek).
+      resyncCursorTempo(newBpm);
     }
   };
 
@@ -2546,6 +2569,9 @@ function App() {
           <button
             className={`practice-mode-btn${isPulsing ? ' pulsing' : ''}`}
             onClick={() => {
+              // Verlaten van edit-mode → eerst nog niet-opgeslagen edits flushen,
+              // want vanaf nu (practice mode) wordt opslaan geblokkeerd.
+              if (!isLocked) flushAutoSave();
               setIsLocked(l => {
                 const next = !l;
                 if (next) {
