@@ -1,6 +1,15 @@
 import { jsPDF } from 'jspdf';
 import { deduplicateGongByBeat, glyphFor } from '../engine/patternLogic';
 
+// Chrome op Windows rendert de notatie-glyphs met een hogere 'top'-baseline dan
+// macOS/iOS, waardoor de onderste regel (anak + indung) te dicht bij de middellijn
+// komt. De PDF wordt als canvas-PNG gerasterd, dus de font-rendering van het
+// genererende OS wordt ingebakken — we corrigeren daarom op basis van dat OS:
+// +8px voor de bottom-symbolen (en de meelopende rust-stippen) op Windows.
+const WINDOWS_BOTTOM_SYMBOL_SHIFT = (typeof navigator !== 'undefined'
+  && (/Win/i.test(navigator.platform || '') || /Windows/i.test(navigator.userAgent || '')))
+  ? 8 : 0;
+
 // ─── Page geometry ─────────────────────────────────────────────────────────────
 // A4 portrait at ~210 dpi gives a crisp result while keeping file size sane.
 const CW = 1754; // canvas width  (px) — A4 short side at 210 dpi
@@ -419,8 +428,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   // Per-track symbol offsets — mirrored from TrackRow.css
   // anak:   top=12px above nullY,  bottom uses default
   // indung: top=16px above nullY,  bottom=9px below nullY
-  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak,   5);
-  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung, 7);
+  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak   + WINDOWS_BOTTOM_SYMBOL_SHIFT, 5);
+  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung + WINDOWS_BOTTOM_SYMBOL_SHIFT, 7);
 
   // ── 6. Gong boxes (transparent rect + center line, anak=black, indung=red) ───
   const deduplicatedGong = deduplicateGongByBeat(gong || []);
