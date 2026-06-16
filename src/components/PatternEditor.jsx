@@ -519,6 +519,12 @@ const [showBeheer, setShowBeheer] = useState(true);
         newTrack[range.start + i] = JSON.parse(JSON.stringify(clipData[i]));
     }
     updatePattern({ ...pattern, [range.trackId]: newTrack });
+    // Zet de playhead aan het eind van het geplakte fragment (geklemd binnen de track),
+    // zodat je direct vanaf daar verder kunt — consistent met snippet-invoegen.
+    if (setActiveSlot) {
+      const endSlot = Math.min(newTrack.length - 1, range.start + clipData.length);
+      setActiveSlot({ patternId: pattern.id, trackId: range.trackId, startIndex: endSlot, endIndex: endSlot });
+    }
   };
 
   const snapSlot = (slot) => magneticInput
