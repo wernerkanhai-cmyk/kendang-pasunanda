@@ -8,7 +8,7 @@ import { deduplicateGongByBeat, glyphFor } from '../engine/patternLogic';
 // +8px voor de bottom-symbolen (en de meelopende rust-stippen) op Windows.
 const WINDOWS_BOTTOM_SYMBOL_SHIFT = (typeof navigator !== 'undefined'
   && (/Win/i.test(navigator.platform || '') || /Windows/i.test(navigator.userAgent || '')))
-  ? 14 : 0;
+  ? 20 : 0;
 
 // ─── Page geometry ─────────────────────────────────────────────────────────────
 // A4 portrait at ~210 dpi gives a crisp result while keeping file size sane.
