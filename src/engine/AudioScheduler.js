@@ -133,18 +133,6 @@ export class AudioScheduler {
   // Audio-clock time waarop slot loopStart speelt — voor rAF cursor
   playStartAudioTime = 0;
 
-  getCurrentGlobalSlot() {
-    if (!this.isPlaying || !this.audioCtx) return this.loopStart;
-    const secondsPerSlot = this.getSecondsPerSlot();
-    // Subtract outputLatency so cursor aligns with what the user actually hears
-    const outputLatency = this.audioCtx.outputLatency || 0;
-    const elapsed = this.audioCtx.currentTime - this.playStartAudioTime - outputLatency;
-    if (elapsed < 0) return this.loopStart;
-    const loopLength = this.totalSlots - this.loopStart;
-    const totalSlots = Math.floor(elapsed / secondsPerSlot);
-    return this.loopStart + (totalSlots % loopLength);
-  }
-
   clickWhilePlaying = false;
   clickVolume = 0.7; // 0–1, instelbaar via UI
 
@@ -286,17 +274,6 @@ export class AudioScheduler {
   setCurrentSlot(slot) {
     this.currentSlot = slot;
     this.onTick(slot); // Update UI immediately
-  }
-
-  seekTo(slot) {
-    if (!this.isPlaying || !this.audioCtx) return;
-    clearTimeout(this.timerID);
-    this.currentSlot = slot;
-    const delay = 0.02;
-    this.nextNoteTime = this.audioCtx.currentTime + delay;
-    // Recalculate reference time so cursor shows correct slot immediately after seek
-    this.playStartAudioTime = this.nextNoteTime - (slot - this.loopStart) * this.getSecondsPerSlot();
-    this.scheduler();
   }
 
   stop() {

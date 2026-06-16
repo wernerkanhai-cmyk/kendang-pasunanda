@@ -466,7 +466,10 @@ function App() {
   const drumTapRef = useRef({ time: 0, slotIndex: 0, trackId: '' });
   const lastRewindTimeRef = useRef(0);
   const currentAudioSlotRef = useRef(0); // Werkelijke afspeelslot (gesynchroniseerd met onTick)
-  const playStartWallTimeRef = useRef(0); // Date.now() op moment dat slot 0 klinkt
+  // Output-latency (speaker pipeline) gesampled bij start van afspelen, NIET live per
+  // frame — anders verspringt de cursor t.o.v. reeds ingeplande audio zodra het OS de
+  // latency halverwege opnieuw rapporteert (Bluetooth/apparaatwissel).
+  const latencyOffsetMsRef = useRef(0);
 
   // Cursor-audio offset: negatief = cursor volgt later (compenseert AirPlay/Bluetooth latency)
   const [cursorOffsetMs, setCursorOffsetMs] = useState(() => {
@@ -1225,16 +1228,6 @@ function App() {
         if (count === 0) {
           if (schedulerRef.current?.isRecording) setIsRecording(true);
           setIsPlaying(true);
-          // nextNoteTime wordt pas NA onPrecount(0) gezet in _precount,
-          // dus lees het via een microtask zodat we de juiste waarde hebben
-          Promise.resolve().then(() => {
-            const sched = schedulerRef.current;
-            if (sched?.audioCtx) {
-              const outputLatencyMs = ((sched.audioCtx.outputLatency || 0) + (sched.audioCtx.baseLatency || 0)) * 1000;
-              const msUntilFirstNote = Math.max(0, (sched.nextNoteTime - sched.audioCtx.currentTime) * 1000);
-              playStartWallTimeRef.current = Date.now() + msUntilFirstNote + outputLatencyMs;
-            }
-          });
         }
       },
       // onScheduleAudio — samples schedulen op exact audio-tijdstip (100ms vooruit)
@@ -1349,13 +1342,17 @@ function App() {
   // Cursor: AudioContext-clock interval — exact dezelfde klok als de audio scheduler
   useEffect(() => {
     if (!isPlaying) return;
+    // Sample output-latency ÉÉN keer bij start. Live per frame lezen liet de cursor
+    // verspringen t.o.v. al ingeplande audio bij OS-herrapportage. baseLatency wordt
+    // bewust weggelaten: de canonieke "wanneer hoorbaar"-tijd is geplande tijd +
+    // outputLatency. (Safari kan negatief rapporteren → Math.abs.)
+    const ctx0 = schedulerRef.current?.audioCtx;
+    latencyOffsetMsRef.current = ctx0 ? Math.abs(ctx0.outputLatency || 0) * 1000 : 0;
     const id = setInterval(() => {
       const sched = schedulerRef.current;
       if (!sched?.isPlaying || !sched.audioCtx) return;
       const ctx = sched.audioCtx;
-      // Safari rapporteert outputLatency als negatief getal (omgekeerd teken) — gebruik Math.abs
-      const outputLatencyS = Math.abs(ctx.outputLatency || 0) + Math.abs(ctx.baseLatency || 0);
-      const elapsed = (ctx.currentTime - sched.playStartAudioTime - outputLatencyS) * 1000 + cursorOffsetMsRef.current;
+      const elapsed = (ctx.currentTime - sched.playStartAudioTime) * 1000 - latencyOffsetMsRef.current + cursorOffsetMsRef.current;
       if (elapsed < 0) return;
 
       // Use precomputed slot time table when available (variable tempo), fall back to constant BPM
@@ -1642,9 +1639,14 @@ function App() {
         const sched = schedulerRef.current;
         const tempoFn = buildTempoAt(songRef.current, newBpm);
         slotTimesRef.current = buildSlotTimesMs(sched.loopStart, sched.totalSlots, tempoFn);
-        // Resync wall clock so the cursor doesn't jump
-        const spsMs = sched.getSecondsPerSlot() * 1000;
-        playStartWallTimeRef.current = Date.now() - (sched.currentSlot - sched.loopStart) * spsMs + cursorOffsetMsRef.current;
+        // Re-anchor de cursor-klok op het nieuwe tempo zodat de huidige slot niet verspringt.
+        const ctx = sched.audioCtx;
+        if (ctx) {
+          const i = sched.currentSlot - sched.loopStart;
+          const times = slotTimesRef.current.times;
+          const offsetMs = (i >= 0 && i < times.length) ? times[i] : 0;
+          sched.playStartAudioTime = ctx.currentTime - offsetMs / 1000;
+        }
       }
     }
   };
@@ -1715,11 +1717,6 @@ function App() {
       } else {
         schedulerRef.current.clickWhilePlaying = metronomeMode === 'on';
         await schedulerRef.current.play(false, globalStart);
-        // Wall-clock starttijd voor cursor — gebruik exact geplande audiotijd (zoals precount-pad)
-        const ctx = schedulerRef.current.audioCtx;
-        const outputLatencyMs = ctx ? ((ctx.outputLatency || 0) + (ctx.baseLatency || 0)) * 1000 : 0;
-        const msUntilFirstNote = Math.max(0, (schedulerRef.current.playStartAudioTime - ctx.currentTime) * 1000);
-        playStartWallTimeRef.current = Date.now() + msUntilFirstNote + outputLatencyMs;
         setIsPlaying(true);
       }
       const { patternId, localSlot } = globalToLocal(globalStart, song);
@@ -1739,9 +1736,6 @@ function App() {
       schedulerRef.current.stopAtEnd = true;
       // Resync the visual cursor to the new loop bounds so it doesn't drift.
       if (isPlaying) {
-        const sched = schedulerRef.current;
-        const spsMs = sched.getSecondsPerSlot() * 1000;
-        playStartWallTimeRef.current = Date.now() - (sched.currentSlot - 0) * spsMs + cursorOffsetMsRef.current;
         slotTimesRef.current = null; // force constant-BPM fallback
       }
     }
@@ -1767,12 +1761,7 @@ function App() {
             schedulerRef.current.setPendingLoopAfterCurrentLoop(currentLoopEnd, total);
             schedulerRef.current.onLoopSwitch = (start, end) => {
               slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
-              // Resync wall clock so the visual cursor aligns with the new loop origin
-              const sched = schedulerRef.current;
-              if (sched) {
-                const spsMs = sched.getSecondsPerSlot() * 1000;
-                playStartWallTimeRef.current = Date.now() - (sched.currentSlot - start) * spsMs + cursorOffsetMsRef.current;
-              }
+              // playStartAudioTime wordt door de scheduler bij de loop-wissel herankerd (nextNote)
             };
           } else {
             schedulerRef.current.setLoopBounds(0, total);
@@ -1795,11 +1784,6 @@ function App() {
             schedulerRef.current.setPendingLoopAfterCurrentMeasure(globalStart, globalEnd);
             schedulerRef.current.onLoopSwitch = (start, end) => {
               slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
-              const sched = schedulerRef.current;
-              if (sched) {
-                const spsMs = sched.getSecondsPerSlot() * 1000;
-                playStartWallTimeRef.current = Date.now() - (sched.currentSlot - start) * spsMs + cursorOffsetMsRef.current;
-              }
             };
           } else {
             schedulerRef.current.setLoopBounds(globalStart, globalEnd);
@@ -1832,17 +1816,44 @@ function App() {
       // Wanneer de scheduler de wissel uitvoert, herbouw slotTimesRef
       schedulerRef.current.onLoopSwitch = (start, end) => {
         slotTimesRef.current = buildSlotTimesMs(start, end, buildTempoAt(songRef.current, bpmRef.current));
-        const sched = schedulerRef.current;
-        if (sched) {
-          const spsMs = sched.getSecondsPerSlot() * 1000;
-          playStartWallTimeRef.current = Date.now() - (sched.currentSlot - start) * spsMs + cursorOffsetMsRef.current;
-        }
       };
     } else {
       schedulerRef.current.setLoopBounds(loopStartGlobal, loopEndGlobal);
       schedulerRef.current.setCurrentSlot(loopStartGlobal);
       slotTimesRef.current = buildSlotTimesMs(loopStartGlobal, loopEndGlobal, buildTempoAt(song, bpm));
     }
+  };
+
+  // Eén bron-van-waarheid voor seeken tijdens afspelen. handleSeek / rewind / stepBack
+  // gaan hier allemaal doorheen, zodat cursor en audio na een sprong niet kunnen
+  // divergeren. Loopgrenzen blijven intact; de playhead is losgekoppeld van loopStart.
+  const seekToSlot = (globalSlot) => {
+    const sched = schedulerRef.current;
+    const ctx = sched?.audioCtx;
+    if (!sched || !ctx) return;
+    // Bij een expliciete loop is de basis loopStart (nodig voor correcte wrap);
+    // zonder loop (stopAtEnd) is de basis 0 zodat je overal in de song kunt seeken.
+    const base = sched.stopAtEnd ? 0 : sched.loopStart;
+    const target = Math.max(base, Math.min(globalSlot, sched.totalSlots - 1));
+    // Slot-tijd-tabel die [base, totalSlots] dekt — herbouw als die niet meer klopt.
+    let table = slotTimesRef.current;
+    if (!table || table.loopStart !== base ||
+        table.times.length !== (sched.totalSlots - base + 1)) {
+      const tempoFn = tempoAtFnRef.current || buildTempoAt(songRef.current, bpmRef.current);
+      table = buildSlotTimesMs(base, sched.totalSlots, tempoFn);
+      slotTimesRef.current = table;
+    }
+    const offsetMs = table.times[target - base] ?? 0;
+    // Snijd audio af die al in het lookahead-venster stond zodat oude noten niet doorklinken.
+    samplerRef.current?.silenceAll();
+    const delay = 0.02;
+    const nextNoteTime = ctx.currentTime + delay;
+    sched.currentSlot = target;
+    sched.nextNoteTime = nextNoteTime;
+    // elapsed=offsetMs ↔ slot `target`, in exact hetzelfde variabel-tempo model als de cursor.
+    sched.playStartAudioTime = nextNoteTime - offsetMs / 1000;
+    clearTimeout(sched.timerID);
+    sched.scheduler();
   };
 
   const rewind = () => {
@@ -1862,7 +1873,7 @@ function App() {
     }
 
     if (isPlaying) {
-      schedulerRef.current.seekTo(targetGlobal);
+      seekToSlot(targetGlobal);
     } else {
       schedulerRef.current.setCurrentSlot(targetGlobal);
     }
@@ -1873,35 +1884,7 @@ function App() {
   const handleSeek = (patternId, localSlot) => {
     if (!isPlaying || !schedulerRef.current) return;
     const globalSlot = localToGlobal(patternId, localSlot, song);
-    const sched = schedulerRef.current;
-    const ctx = sched.audioCtx;
-    if (!ctx) return;
-
-    // Bepaal loopEnd (zelfde logica als togglePlay)
-    const lr = loopRangeRef.current;
-    const activeSecs = loopedSections.length > 0 ? song.filter(p => loopedSections.includes(p.id)) : null;
-    const loopEnd = activeSecs
-      ? localToGlobal(activeSecs[activeSecs.length - 1].id, 0, song) + activeSecs[activeSecs.length - 1].anak.length
-      : lr
-        ? localToGlobal(lr.patternId, lr.endSlot, song)
-        : song.reduce((sum, p) => sum + p.anak.length, 0);
-
-    // Reset loopStart naar de nieuwe positie zodat cursor elapsed=0 correct mapt
-    sched.loopStart = globalSlot;
-    sched.totalSlots = loopEnd;
-    slotTimesRef.current = buildSlotTimesMs(globalSlot, loopEnd, buildTempoAt(song, bpm));
-
-    const delay = 0.02;
-    const nextNoteTime = ctx.currentTime + delay;
-    sched.playStartAudioTime = nextNoteTime; // elapsed=0 = globalSlot
-    clearTimeout(sched.timerID);
-    sched.currentSlot = globalSlot;
-    sched.nextNoteTime = nextNoteTime;
-    sched.scheduler();
-    // slotTimesRef was just rebuilt with globalSlot as loopStart, so elapsed=0
-    // maps to globalSlot. Sync the wall clock to match.
-    const outputLatencyMs = ctx ? ((Math.abs(ctx.outputLatency || 0) + Math.abs(ctx.baseLatency || 0)) * 1000) : 0;
-    playStartWallTimeRef.current = Date.now() + outputLatencyMs + cursorOffsetMsRef.current;
+    seekToSlot(globalSlot);
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
@@ -1919,18 +1902,7 @@ function App() {
     const targetGlobal = Math.max(0, globalCurrent === measureStart ? measureStart - 48 : measureStart);
 
     if (isPlaying) {
-      schedulerRef.current.seekTo(targetGlobal);
-      // Update wall-clock reference so the cursor interval snaps to the new position
-      if (slotTimesRef.current) {
-        const { loopStart, times } = slotTimesRef.current;
-        const i = targetGlobal - loopStart;
-        const offsetMs = (i >= 0 && i < times.length) ? times[i] : 0;
-        playStartWallTimeRef.current = Date.now() - offsetMs + cursorOffsetMsRef.current;
-      } else {
-        const spsMs = schedulerRef.current.getSecondsPerSlot() * 1000;
-        const loopStart = schedulerRef.current.loopStart;
-        playStartWallTimeRef.current = Date.now() - (targetGlobal - loopStart) * spsMs + cursorOffsetMsRef.current;
-      }
+      seekToSlot(targetGlobal);
     } else {
       schedulerRef.current.setCurrentSlot(targetGlobal);
     }
