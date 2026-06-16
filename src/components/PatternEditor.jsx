@@ -1212,100 +1212,6 @@ const [showBeheer, setShowBeheer] = useState(true);
                    title={t('playPause')}
                  >{isPlaying ? '⏸' : '▶'}</button>
 
-                 {!transportMinimized && <>
-                 <button
-                   onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
-                   style={{ background: isLooped ? '#f97316' : 'transparent', color: isLooped ? '#fff' : '#94a3b8', border: `1px solid ${isLooped ? '#f97316' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
-                   title={t('loopSection')}
-                 >↺</button>
-
-                 {/* Metronoomknop */}
-                 <div ref={metronomeBtnRef} style={{ position: 'relative' }}>
-                   <button
-                     onPointerDown={(e) => {
-                       e.stopPropagation();
-                       metronomeHoldRef.current = setTimeout(() => {
-                         metronomeHoldRef.current = null;
-                         if (metronomeBtnRef.current) {
-                           const r = metronomeBtnRef.current.getBoundingClientRect();
-                           setMetronomeMenuPos({ top: r.bottom + 4, left: r.left });
-                         }
-                         setShowMetronomeMenu(true);
-                       }, 400);
-                     }}
-                     onPointerUp={(e) => {
-                       e.stopPropagation();
-                       if (metronomeHoldRef.current) {
-                         clearTimeout(metronomeHoldRef.current);
-                         metronomeHoldRef.current = null;
-                         setMetronomeMode(v => v ? '' : 'on');
-                       }
-                     }}
-                     onPointerLeave={() => {
-                       if (metronomeHoldRef.current) {
-                         clearTimeout(metronomeHoldRef.current);
-                         metronomeHoldRef.current = null;
-                       }
-                     }}
-                     style={{ position: 'relative', background: metronomeMode ? 'rgba(167,139,250,0.15)' : 'transparent', color: metronomeMode ? '#a78bfa' : '#94a3b8', border: `1px solid ${metronomeMode ? '#8b5cf6' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
-                     title={`${t('metronome')} — houd ingedrukt voor opties`}
-                   >
-                     <svg width="11" height="13" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                       <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
-                       <line x1="5.5" y1="2.5" x2="8.5" y2="10"/>
-                       <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
-                     </svg>
-                   </button>
-                   {/* Tappable chevron — opens the menu directly. Sits on top of the
-                       button (absolute) but is its own element so the nested-pointer
-                       woes on Safari iOS are avoided. */}
-                   <span
-                     onPointerDown={(e) => {
-                       e.stopPropagation();
-                       e.preventDefault();
-                       if (metronomeHoldRef.current) { clearTimeout(metronomeHoldRef.current); metronomeHoldRef.current = null; }
-                       if (metronomeBtnRef.current) {
-                         const r = metronomeBtnRef.current.getBoundingClientRect();
-                         setMetronomeMenuPos({ top: r.bottom + 4, left: r.left });
-                       }
-                       setShowMetronomeMenu(true);
-                     }}
-                     style={{
-                       position: 'absolute', right: 1, bottom: 1, zIndex: 2,
-                       fontSize: '0.7rem', lineHeight: 1,
-                       color: metronomeMode ? '#a78bfa' : '#94a3b8', opacity: 0.85,
-                       padding: '4px 5px', cursor: 'pointer', userSelect: 'none',
-                     }}
-                     title="Open metronoom-menu"
-                   >▾</span>
-                   {showMetronomeMenu && ReactDOM.createPortal(
-                     <>
-                       <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
-                         onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setShowMetronomeMenu(false); }}
-                       />
-                       <div
-                         onPointerDown={(e) => e.stopPropagation()}
-                         style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-                         {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
-                           <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#a78bfa' : '#94a3b8', background: metronomeMode === val ? 'rgba(167,139,250,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
-                             {label}
-                           </button>
-                         ))}
-                         <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onPointerDown={(e) => e.stopPropagation()}>
-                           <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
-                           <input
-                             type="range" min="0" max="1" step="0.05"
-                             value={metronomeVolume}
-                             onChange={(e) => setMetronomeVolume?.(parseFloat(e.target.value))}
-                             style={{ width: '100%', accentColor: '#a78bfa', cursor: 'pointer' }}
-                           />
-                         </div>
-                       </div>
-                     </>,
-                     document.body
-                   )}
-                 </div>
-                 </>}
               </div>,
               document.body
            )}
@@ -1646,9 +1552,30 @@ const [showBeheer, setShowBeheer] = useState(true);
               </div>
               {trackIdx === 0 && (instrumentPack?.tracks?.length ?? 0) > 1 && (
                 <div style={{ height: '14px', width: '100%', margin: '4px 0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '3px' }}>
-                  {isLocked && (
+                  <div ref={metronomeBtnRef} style={{ position: 'relative', flexShrink: 0, lineHeight: 0 }}>
                     <button
-                      onClick={(e) => { e.stopPropagation(); setMetronomeMode(v => v ? '' : 'on'); }}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        metronomeHoldRef.current = setTimeout(() => {
+                          metronomeHoldRef.current = null;
+                          if (metronomeBtnRef.current) {
+                            const r = metronomeBtnRef.current.getBoundingClientRect();
+                            setMetronomeMenuPos({ top: r.bottom + 4, left: Math.max(4, r.right - 150) });
+                          }
+                          setShowMetronomeMenu(true);
+                        }, 400);
+                      }}
+                      onPointerUp={(e) => {
+                        e.stopPropagation();
+                        if (metronomeHoldRef.current) {
+                          clearTimeout(metronomeHoldRef.current);
+                          metronomeHoldRef.current = null;
+                          setMetronomeMode(v => v ? '' : 'on');
+                        }
+                      }}
+                      onPointerLeave={() => {
+                        if (metronomeHoldRef.current) { clearTimeout(metronomeHoldRef.current); metronomeHoldRef.current = null; }
+                      }}
                       style={{
                         flexShrink: 0, width: '20px', height: '20px',
                         background: metronomeMode ? 'rgba(167,139,250,0.2)' : 'transparent',
@@ -1659,7 +1586,7 @@ const [showBeheer, setShowBeheer] = useState(true);
                         pointerEvents: 'auto',
                         boxShadow: metronomeMode ? '0 0 4px rgba(167,139,250,0.4)' : 'none',
                       }}
-                      title={metronomeMode ? 'Metronoom uit' : 'Metronoom aan'}
+                      title={`${t('metronome')} — houd ingedrukt voor opties`}
                     >
                       <svg width="10" height="12" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
@@ -1667,7 +1594,33 @@ const [showBeheer, setShowBeheer] = useState(true);
                         <circle cx="8.5" cy="10" r="1" fill="currentColor" stroke="none"/>
                       </svg>
                     </button>
-                  )}
+                    {showMetronomeMenu && ReactDOM.createPortal(
+                      <>
+                        <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
+                          onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setShowMetronomeMenu(false); }}
+                        />
+                        <div
+                          onPointerDown={(e) => e.stopPropagation()}
+                          style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+                          {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
+                            <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#a78bfa' : '#94a3b8', background: metronomeMode === val ? 'rgba(167,139,250,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                              {label}
+                            </button>
+                          ))}
+                          <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onPointerDown={(e) => e.stopPropagation()}>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
+                            <input
+                              type="range" min="0" max="1" step="0.05"
+                              value={metronomeVolume}
+                              onChange={(e) => setMetronomeVolume?.(parseFloat(e.target.value))}
+                              style={{ width: '100%', accentColor: '#a78bfa', cursor: 'pointer' }}
+                            />
+                          </div>
+                        </div>
+                      </>,
+                      document.body
+                    )}
+                  </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
                     style={{
