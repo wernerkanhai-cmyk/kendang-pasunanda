@@ -157,13 +157,10 @@ const [showBeheer, setShowBeheer] = useState(true);
   const playheadDragRef = useRef(false);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
-  const [bpmEditing, setBpmEditing] = useState(false);
   const [transportMinimized, setTransportMinimized] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [blinkBtn, setBlinkBtn] = useState(null); // short flash on toolbar buttons
   const blink = (id, fn) => { fn(); setBlinkBtn(id); setTimeout(() => setBlinkBtn(null), 150); };
-  const [bpmInput, setBpmInput] = useState('');
-  const bpmDragRef = useRef(null); // { startY, moved }
   const totalMeasures = Math.ceil(pattern.anak.length / 48);
   const totalSlots = pattern.anak.length;
 
@@ -1118,103 +1115,6 @@ const [showBeheer, setShowBeheer] = useState(true);
         <div style={{ flex: '0 0 4.5rem' }} />
         <div className="pattern-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-           {isActive && ReactDOM.createPortal(
-              <div
-                className="transport-controls"
-                onDoubleClick={(e) => { e.stopPropagation(); setTransportMinimized(v => !v); }}
-                style={{
-                  position: 'fixed',
-                  ...(transportPos
-                    ? { left: transportPos.x, top: transportPos.y, bottom: 'auto', transform: 'none' }
-                    : { bottom: '1.2rem', left: '50%', transform: 'translateX(-50%)' }),
-                  display: 'flex', alignItems: 'center', gap: '4px',
-                  background: 'rgba(15,23,42,0.92)', backdropFilter: 'blur(12px)',
-                  border: '1px solid #334155', borderRadius: '12px',
-                  padding: '6px 10px', zIndex: 500, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                  userSelect: 'none',
-                }}
-              >
-                {/* Drag handle */}
-                <div
-                  title={t('moveSnippet')}
-                  style={{ cursor: 'grab', color: '#475569', padding: '0 4px 0 0', fontSize: '0.8rem', lineHeight: 1 }}
-                  onMouseDown={(e) => { e.preventDefault(); startTransportDrag(e.clientX, e.clientY); }}
-                  onTouchStart={(e) => { e.preventDefault(); startTransportDrag(e.touches[0].clientX, e.touches[0].clientY); }}
-                >⠿</div>
-                 {!transportMinimized && <>
-                 {/* Tempo */}
-                 <div style={{ border: '1px solid #475569', borderRadius: '4px', height: '2.2rem', display: 'flex', alignItems: 'center', padding: '0 0.4rem', gap: '3px', boxSizing: 'border-box', background: 'transparent' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                       <button onClick={(e) => { e.stopPropagation(); handleBpmChange(1); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0', fontSize: '0.55rem', lineHeight: 1 }}>▲</button>
-                       <button onClick={(e) => { e.stopPropagation(); handleBpmChange(-1); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0', fontSize: '0.55rem', lineHeight: 1 }}>▼</button>
-                    </div>
-                    {bpmEditing ? (
-                      <input
-                        type="number"
-                        value={bpmInput}
-                        autoFocus
-                        onChange={(e) => setBpmInput(e.target.value)}
-                        onBlur={() => {
-                          const val = parseInt(bpmInput, 10);
-                          if (!isNaN(val)) handleBpmChange(Math.max(20, Math.min(140, val)) - bpm);
-                          setBpmEditing(false);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') e.currentTarget.blur();
-                          if (e.key === 'Escape') setBpmEditing(false);
-                          e.stopPropagation();
-                        }}
-                        style={{ width: '4ch', fontWeight: 'bold', fontSize: '1.1rem', color: '#fff', background: '#334155', border: '1px solid #60a5fa', borderRadius: '3px', textAlign: 'center', padding: '0.1rem' }}
-                      />
-                    ) : (
-                      <span
-                        style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#94a3b8', touchAction: 'none', userSelect: 'none', cursor: 'ns-resize', padding: '0 0.2rem' }}
-                        onPointerDown={(e) => {
-                          e.currentTarget.setPointerCapture(e.pointerId);
-                          bpmDragRef.current = { startY: e.clientY, moved: false };
-                        }}
-                        onPointerMove={(e) => {
-                          if (!bpmDragRef.current) return;
-                          const delta = bpmDragRef.current.startY - e.clientY;
-                          if (Math.abs(delta) >= 5) {
-                            bpmDragRef.current.moved = true;
-                            handleBpmChange(delta > 0 ? 1 : -1);
-                            bpmDragRef.current.startY = e.clientY;
-                          }
-                        }}
-                        onPointerUp={() => {
-                          if (bpmDragRef.current && !bpmDragRef.current.moved) {
-                            setBpmInput(String(bpm));
-                            setBpmEditing(true);
-                          }
-                          bpmDragRef.current = null;
-                        }}
-                      >
-                        {realtimeBpm !== null ? (
-                          <span style={{ color: '#d4af37' }}>{realtimeBpm}</span>
-                        ) : bpm}
-                      </span>
-                    )}
-                 </div>
-                 </>}
-
-                 <button
-                   onClick={(e) => { e.stopPropagation(); stepBack(); }}
-                   onDoubleClick={(e) => { e.stopPropagation(); rewind(); }}
-                   style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
-                   title={t('rewindOneMeasure')}
-                 >◀</button>
-
-                 <button
-                   onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                   onDoubleClick={(e) => { e.stopPropagation(); rewind(); }}
-                   style={{ background: isPlaying ? '#22c55e' : 'transparent', color: isPlaying ? '#fff' : '#94a3b8', border: `1px solid ${isPlaying ? '#22c55e' : '#475569'}`, padding: '0 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', height: '2.75rem', minWidth: '2.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}
-                   title={t('playPause')}
-                 >{isPlaying ? '⏸' : '▶'}</button>
-
-              </div>,
-              document.body
-           )}
 
            {/* Move snippet to folder dialog */}
            {moveSnippetTarget && ReactDOM.createPortal((() => {
