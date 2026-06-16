@@ -98,7 +98,6 @@ const PatternEditor = ({
   const [moveSnippetFolderInput, setMoveSnippetFolderInput] = useState('');
   const [collapsedSnippetFolders, setCollapsedSnippetFolders] = useState(() => new Set());
   const [snippetSelection, setSnippetSelection] = useState(() => new Set());
-const [showBeheer, setShowBeheer] = useState(true);
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
   const [metronomeMenuPos, setMetronomeMenuPos] = useState({ top: 0, left: 0 });
   const metronomeBtnRef = useRef(null);
@@ -646,19 +645,6 @@ const [showBeheer, setShowBeheer] = useState(true);
           className="pattern-name-input"
           style={{ fontSize: '16px' }}
         />
-        
-        {/* Song-beheer toggle */}
-        <button
-          onClick={(e) => { e.stopPropagation(); setShowBeheer(v => !v); }}
-          style={{
-            marginLeft: '0.3rem', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
-            background: showBeheer ? '#334155' : 'transparent',
-            color: showBeheer ? '#e2e8f0' : '#64748b',
-            border: `1px solid ${showBeheer ? '#475569' : 'var(--border-subtle)'}`,
-            borderRadius: '4px', cursor: 'pointer',
-          }}
-          title={t('manageTooltip')}
-        >{t('manage')}</button>
 
         {/* Snippet Library Controls */}
         <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: !isLocked ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>

@@ -67,8 +67,6 @@ const T = {
     // Language
     languageLabel: 'Language',
     // Pattern editor toolbar
-    manage: '☰ Manage',
-    manageTooltip: 'Manage sections and snippets',
     snippetNamePlaceholder: 'Name...',
     snippetFolderPlaceholder: 'Folder...',
     saveSnippetTooltip: 'Save selection as snippet',
@@ -173,8 +171,6 @@ const T = {
     volumeLabel: 'Volume',
     pitchLabel: 'Toonhoogte',
     languageLabel: 'Taal',
-    manage: '☰ Beheer',
-    manageTooltip: 'Song-beheer: maten en snippets',
     snippetNamePlaceholder: 'Naam...',
     snippetFolderPlaceholder: 'Map...',
     saveSnippetTooltip: 'Selectie Opslaan als Snippet',
@@ -275,8 +271,6 @@ const T = {
     volumeLabel: 'Volume',
     pitchLabel: 'Nada',
     languageLabel: 'Bahasa',
-    manage: '☰ Kelola',
-    manageTooltip: 'Kelola bagian dan snippet',
     snippetNamePlaceholder: 'Nama...',
     snippetFolderPlaceholder: 'Folder...',
     saveSnippetTooltip: 'Simpan pilihan sebagai snippet',
