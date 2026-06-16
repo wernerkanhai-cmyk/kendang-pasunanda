@@ -1687,10 +1687,12 @@ function App() {
 
     if (isPlaying && !isRecording) {
       schedulerRef.current.pause();
+      samplerRef.current?.silenceAll();  // snijd audio af die al in het lookahead-venster stond
       setIsPlaying(false);
       setRealtimeBpm(null);
     } else if (isPlaying && isRecording) {
       schedulerRef.current.pause();
+      samplerRef.current?.silenceAll();  // snijd audio af die al in het lookahead-venster stond
       setIsPlaying(false);
       setIsRecording(false);
     } else {
@@ -1739,8 +1741,8 @@ function App() {
         schedulerRef.current.startPlayPrecount(globalStart, 8);
       } else {
         schedulerRef.current.clickWhilePlaying = metronomeMode === 'on';
+        setIsPlaying(true);  // directe UI-respons; play() zet daarna de scheduler-state
         await schedulerRef.current.play(false, globalStart);
-        setIsPlaying(true);
       }
       const { patternId, localSlot } = globalToLocal(globalStart, song);
       setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
