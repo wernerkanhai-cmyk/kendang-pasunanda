@@ -29,7 +29,7 @@ const getVerticalPositionClass = (value, hand) => {
   return 'pos-line';
 };
 
-const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, isLocked = false }) => {
+const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, isLocked = false, selectMode = false, onRangeSelect }) => {
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
   const lastTapRef = useRef({ slotIndex: -1, time: 0 });
@@ -38,6 +38,52 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
   const touchMovedRef = useRef(false);
   // Pinch-zoom detectie: tijdstip waarop 2+ vingers tegelijk het scherm raakten
   const pinchTimeRef = useRef(0);
+  // Selectie-tool: anker-slot waarvandaan gesleept wordt (null = niet aan het selecteren)
+  const selectAnchorRef = useRef(null);
+
+  // Slot-index onder een schermpunt — werkt ook tijdens pointer-capture (drag).
+  const slotIndexFromPoint = (x, y) => {
+    const el = document.elementFromPoint(x, y);
+    const cell = el && el.closest && el.closest('[data-slot-index]');
+    if (!cell) return null;
+    const v = parseInt(cell.getAttribute('data-slot-index'), 10);
+    return Number.isNaN(v) ? null : v;
+  };
+
+  // Drag-to-select: sleep over de tijdlijn om een bereik te selecteren (geen noten verschuiven).
+  // Met Shift blijft het bestaande beginpunt staan en pas je alleen het eindpunt aan
+  // (selectie groter/kleiner maken).
+  const handleSelectPointerDown = (e) => {
+    if (isLocked) return;
+    const idx = slotIndexFromPoint(e.clientX, e.clientY);
+    if (idx == null) return;
+    e.preventDefault();
+    const anchor = (e.shiftKey && activeRange) ? activeRange.start : idx;
+    selectAnchorRef.current = anchor;
+    onRangeSelect && onRangeSelect(anchor, idx);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  };
+  const handleSelectPointerMove = (e) => {
+    if (selectAnchorRef.current == null) return;
+    const idx = slotIndexFromPoint(e.clientX, e.clientY);
+    if (idx == null) return;
+    onRangeSelect && onRangeSelect(selectAnchorRef.current, idx);
+  };
+  const handleSelectPointerUp = (e) => {
+    if (selectAnchorRef.current == null) return;
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
+    selectAnchorRef.current = null;
+  };
+  // Sleepbaar handvat aan een uiteinde van de selectie (touch/tablet): het tegenoverliggende
+  // uiteinde (fixedEnd, inclusief slot-index) blijft vast terwijl je dit uiteinde versleept.
+  const HANDLE_W = 16;
+  const handleResizePointerDown = (fixedEnd) => (e) => {
+    if (isLocked) return;
+    e.stopPropagation();
+    e.preventDefault();
+    selectAnchorRef.current = fixedEnd;
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  };
 
   useEffect(() => {
     if (!popup) return;
@@ -441,7 +487,38 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
   return (
     <div className={`track-row theme-${theme}`}>
 
-      <div className="slots-container" style={{ '--sw': slotWidth + 'px' }} onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverSlot(null); }}>
+      <div
+        className={`slots-container${selectMode ? ' select-mode' : ''}`}
+        style={{ '--sw': slotWidth + 'px' }}
+        onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverSlot(null); }}
+        onPointerDown={selectMode ? handleSelectPointerDown : undefined}
+        onPointerMove={selectMode ? handleSelectPointerMove : undefined}
+        onPointerUp={selectMode ? handleSelectPointerUp : undefined}
+        onPointerCancel={selectMode ? handleSelectPointerUp : undefined}
+      >
+        {/* Selectie-handvatten — sleep een uiteinde om de selectie groter/kleiner te maken
+            (touch/tablet-alternatief voor Shift). Linker handvat houdt het eindpunt vast,
+            rechter handvat houdt het beginpunt vast. */}
+        {selectMode && activeRange && activeRange.end > activeRange.start && (
+          <>
+            <div
+              className="select-handle"
+              style={{ left: activeRange.start * slotWidth - HANDLE_W / 2, width: HANDLE_W }}
+              onPointerDown={handleResizePointerDown(activeRange.end - 1)}
+              onPointerMove={handleSelectPointerMove}
+              onPointerUp={handleSelectPointerUp}
+              onPointerCancel={handleSelectPointerUp}
+            />
+            <div
+              className="select-handle"
+              style={{ left: activeRange.end * slotWidth - HANDLE_W / 2, width: HANDLE_W }}
+              onPointerDown={handleResizePointerDown(activeRange.start)}
+              onPointerMove={handleSelectPointerMove}
+              onPointerUp={handleSelectPointerUp}
+              onPointerCancel={handleSelectPointerUp}
+            />
+          </>
+        )}
         {/* Render the calculated horizontal rhythmic beams */}
         {beams.map((beam, i) => {
           const leftPos = beam.startIdx * slotWidth;
@@ -518,7 +595,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
               key={index}
               data-slot-index={index}
               className={`slot-cell ${borderClasses} ${isLoopRange ? 'loop-range' : ''} ${isActive ? 'active-slot' : ''} ${dragOverSlot === index ? 'drop-target' : ''}`}
-              onClick={(e) => { e.stopPropagation(); if (Date.now() - pinchTimeRef.current < 600) return; onSlotClick(index, e.shiftKey); }}
+              onClick={(e) => { e.stopPropagation(); if (selectMode) return; if (Date.now() - pinchTimeRef.current < 600) return; onSlotClick(index, e.shiftKey); }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 if (isLocked) return;
@@ -532,6 +609,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
               onContextMenu={(e) => openPopup(e, index)}
               onTouchEnd={(e) => {
                 // Suppress if a touch drag or pinch-zoom just completed
+                if (selectMode) return;
                 if (touchMovedRef.current) return;
                 if (Date.now() - pinchTimeRef.current < 600) return;
                 if (isLocked) return;
@@ -557,10 +635,10 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
               {/* Data symbols (notes and data rests) — soundId → glyph via NotationPack */}
               {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
                 <span
-                  draggable
+                  draggable={!selectMode}
                   onDragStart={(e) => handleDragStart(e, index, 'top', slot.top)}
                   onDragEnd={() => setDragOverSlot(null)}
-                  onTouchStart={(e) => handleTouchStart(e, index, 'top', slot.top)}
+                  onTouchStart={selectMode ? undefined : (e) => handleTouchStart(e, index, 'top', slot.top)}
                   className={`kendang-font ${isRestTop ? 'slot-rest' : 'slot-symbol'} ${posClassTop} color-${trackId} draggable-note`}
                 >
                   {glyphFor(slot.top, notationPack)}
@@ -568,10 +646,10 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
               )}
               {slot.bottom !== '' && !collapsedRests.has(`${index}-bottom`) && (
                 <span
-                  draggable
+                  draggable={!selectMode}
                   onDragStart={(e) => handleDragStart(e, index, 'bottom', slot.bottom)}
                   onDragEnd={() => setDragOverSlot(null)}
-                  onTouchStart={(e) => handleTouchStart(e, index, 'bottom', slot.bottom)}
+                  onTouchStart={selectMode ? undefined : (e) => handleTouchStart(e, index, 'bottom', slot.bottom)}
                   className={`kendang-font ${isRestBottom ? 'slot-rest' : 'slot-symbol'} ${posClassBottom} color-${trackId} draggable-note`}
                 >
                   {glyphFor(slot.bottom, notationPack)}

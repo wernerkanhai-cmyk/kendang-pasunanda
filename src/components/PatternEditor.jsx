@@ -1408,10 +1408,10 @@ const [showBeheer, setShowBeheer] = useState(true);
           <button
             onClick={(e) => { e.stopPropagation(); setTouchSelectMode(v => !v); }}
             style={{ background: touchSelectMode ? 'rgba(251,146,60,0.15)' : '#1e293b', color: touchSelectMode ? '#fb923c' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: `1px solid ${touchSelectMode ? '#f97316' : '#334155'}`, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-            title="Select range"
+            title={touchSelectMode ? 'Selectie-tool aan — sleep over de tijdlijn (noten verschuiven niet). Klik om uit te zetten.' : 'Selectie-tool — sleep over de tijdlijn om een bereik te selecteren'}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="1" y="4" width="13" height="7" rx="1"/><line x1="4" y1="4" x2="4" y2="11"/><line x1="11" y1="4" x2="11" y2="11"/>
+              <line x1="7.5" y1="1" x2="7.5" y2="14"/><line x1="1" y1="7.5" x2="14" y2="7.5"/>
             </svg>
           </button>
           <button
@@ -1629,7 +1629,9 @@ const [showBeheer, setShowBeheer] = useState(true);
                     theme={track.id}
                     activeRange={activeRangeObj?.trackId === track.id ? activeRangeObj : null}
                     loopRange={loopRangeObj}
-                    onSlotClick={(index, isShift) => handleSlotClick(track.id, index, isShift || touchSelectMode)}
+                    onSlotClick={(index, isShift) => handleSlotClick(track.id, index, isShift)}
+                    selectMode={touchSelectMode}
+                    onRangeSelect={(a, b) => setActiveSlot && setActiveSlot({ patternId: pattern.id, trackId: track.id, startIndex: Math.min(a, b), endIndex: Math.max(a, b) + 1 })}
                     gridResolution={gridResolution}
                     slotWidth={slotWidth}
                     onNoteMove={handleNoteMove}

@@ -91,6 +91,41 @@
   cursor: grabbing;
 }
 
+/* Selectie-tool actief: crosshair-cursor over de hele track-rij, en geen
+   native scroll/drag tijdens het slepen zodat slepen een bereik selecteert. */
+.slots-container.select-mode,
+.slots-container.select-mode .slot-cell,
+.slots-container.select-mode .draggable-note {
+  cursor: crosshair;
+}
+.slots-container.select-mode {
+  touch-action: none;
+}
+
+/* Sleepbare handvatten aan de uiteinden van de selectie (resize). */
+.select-handle {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  z-index: 12;
+  cursor: ew-resize;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.select-handle::before {
+  content: '';
+  width: 3px;
+  height: 78%;
+  background: #2563eb;
+  border-radius: 2px;
+  box-shadow: 0 0 5px rgba(37, 99, 235, 0.8);
+}
+.select-handle:active::before {
+  background: #1d4ed8;
+}
+
 /* Rhythmic Boundaries */
 .substep-start {
   /* Removed to reduce visual noise */
