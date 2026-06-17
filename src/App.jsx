@@ -911,30 +911,26 @@ function App() {
 
   // Load a template (from Supabase) into the editor as a brand-new editable
   // song. The original template stays untouched in the cloud.
-  const handleUseTemplate = async (template, targetName, targetFolder) => {
+  const handleUseTemplate = (template, targetName, targetFolder) => {
     const name = (targetName || template.name || 'Naamloos').trim();
     const folder = (targetFolder || 'Algemeen').trim() || 'Algemeen';
     const patternsCopy = JSON.parse(JSON.stringify(template.patterns ?? [])).map(p => ({
       ...p,
       id: p.id || crypto.randomUUID(),
     }));
-    const fresh = await _persist({
-      id: null,
-      name,
-      folder,
-      bpm: template.bpm ?? bpm,
-      patterns: patternsCopy,
-    });
-    if (fresh) {
-      setSong(patternsCopy);
-      setActivePatternId(patternsCopy[0]?.id);
-      setActiveSlot({ patternId: patternsCopy[0]?.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
-      setUndoStack([]);
-      setRedoStack([]);
-      setCurrentSongId(fresh.id);
-      setSongName(name);
-      setSongFolder(folder);
-    }
+    // Laad de template alleen in de editor — NIET automatisch opslaan. Zo ontstaan er
+    // geen kopieën bij het openen (bv. in practice mode). De song is een nieuwe,
+    // nog niet-opgeslagen song; de gebruiker bewaart 'm pas bewust via "Opslaan als
+    // nieuw" in het 🎵-menu.
+    setSong(patternsCopy);
+    lastSavedSnapshotRef.current = JSON.stringify(patternsCopy);
+    setActivePatternId(patternsCopy[0]?.id);
+    setActiveSlot({ patternId: patternsCopy[0]?.id, trackId: 'anak', startIndex: 0, endIndex: 0 });
+    setUndoStack([]);
+    setRedoStack([]);
+    setCurrentSongId(null);
+    setSongName(name);
+    setSongFolder(folder);
   };
 
   // Ref to last added song block for auto-scroll
