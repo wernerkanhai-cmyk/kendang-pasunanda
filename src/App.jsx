@@ -1946,9 +1946,21 @@ function App() {
   const handleGongFromInstrument = () => {
     if (isLocked) return;
     samplerRef.current?.playGong();
-    if (activeSlot) {
-      const blockStart = Math.floor(activeSlot.startIndex / 6) * 6;
-      handleGongToggle(activeSlot.patternId, blockStart);
+    if (!activeSlot) return;
+    const pat = song.find(p => p.id === activeSlot.patternId);
+    if (!pat) return;
+    // Werk op beat-niveau (12 slots) — gelijk aan de getoonde gong-box. Staat er al
+    // een gong in deze beat, dan verwijderen we 'm (vergevingsgezind: de cursor hoeft
+    // niet exact op de gong te staan, handig als het niet gequantiseerd is); anders
+    // voegen we 'm toe op de beat-start.
+    const beatStart = Math.floor(activeSlot.startIndex / 12) * 12;
+    const hasGongInBeat = (pat.gong || []).some(g => g >= beatStart && g < beatStart + 12);
+    if (hasGongInBeat) {
+      setSong(prev => prev.map(p => p.id === activeSlot.patternId
+        ? { ...p, gong: (p.gong || []).filter(g => g < beatStart || g >= beatStart + 12) }
+        : p));
+    } else {
+      handleGongToggle(activeSlot.patternId, beatStart);
     }
   };
 
@@ -3367,8 +3379,8 @@ function App() {
                 if (!activeSlot) return false;
                 const pat = song.find(p => p.id === activeSlot.patternId);
                 if (!pat) return false;
-                const blockStart = Math.floor(activeSlot.startIndex / 6) * 6;
-                return (pat.gong || []).includes(blockStart);
+                const beatStart = Math.floor(activeSlot.startIndex / 12) * 12;
+                return (pat.gong || []).some(g => g >= beatStart && g < beatStart + 12);
               })()}
               soundSettings={soundSettings}
               onSoundSettingsChange={setSoundSettings}
