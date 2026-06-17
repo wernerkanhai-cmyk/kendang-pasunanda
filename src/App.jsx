@@ -319,6 +319,7 @@ function App() {
     localStorage.setItem('kendangLibrarySort', librarySort);
   }, [librarySort]);
   const [pendingDelete, setPendingDelete] = useState(null); // { type: 'song'|'folder', key } — highlights the active delete button
+  const [overwritePrompt, setOverwritePrompt] = useState(null); // { name, folder, existing, patterns, bpm } — keuze bij dubbele songnaam
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [changePasswordValue, setChangePasswordValue] = useState('');
   const [changePasswordValue2, setChangePasswordValue2] = useState('');
@@ -540,29 +541,72 @@ function App() {
     }
   };
 
+  // Maak een unieke songnaam binnen dezelfde map: "naam", anders "naam-2", "naam-3", …
+  const makeUniqueSongName = (base, folder) => {
+    const taken = new Set(
+      savedSongs.filter(s => (s.folder || 'Algemeen') === folder).map(s => s.name)
+    );
+    if (!taken.has(base)) return base;
+    let n = 2;
+    while (taken.has(`${base}-${n}`)) n++;
+    return `${base}-${n}`;
+  };
+
   const handleSaveAsNew = async () => {
     if (isLocked) { showToast('Verlaat practice mode om op te slaan'); return; }
-    const fresh = await _persist({
-      id: null,
-      name: songName.trim() || 'Naamloos',
-      folder: songFolder.trim() || 'Algemeen',
-      bpm,
-      patterns: JSON.parse(JSON.stringify(song)),
-    });
+    const name = songName.trim() || 'Naamloos';
+    const folder = songFolder.trim() || 'Algemeen';
+    const existing = savedSongs.find(s => s.name === name && (s.folder || 'Algemeen') === folder);
+    if (existing) {
+      // Naam bestaat al in deze map → laat de gebruiker kiezen: overschrijven of nummeren.
+      setOverwritePrompt({ name, folder, existing, patterns: JSON.parse(JSON.stringify(song)), bpm });
+      return;
+    }
+    const fresh = await _persist({ id: null, name, folder, bpm, patterns: JSON.parse(JSON.stringify(song)) });
     if (fresh) {
       setCurrentSongId(fresh.id);
       showToast('Nieuwe song opgeslagen ✓');
     }
   };
 
+  // Keuze uit het dubbele-naam-dialoog: bestaande song overschrijven.
+  const confirmOverwriteSave = async () => {
+    const p = overwritePrompt;
+    if (!p) return;
+    setOverwritePrompt(null);
+    const fresh = await _persist({ id: p.existing.id, name: p.name, folder: p.folder, bpm: p.bpm, patterns: p.patterns });
+    if (fresh) {
+      setCurrentSongId(fresh.id);
+      setSongName(p.name);
+      setSongFolder(p.folder);
+      showToast(`"${p.name}" overschreven ✓`);
+    }
+  };
+
+  // Keuze uit het dubbele-naam-dialoog: als genummerde naam opslaan (niets overschrijven).
+  const confirmNumberedSave = async () => {
+    const p = overwritePrompt;
+    if (!p) return;
+    setOverwritePrompt(null);
+    const uniqueName = makeUniqueSongName(p.name, p.folder);
+    const fresh = await _persist({ id: null, name: uniqueName, folder: p.folder, bpm: p.bpm, patterns: p.patterns });
+    if (fresh) {
+      setCurrentSongId(fresh.id);
+      setSongName(uniqueName);
+      showToast(`Opgeslagen als "${uniqueName}" ✓`);
+    }
+  };
+
   const handleSaveAsCopy = async () => {
     if (isLocked) { showToast('Verlaat practice mode om op te slaan'); return; }
     const baseName = songName.trim() || 'Naamloos';
-    const copyName = `${baseName} (kopie)`;
+    const folder = songFolder.trim() || 'Algemeen';
+    // Kopie krijgt altijd een unieke naam zodat er geen dubbele namen ontstaan.
+    const copyName = makeUniqueSongName(`${baseName} (kopie)`, folder);
     await _persist({
       id: null,
       name: copyName,
-      folder: songFolder.trim() || 'Algemeen',
+      folder,
       bpm,
       patterns: JSON.parse(JSON.stringify(song)),
     });
@@ -3584,6 +3628,29 @@ function App() {
             animation: 'fadein 0.18s ease-out',
           }}
         >{toast.message}</div>
+      )}
+
+      {/* ── Dubbele-songnaam dialoog: overschrijven / nummeren / annuleren ───── */}
+      {overwritePrompt && (
+        <div
+          onClick={() => setOverwritePrompt(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '12px', padding: '1.5rem', width: 'min(92vw, 380px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}
+          >
+            <div style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Song bestaat al</div>
+            <div style={{ fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '1.2rem', lineHeight: 1.4 }}>
+              Er bestaat al een song <strong>“{overwritePrompt.name}”</strong> in de map “{overwritePrompt.folder}”. Wat wil je doen?
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <button onClick={confirmOverwriteSave} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.875rem' }}>Overschrijven</button>
+              <button onClick={confirmNumberedSave} style={{ background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontSize: '0.875rem' }}>Opslaan als “{makeUniqueSongName(overwritePrompt.name, overwritePrompt.folder)}”</button>
+              <button onClick={() => setOverwritePrompt(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>Annuleren</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Migration dialog (one-time, when legacy localStorage songs exist) ── */}
