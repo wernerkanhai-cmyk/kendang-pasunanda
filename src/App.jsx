@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
+import { useEdition } from './edition/EditionContext.jsx';
 import './App.css';
 import { createEmptyPattern, writeSymbolToPattern, getHandForSound, generateEmptySlots, SYMBOL_REST, sanitizePattern } from './engine/patternLogic';
 import PatternEditor from './components/PatternEditor';
@@ -82,6 +83,22 @@ function App() {
   const [metronomeVolume, setMetronomeVolume] = useState(0.7);
   const [isLocked, setIsLocked] = useState(true);
   const [isPulsing, setIsPulsing] = useState(false);
+
+  // ── Editie-gate ───────────────────────────────────────────────────────
+  // canEdit bepaalt of edit mode bereikbaar is. Performance: nooit; Full: wel.
+  const { canEdit } = useEdition();
+
+  // Performance-editie: edit mode is onbereikbaar — houd de app vergrendeld
+  // (vangnet, mocht isLocked ergens toch op false komen te staan).
+  useEffect(() => {
+    if (!canEdit && !isLocked) setIsLocked(true);
+  }, [canEdit, isLocked]);
+
+  // Upsell wanneer een Performance-gebruiker wil bewerken.
+  // TODO: hier komt de StoreKit in-app aankoopflow — na geslaagde aankoop → unlockFull().
+  const handleUpsell = () => {
+    showToast('Edit mode zit in de Full-versie. (Dev: voeg ?full=1 toe aan de URL om te testen.)');
+  };
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
 
@@ -2690,7 +2707,26 @@ function App() {
 
         <div className="global-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-          {/* ── Practice Mode lock ─────────────────────────────────────── */}
+          {/* ── Practice Mode lock (Full) / Unlock-Full upsell (Performance) ── */}
+          {!canEdit ? (
+            <button
+              className="practice-mode-btn"
+              onClick={handleUpsell}
+              title="Edit mode zit in de Full-versie — tik om te ontgrendelen"
+              style={{
+                background: 'rgba(212,175,55,0.15)', color: '#d4af37',
+                border: '1px solid #d4af37', borderRadius: '6px',
+                padding: '0.55rem 0.7rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0,
+              }}
+            >
+              {/* Gesloten hangslot = Full-only */}
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3.5" y="8" width="11" height="7.5" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+                <path d="M6 8V5.5a3 3 0 0 1 6 0V8" stroke="currentColor" strokeWidth="1.6" />
+              </svg>
+            </button>
+          ) : (
           <button
             className={`practice-mode-btn${isPulsing ? ' pulsing' : ''}`}
             onClick={() => {
@@ -2727,6 +2763,7 @@ function App() {
               <circle cx="9" cy="9" r="2.5" fill="currentColor" />
             </svg>
           </button>
+          )}
 
           {/* ── Tempo toggle — only visible in practice mode ──────────── */}
           {isLocked && (

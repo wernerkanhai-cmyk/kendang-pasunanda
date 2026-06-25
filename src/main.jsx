@@ -5,6 +5,7 @@ import App from './App.jsx'
 import AuthGate from './components/AuthGate.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { LanguageProvider } from './i18n.jsx'
+import { EditionProvider } from './edition/EditionContext.jsx'
 import { registerServiceWorker } from './lib/registerSW.js'
 
 // Polyfill: iOS Safari only exposes crypto.randomUUID on secure contexts (HTTPS / localhost),
@@ -24,12 +25,14 @@ registerServiceWorker();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <LanguageProvider>
-      <AuthProvider>
-        <AuthGate>
-          <App />
-        </AuthGate>
-      </AuthProvider>
-    </LanguageProvider>
+    <EditionProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AuthGate>
+            <App />
+          </AuthGate>
+        </AuthProvider>
+      </LanguageProvider>
+    </EditionProvider>
   </StrictMode>,
 )
