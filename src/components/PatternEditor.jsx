@@ -118,6 +118,15 @@ const PatternEditor = ({
 
   const [slotWidth, setSlotWidth] = useState(12);
   const [containerWidth, setContainerWidth] = useState(0);
+
+  // Sluit de snippet-dropdowns zodra deze regel niet meer de actieve is (of bij
+  // het wisselen van regel), zodat het beheerpaneel/de laad-dropdown niet open
+  // blijft hangen op een regel waar je niet meer werkt.
+  useEffect(() => {
+    setIsManagingSnippets(false);
+    setSnippetSelection(new Set());
+    setSnippetSelectKey(k => k + 1); // remount de laad-<select> zodat ook die dichtgaat
+  }, [isActive, pattern.id]);
   const baseSlotWidthRef = useRef(12);
   useEffect(() => {
     if (!timelineRef.current) return;
