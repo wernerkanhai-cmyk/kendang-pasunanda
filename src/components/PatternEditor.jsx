@@ -426,24 +426,10 @@ const PatternEditor = ({
                 .map(g => g - range.start),
     };
 
-    // Check for duplicate name in same folder
-    const duplicate = savedSnippets.find(s => s.name === trimmedName && (s.folder || 'Algemeen') === folder);
-    if (duplicate) {
-      const replace = window.confirm(`Een patroon met de naam "${trimmedName}" bestaat al in "${folder}".\n\nKlik OK om te vervangen, of Annuleren om een nieuw patroon op te slaan met een ander nummer.`);
-      if (replace) {
-        handleSaveSnippet(trimmedName, folder, copiedSymbols, duplicate.id);
-      } else {
-        let counter = 2;
-        let uniqueName = `${trimmedName} ${counter}`;
-        while (savedSnippets.some(s => s.name === uniqueName && (s.folder || 'Algemeen') === folder)) {
-          counter++;
-          uniqueName = `${trimmedName} ${counter}`;
-        }
-        handleSaveSnippet(uniqueName, folder, copiedSymbols);
-      }
-    } else {
-      handleSaveSnippet(trimmedName, folder, copiedSymbols);
-    }
+    // Duplicaat-afhandeling zit centraal in App.handleSaveSnippet: bij een al
+    // bestaande naam toont die de 3-keuze (overschrijven / nummeren / annuleren),
+    // net zoals bij songs.
+    handleSaveSnippet(trimmedName, folder, copiedSymbols);
 
     setIsNamingSnippet(false);
     setSnippetName('');

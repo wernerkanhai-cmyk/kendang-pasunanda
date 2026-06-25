@@ -337,6 +337,7 @@ function App() {
   }, [librarySort]);
   const [pendingDelete, setPendingDelete] = useState(null); // { type: 'song'|'folder', key } — highlights the active delete button
   const [overwritePrompt, setOverwritePrompt] = useState(null); // { name, folder, existing, patterns, bpm } — keuze bij dubbele songnaam
+  const [snippetOverwritePrompt, setSnippetOverwritePrompt] = useState(null); // { name, folder, existing, data } — keuze bij dubbele snippetnaam
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [changePasswordValue, setChangePasswordValue] = useState('');
   const [changePasswordValue2, setChangePasswordValue2] = useState('');
@@ -562,6 +563,17 @@ function App() {
   const makeUniqueSongName = (base, folder) => {
     const taken = new Set(
       savedSongs.filter(s => (s.folder || 'Algemeen') === folder).map(s => s.name)
+    );
+    if (!taken.has(base)) return base;
+    let n = 2;
+    while (taken.has(`${base}-${n}`)) n++;
+    return `${base}-${n}`;
+  };
+
+  // Maak een unieke snippetnaam binnen dezelfde map (zelfde stijl als songs).
+  const makeUniqueSnippetName = (base, folder) => {
+    const taken = new Set(
+      savedSnippets.filter(s => (s.folder || 'Algemeen') === folder).map(s => s.name)
     );
     if (!taken.has(base)) return base;
     let n = 2;
@@ -2162,7 +2174,8 @@ function App() {
 
 
   // ---- MY PATTERNS / SNIPPET LIBRARY FLOWS ----
-  const handleSaveSnippet = async (name, folder, data, replaceId = null) => {
+  // Kernopslag (cloud of lokaal). Geen duplicaatcheck — die zit in handleSaveSnippet.
+  const _persistSnippet = async (name, folder, data, replaceId = null) => {
     const payload = {
       // Old localStorage entries use Date.now() string ids; only forward valid uuids.
       id: typeof replaceId === 'string' && /^[0-9a-f-]{36}$/i.test(replaceId) ? replaceId : null,
@@ -2189,6 +2202,41 @@ function App() {
     } else {
       setLocalSavedSnippets(prev => [...prev, newSnippet]);
     }
+  };
+
+  // Snippet opslaan vanuit de UI. Bij een nieuwe save (geen replaceId) met een al
+  // bestaande naam in dezelfde map → keuze: overschrijven / nummeren / annuleren
+  // (zelfde gedrag als songs).
+  const handleSaveSnippet = async (name, folder, data, replaceId = null) => {
+    const cleanName = (name || '').trim() || 'Naamloos';
+    const cleanFolder = (folder || 'Algemeen').trim() || 'Algemeen';
+    if (!replaceId) {
+      const existing = savedSnippets.find(s => s.name === cleanName && (s.folder || 'Algemeen') === cleanFolder);
+      if (existing) {
+        setSnippetOverwritePrompt({ name: cleanName, folder: cleanFolder, existing, data: JSON.parse(JSON.stringify(data)) });
+        return;
+      }
+    }
+    await _persistSnippet(cleanName, cleanFolder, data, replaceId);
+  };
+
+  // Keuze uit het dubbele-snippetnaam-dialoog: bestaand patroon overschrijven.
+  const confirmSnippetOverwrite = async () => {
+    const p = snippetOverwritePrompt;
+    if (!p) return;
+    setSnippetOverwritePrompt(null);
+    await _persistSnippet(p.name, p.folder, p.data, p.existing.id);
+    showToast(`"${p.name}" overschreven ✓`);
+  };
+
+  // Keuze uit het dubbele-snippetnaam-dialoog: als genummerde naam opslaan.
+  const confirmSnippetNumbered = async () => {
+    const p = snippetOverwritePrompt;
+    if (!p) return;
+    setSnippetOverwritePrompt(null);
+    const uniqueName = makeUniqueSnippetName(p.name, p.folder);
+    await _persistSnippet(uniqueName, p.folder, p.data, null);
+    showToast(`Opgeslagen als "${uniqueName}" ✓`);
   };
 
   const handleDeleteSnippet = async (snippetId) => {
@@ -3685,6 +3733,29 @@ function App() {
               <button onClick={confirmOverwriteSave} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.875rem' }}>Overschrijven</button>
               <button onClick={confirmNumberedSave} style={{ background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontSize: '0.875rem' }}>Opslaan als “{makeUniqueSongName(overwritePrompt.name, overwritePrompt.folder)}”</button>
               <button onClick={() => setOverwritePrompt(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>Annuleren</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Dubbele-snippetnaam dialoog: overschrijven / nummeren / annuleren ──── */}
+      {snippetOverwritePrompt && (
+        <div
+          onClick={() => setSnippetOverwritePrompt(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '12px', padding: '1.5rem', width: 'min(92vw, 380px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}
+          >
+            <div style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Patroon bestaat al</div>
+            <div style={{ fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '1.2rem', lineHeight: 1.4 }}>
+              Er bestaat al een patroon <strong>“{snippetOverwritePrompt.name}”</strong> in de map “{snippetOverwritePrompt.folder}”. Wat wil je doen?
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <button onClick={confirmSnippetOverwrite} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.875rem' }}>Overschrijven</button>
+              <button onClick={confirmSnippetNumbered} style={{ background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontSize: '0.875rem' }}>Opslaan als “{makeUniqueSnippetName(snippetOverwritePrompt.name, snippetOverwritePrompt.folder)}”</button>
+              <button onClick={() => setSnippetOverwritePrompt(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>Annuleren</button>
             </div>
           </div>
         </div>
