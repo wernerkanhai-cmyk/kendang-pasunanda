@@ -3141,10 +3141,10 @@ function App() {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '520px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '80dvh', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                style={{ background: '#161f30', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('songLibraryTitle')}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '1.05rem', color: '#f1f5f9' }}><span style={{ fontSize: '1.1rem' }}>📚</span>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
                     {/* Export selectie button — only enabled when something is selected */}
@@ -3152,32 +3152,32 @@ function App() {
                       onClick={handleExportSelection}
                       disabled={exportSelection.size === 0}
                       style={{
-                        background: '#1e293b',
+                        background: 'transparent',
                         color: exportSelection.size > 0 ? '#fbbf24' : '#475569',
-                        border: '1px solid #334155',
-                        borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
+                        border: `1px solid ${exportSelection.size > 0 ? 'rgba(251,191,36,0.45)' : '#334155'}`,
+                        borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
                         cursor: exportSelection.size > 0 ? 'pointer' : 'default',
                       }}
                       title="Exporteer geselecteerde songs"
-                    >Export ({exportSelection.size})</button>
+                    >⬆ Export ({exportSelection.size})</button>
 
                     {/* Verwijder selectie button — directly visible, no dropdown */}
                     <button
                       onClick={handleDeleteSelection}
                       disabled={exportSelection.size === 0}
                       style={{
-                        background: '#1e293b',
+                        background: 'transparent',
                         color: exportSelection.size > 0 ? '#ef4444' : '#475569',
-                        border: '1px solid #334155',
-                        borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
+                        border: `1px solid ${exportSelection.size > 0 ? 'rgba(239,68,68,0.45)' : '#334155'}`,
+                        borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
                         cursor: exportSelection.size > 0 ? 'pointer' : 'default',
                       }}
                       title="Verwijder geselecteerde songs"
-                    >Delete ({exportSelection.size})</button>
+                    >🗑 Delete ({exportSelection.size})</button>
 
                     {/* Import — single button, accepts both song and group files */}
-                    <label style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}>
-                      Import
+                    <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>
+                      ⬆ Import
                       <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
                     </label>
 
@@ -3267,7 +3267,7 @@ function App() {
                                       await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
                                       showToast(`"${tpl.name}" geladen`);
                                     }}
-                                    style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
+                                    style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '999px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
                                   >Gebruik</button>
                                   {isAdmin && (
                                     <button
@@ -3420,7 +3420,7 @@ function App() {
                             )}
                             <button
                               onClick={() => handleLoadSong(s.id)}
-                              style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.5)', borderRadius: '999px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
                             >{t('loadBtn')}</button>
                             <button
                               onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
