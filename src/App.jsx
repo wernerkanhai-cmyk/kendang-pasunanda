@@ -2640,7 +2640,7 @@ function App() {
                   <circle cx={cx} cy={cy} r="11.5" fill="#2d3038" opacity="1" />
                   <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke={color} strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                <span style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{track === 'anak' ? 'ANAK' : 'INDUNG'}</span>
+                <span style={{ fontSize: '0.6rem', color: color, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{track === 'anak' ? 'ANAK' : 'INDUNG'}</span>
               </div>
             );
           })}
