@@ -159,13 +159,13 @@
 
 .bar-separator {
   width: 2px;
-  background: rgba(255, 255, 255, 0.2);
+  background: #000000;
   margin: 0 4px;
 }
 
 .beat-separator {
   width: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #3b82f6;
   margin: 0 2px;
 }
 

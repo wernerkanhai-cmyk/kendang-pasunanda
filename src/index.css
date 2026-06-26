@@ -18,15 +18,15 @@
   --text-main: #e2e8f0;
   --text-muted: #64748b;
   
-  /* Anak (Top) = White background, black text */
-  --anak-bg: #ffffff;
-  --anak-color: #000000;
-  --anak-text: #000000;
+  /* Anak (Top) = metallic bg, blue notes */
+  --anak-bg: linear-gradient(180deg, #2c2f37 0%, #191b21 100%);
+  --anak-color: #60a5fa;
+  --anak-text: #60a5fa;
 
-  /* Indung (Bottom) = White background, red text */
-  --indung-bg: #ffffff;
-  --indung-color: #cc0000;
-  --indung-text: #cc0000;
+  /* Indung (Bottom) = metallic bg, gold notes */
+  --indung-bg: linear-gradient(180deg, #2c2f37 0%, #191b21 100%);
+  --indung-color: #d4af37;
+  --indung-text: #d4af37;
 
   /* Rests are colored but 'silent' */
   
