@@ -1414,14 +1414,13 @@ const PatternEditor = ({
                       }}
                       style={{
                         flexShrink: 0, width: '20px', height: '20px',
-                        background: metronomeMode ? 'rgba(167,139,250,0.2)' : 'transparent',
-                        color: metronomeMode ? '#a78bfa' : '#94a3b8',
-                        border: 'none',
+                        background: metronomeMode ? 'rgba(96,165,250,0.18)' : 'transparent',
+                        color: '#60a5fa',
+                        border: '1px solid #60a5fa',
                         borderRadius: '3px', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         pointerEvents: 'auto',
-                        boxShadow: metronomeMode ? '0 0 8px rgba(167,139,250,0.65)' : 'none',
-                        filter: metronomeMode ? 'drop-shadow(0 0 3px rgba(167,139,250,0.6))' : 'none',
+                        boxShadow: metronomeMode ? '0 0 9px rgba(96,165,250,0.7)' : '0 0 5px rgba(96,165,250,0.4)',
                       }}
                       title={`${t('metronome')} — houd ingedrukt voor opties`}
                     >
@@ -1462,15 +1461,14 @@ const PatternEditor = ({
                     onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
                     style={{
                       flexShrink: 0, width: '20px', height: '20px',
-                      background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
-                      color: isLooped ? '#d4af37' : '#f97316',
-                      border: 'none',
+                      background: isLooped ? 'rgba(96,165,250,0.18)' : 'transparent',
+                      color: '#60a5fa',
+                      border: '1px solid #60a5fa',
                       borderRadius: '3px', cursor: 'pointer',
                       fontSize: '0.75rem', fontWeight: 'bold',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       pointerEvents: 'auto',
-                      boxShadow: isLooped ? '0 0 10px rgba(212,175,55,0.7)' : 'none',
-                      filter: isLooped ? 'drop-shadow(0 0 3px rgba(212,175,55,0.6))' : 'none',
+                      boxShadow: isLooped ? '0 0 9px rgba(96,165,250,0.7)' : '0 0 5px rgba(96,165,250,0.4)',
                     }}
                     title="Loop deze section"
                   >⟳</button>
