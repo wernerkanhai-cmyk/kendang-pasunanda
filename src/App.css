@@ -159,7 +159,7 @@
 
 .bar-separator {
   width: 2px;
-  background: #000000;
+  background: rgba(255, 255, 255, 0.3);
   margin: 0 4px;
 }
 
