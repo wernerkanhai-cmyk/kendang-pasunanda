@@ -545,7 +545,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
                 height: '100%',
                 left: beatStart * slotWidth - 1,
                 width: 12 * slotWidth,
-                border: `2px solid ${gongColor}`,
+                border: `1px solid ${gongColor}`,
                 pointerEvents: 'none',
                 zIndex: 5,
                 boxSizing: 'border-box',
