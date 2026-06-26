@@ -2637,8 +2637,8 @@ function App() {
                 >
                   <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="2.25" strokeLinecap="round" />
                   <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" />
-                  <circle cx={cx} cy={cy} r="11.5" fill={color} opacity="0.9" />
-                  <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="11.5" fill="#2d3038" opacity="1" />
+                  <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke={color} strokeWidth="2" strokeLinecap="round" />
                 </svg>
                 <span style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{track === 'anak' ? 'ANAK' : 'INDUNG'}</span>
               </div>
@@ -2671,8 +2671,8 @@ function App() {
                 >
                   <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="2.25" strokeLinecap="round" />
                   <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" />
-                  <circle cx={cx} cy={cy} r="11.5" fill={color} opacity="0.9" />
-                  <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="11.5" fill="#2d3038" opacity="1" />
+                  <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke={color} strokeWidth="2" strokeLinecap="round" />
                 </svg>
                 <span style={{ fontSize: '0.6rem', color: '#7c3aed', letterSpacing: '0.08em', textTransform: 'uppercase' }}>VOX</span>
               </div>
