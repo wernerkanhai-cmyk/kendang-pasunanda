@@ -39,7 +39,7 @@
   position: sticky;
   top: 0;
   z-index: 80;
-  background: linear-gradient(180deg, #1b2233 0%, #11161f 100%);
+  background: linear-gradient(160deg, #54585f 0%, #34373e 30%, #1b1d22 64%, #0c0d10 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 

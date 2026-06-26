@@ -51,8 +51,7 @@ input, textarea, [contenteditable] {
 
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(160deg, #54585f 0%, #34373e 30%, #1b1d22 64%, #0c0d10 100%);
-  background-attachment: fixed;
+  background-color: var(--bg-dark);
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
