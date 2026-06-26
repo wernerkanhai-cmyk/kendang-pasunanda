@@ -2624,7 +2624,7 @@ function App() {
             return (
               <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
                 <svg width="54" height="54" viewBox="0 0 36 36"
-                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                  style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color}80)` }}
                   title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
                   onPointerDown={(e) => {
                     e.preventDefault();
@@ -2635,10 +2635,10 @@ function App() {
                   }}
                   onDoubleClick={() => setTrackVolumes(v => ({ ...v, [track]: 1.0 }))}
                 >
-                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
-                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
-                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="2.25" strokeLinecap="round" />
+                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="11.5" fill={color} opacity="0.9" />
+                  <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
                 <span style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{track === 'anak' ? 'ANAK' : 'INDUNG'}</span>
               </div>
@@ -2658,7 +2658,7 @@ function App() {
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
                 <svg width="54" height="54" viewBox="0 0 36 36"
-                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                  style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color}80)` }}
                   title={`Vox volume: ${Math.round(val * 100)}%`}
                   onPointerDown={(e) => {
                     e.preventDefault();
@@ -2669,10 +2669,10 @@ function App() {
                   }}
                   onDoubleClick={() => setVoxVolume(1.0)}
                 >
-                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
-                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
-                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="2.25" strokeLinecap="round" />
+                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="11.5" fill={color} opacity="0.9" />
+                  <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
                 <span style={{ fontSize: '0.6rem', color: '#7c3aed', letterSpacing: '0.08em', textTransform: 'uppercase' }}>VOX</span>
               </div>
@@ -2699,7 +2699,7 @@ function App() {
           </div>
 
           {/* ── BPM — naast de microfoon/stem-schakelaar, op volle bar-hoogte ── */}
-          <div style={{ height: '68px', flexShrink: 0, border: '1px solid #475569', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 0.6rem', gap: '6px', boxSizing: 'border-box', background: 'transparent' }}>
+          <div style={{ height: '68px', flexShrink: 0, border: 'none', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 0.6rem', gap: '6px', boxSizing: 'border-box', background: 'transparent' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button onClick={() => handleBpmChange(1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▲</button>
               <button onClick={() => handleBpmChange(-1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▼</button>
