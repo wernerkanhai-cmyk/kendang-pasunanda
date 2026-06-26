@@ -3146,7 +3146,7 @@ function App() {
                 style={{ background: '#161f30', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '1.05rem', color: '#f1f5f9' }}><span style={{ fontSize: '1.1rem' }}>📚</span>{t('songLibraryTitle')}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.1rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><span style={{ fontSize: '1.1rem' }}>📚</span>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
                     {/* Export selectie button — only enabled when something is selected */}
@@ -3178,7 +3178,7 @@ function App() {
                     >🗑 Delete ({exportSelection.size})</button>
 
                     {/* Import — single button, accepts both song and group files */}
-                    <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>
+                    <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 0 8px rgba(52,211,153,0.25)' }}>
                       ⬆ Import
                       <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
                     </label>
@@ -3269,7 +3269,7 @@ function App() {
                                       await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
                                       showToast(`"${tpl.name}" geladen`);
                                     }}
-                                    style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '999px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
+                                    style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '999px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}
                                   >Gebruik</button>
                                   {isAdmin && (
                                     <button
@@ -3422,7 +3422,7 @@ function App() {
                             )}
                             <button
                               onClick={() => handleLoadSong(s.id)}
-                              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.5)', borderRadius: '999px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
+                              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.5)', borderRadius: '999px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(96,165,250,0.3)' }}
                             >{t('loadBtn')}</button>
                             <button
                               onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
