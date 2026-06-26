@@ -1416,11 +1416,12 @@ const PatternEditor = ({
                         flexShrink: 0, width: '20px', height: '20px',
                         background: metronomeMode ? 'rgba(167,139,250,0.2)' : 'transparent',
                         color: metronomeMode ? '#a78bfa' : '#94a3b8',
-                        border: `1px solid ${metronomeMode ? '#8b5cf6' : '#475569'}`,
+                        border: 'none',
                         borderRadius: '3px', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         pointerEvents: 'auto',
-                        boxShadow: metronomeMode ? '0 0 4px rgba(167,139,250,0.4)' : 'none',
+                        boxShadow: metronomeMode ? '0 0 8px rgba(167,139,250,0.65)' : 'none',
+                        filter: metronomeMode ? 'drop-shadow(0 0 3px rgba(167,139,250,0.6))' : 'none',
                       }}
                       title={`${t('metronome')} — houd ingedrukt voor opties`}
                     >
@@ -1463,12 +1464,13 @@ const PatternEditor = ({
                       flexShrink: 0, width: '20px', height: '20px',
                       background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
                       color: isLooped ? '#d4af37' : '#f97316',
-                      border: `1px solid ${isLooped ? '#d4af37' : '#f97316'}`,
+                      border: 'none',
                       borderRadius: '3px', cursor: 'pointer',
                       fontSize: '0.75rem', fontWeight: 'bold',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       pointerEvents: 'auto',
-                      boxShadow: isLooped ? '0 0 6px rgba(212,175,55,0.5)' : 'none',
+                      boxShadow: isLooped ? '0 0 10px rgba(212,175,55,0.7)' : 'none',
+                      filter: isLooped ? 'drop-shadow(0 0 3px rgba(212,175,55,0.6))' : 'none',
                     }}
                     title="Loop deze section"
                   >⟳</button>
