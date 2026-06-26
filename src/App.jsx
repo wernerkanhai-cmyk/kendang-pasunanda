@@ -2596,78 +2596,19 @@ function App() {
 
         {/* ── Gecentreerd: play + volume knobs + schakelaar ───────────────────── */}
         <div className="header-center">
-
-          {/* ── Transport-pill: play + BPM ──────────────────────────────── */}
-          <div className="transport-pill">
-            <button
-              onClick={() => togglePlay()}
-              title={t('playPause')}
-              style={{
-                width: '46px', height: '46px', flexShrink: 0,
-                background: isPlaying ? '#22c55e' : 'rgba(148,163,184,0.10)',
-                color: isPlaying ? '#0b1120' : '#e2e8f0',
-                border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '1.35rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', transition: 'background 0.15s',
-              }}
-            >{isPlaying ? '⏸' : '▶'}</button>
-            {/* BPM */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 0.4rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <button onClick={() => handleBpmChange(1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▲</button>
-                <button onClick={() => handleBpmChange(-1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▼</button>
-              </div>
-              {bpmEditing ? (
-                <input
-                  type="number"
-                  value={bpmInput}
-                  autoFocus
-                  onChange={(e) => setBpmInput(e.target.value)}
-                  onBlur={() => {
-                    const val = parseInt(bpmInput, 10);
-                    if (!isNaN(val)) handleBpmChange(Math.max(20, Math.min(140, val)) - bpm);
-                    setBpmEditing(false);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') e.currentTarget.blur();
-                    if (e.key === 'Escape') setBpmEditing(false);
-                    e.stopPropagation();
-                  }}
-                  style={{ width: '4ch', fontWeight: 'bold', fontSize: '1.8rem', color: '#fff', background: '#334155', border: '1px solid #60a5fa', borderRadius: '4px', textAlign: 'center', padding: '0.1rem' }}
-                />
-              ) : (
-                <span
-                  style={{ fontWeight: 'bold', fontSize: '1.8rem', lineHeight: 1, color: '#e2e8f0', touchAction: 'none', userSelect: 'none', cursor: 'ns-resize', minWidth: '2.6ch', textAlign: 'center' }}
-                  onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                    bpmDragRef.current = { startY: e.clientY, moved: false };
-                  }}
-                  onPointerMove={(e) => {
-                    if (!bpmDragRef.current) return;
-                    const delta = bpmDragRef.current.startY - e.clientY;
-                    if (Math.abs(delta) >= 5) {
-                      bpmDragRef.current.moved = true;
-                      handleBpmChange(delta > 0 ? 1 : -1);
-                      bpmDragRef.current.startY = e.clientY;
-                    }
-                  }}
-                  onPointerUp={() => {
-                    if (bpmDragRef.current && !bpmDragRef.current.moved) {
-                      setBpmInput(String(bpm));
-                      setBpmEditing(true);
-                    }
-                    bpmDragRef.current = null;
-                  }}
-                  title="Sleep omhoog/omlaag of klik om te typen"
-                >
-                  {realtimeBpm !== null ? <span style={{ color: '#d4af37' }}>{realtimeBpm}</span> : bpm}
-                </span>
-              )}
-              <span style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase', alignSelf: 'flex-end', paddingBottom: '0.4rem' }}>bpm</span>
-            </div>
-          </div>
-
-          {/* ── Mixer: volumes + Kendang/Vox-switch ───────────────────────── */}
-          <div className="mixer-group">
+          {/* Play/pauze — links van de anak-knop, op volle header-hoogte */}
+          <button
+            onClick={() => togglePlay()}
+            title={t('playPause')}
+            style={{
+              height: '68px', minWidth: '56px', flexShrink: 0,
+              background: isPlaying ? '#22c55e' : 'transparent',
+              color: isPlaying ? '#fff' : '#94a3b8',
+              border: `1px solid ${isPlaying ? '#22c55e' : '#475569'}`,
+              borderRadius: '10px', cursor: 'pointer', fontSize: '1.6rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
+            }}
+          >{isPlaying ? '⏸' : '▶'}</button>
           {/* Track volume knobs A + I */}
           {['anak', 'indung'].map(track => {
             const color = track === 'anak' ? '#222' : '#cc0000';
@@ -2737,20 +2678,78 @@ function App() {
             );
           })()}
 
-          {/* Kendang / Vox schakelaar (vlak) */}
+          {/* Kendang / Vox ronde schakelaar */}
           <div
             onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
             title={t('switchTooltip')(sampleSet === 'kendang' ? 'Kendang' : 'Vox')}
             style={{
-              width: '58px', height: '40px', borderRadius: '12px', flexShrink: 0,
-              background: '#1c2233', border: '1px solid #38415a',
+              width: '68px', height: '68px', borderRadius: '50%', flexShrink: 0,
+              background: 'radial-gradient(circle at 38% 32%, #4a4e58, #1c2030)',
+              border: '4px solid #6b7280',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.7), inset 0 1px 4px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.4)',
               cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', overflow: 'hidden',
             }}
           >
-            <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', opacity: sampleSet === 'kendang' ? 1 : 0.3, transition: 'opacity 0.3s' }}>🥁</div>
-            <div style={{ width: '2px', height: '60%', background: '#38415a', flexShrink: 0 }} />
-            <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', opacity: sampleSet === 'vox' ? 1 : 0.3, transition: 'opacity 0.3s' }}>🎤</div>
+            <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', opacity: sampleSet === 'kendang' ? 1 : 0.25, transition: 'opacity 0.3s', filter: sampleSet === 'kendang' ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' : 'none' }}>🥁</div>
+            <div style={{ width: '4px', height: '68%', background: '#2a2e3a', borderRadius: '2px', flexShrink: 0, position: 'relative', boxShadow: '1px 0 2px rgba(255,255,255,0.05), -1px 0 2px rgba(0,0,0,0.3)' }}>
+              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: '6px', height: '18px', borderRadius: '2px', background: sampleSet === 'kendang' ? '#60a5fa' : '#a78bfa', boxShadow: sampleSet === 'kendang' ? '0 0 6px 2px rgba(96,165,250,0.7)' : '0 0 6px 2px rgba(167,139,250,0.7)', transition: 'background 0.3s, box-shadow 0.3s' }} />
+            </div>
+            <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', opacity: sampleSet === 'vox' ? 1 : 0.25, transition: 'opacity 0.3s', filter: sampleSet === 'vox' ? 'drop-shadow(0 0 4px rgba(167,139,250,0.8))' : 'none' }}>🎤</div>
           </div>
+
+          {/* ── BPM — naast de microfoon/stem-schakelaar, op volle bar-hoogte ── */}
+          <div style={{ height: '68px', flexShrink: 0, border: '1px solid #475569', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 0.6rem', gap: '6px', boxSizing: 'border-box', background: 'transparent' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <button onClick={() => handleBpmChange(1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▲</button>
+              <button onClick={() => handleBpmChange(-1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▼</button>
+            </div>
+            {bpmEditing ? (
+              <input
+                type="number"
+                value={bpmInput}
+                autoFocus
+                onChange={(e) => setBpmInput(e.target.value)}
+                onBlur={() => {
+                  const val = parseInt(bpmInput, 10);
+                  if (!isNaN(val)) handleBpmChange(Math.max(20, Math.min(140, val)) - bpm);
+                  setBpmEditing(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') e.currentTarget.blur();
+                  if (e.key === 'Escape') setBpmEditing(false);
+                  e.stopPropagation();
+                }}
+                style={{ width: '4ch', fontWeight: 'bold', fontSize: '2rem', color: '#fff', background: '#334155', border: '1px solid #60a5fa', borderRadius: '4px', textAlign: 'center', padding: '0.1rem' }}
+              />
+            ) : (
+              <span
+                style={{ fontWeight: 'bold', fontSize: '2rem', lineHeight: 1, color: '#94a3b8', touchAction: 'none', userSelect: 'none', cursor: 'ns-resize', minWidth: '2.6ch', textAlign: 'center' }}
+                onPointerDown={(e) => {
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  bpmDragRef.current = { startY: e.clientY, moved: false };
+                }}
+                onPointerMove={(e) => {
+                  if (!bpmDragRef.current) return;
+                  const delta = bpmDragRef.current.startY - e.clientY;
+                  if (Math.abs(delta) >= 5) {
+                    bpmDragRef.current.moved = true;
+                    handleBpmChange(delta > 0 ? 1 : -1);
+                    bpmDragRef.current.startY = e.clientY;
+                  }
+                }}
+                onPointerUp={() => {
+                  if (bpmDragRef.current && !bpmDragRef.current.moved) {
+                    setBpmInput(String(bpm));
+                    setBpmEditing(true);
+                  }
+                  bpmDragRef.current = null;
+                }}
+                title="Sleep omhoog/omlaag of klik om te typen"
+              >
+                {realtimeBpm !== null ? <span style={{ color: '#d4af37' }}>{realtimeBpm}</span> : bpm}
+              </span>
+            )}
+            <span style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase', alignSelf: 'flex-end', paddingBottom: '0.5rem' }}>bpm</span>
           </div>
         </div>
 
