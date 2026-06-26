@@ -2612,7 +2612,7 @@ function App() {
           >{isPlaying ? '⏸' : '▶'}</button>
           {/* Track volume knobs A + I */}
           {['anak', 'indung'].map(track => {
-            const color = track === 'anak' ? '#222' : '#cc0000';
+            const color = track === 'anak' ? '#60a5fa' : '#d4af37';
             const val = trackVolumes[track];
             const angle = -135 + (val / 2) * 270;
             const r = 14, cx = 18, cy = 18;
@@ -2623,7 +2623,7 @@ function App() {
             const largeArc = endAngle - startAngle > 180 ? 1 : 0;
             return (
               <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
-                <svg width="36" height="36" viewBox="0 0 36 36"
+                <svg width="54" height="54" viewBox="0 0 36 36"
                   style={{ cursor: 'ns-resize', touchAction: 'none' }}
                   title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
                   onPointerDown={(e) => {
@@ -2640,7 +2640,7 @@ function App() {
                   <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
                   <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-                <span style={{ fontSize: '0.55rem', color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{track === 'anak' ? 'A' : 'I'}</span>
+                <span style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{track === 'anak' ? 'ANAK' : 'INDUNG'}</span>
               </div>
             );
           })}
@@ -2657,7 +2657,7 @@ function App() {
             const largeArc = endAngle - startAngle > 180 ? 1 : 0;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
-                <svg width="36" height="36" viewBox="0 0 36 36"
+                <svg width="54" height="54" viewBox="0 0 36 36"
                   style={{ cursor: 'ns-resize', touchAction: 'none' }}
                   title={`Vox volume: ${Math.round(val * 100)}%`}
                   onPointerDown={(e) => {
@@ -2674,7 +2674,7 @@ function App() {
                   <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
                   <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-                <span style={{ fontSize: '0.55rem', color: '#7c3aed', letterSpacing: '0.05em', textTransform: 'uppercase' }}>V</span>
+                <span style={{ fontSize: '0.6rem', color: '#7c3aed', letterSpacing: '0.08em', textTransform: 'uppercase' }}>VOX</span>
               </div>
             );
           })()}
