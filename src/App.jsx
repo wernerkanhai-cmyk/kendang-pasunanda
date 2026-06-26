@@ -19,6 +19,19 @@ import { useSnippets } from './hooks/useSnippets';
 import { useAuth } from './context/AuthContext';
 import MigrationDialog from './components/MigrationDialog';
 
+// Dunne line-iconen voor de bibliotheek/menu's
+const FolderIcon = ({ color = 'currentColor', size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z" />
+  </svg>
+);
+const DocIcon = ({ color = 'currentColor', size = 13 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M4 1.8h5l3 3v9.4H4z" />
+    <path d="M9 1.8V5h3" />
+  </svg>
+);
+
 const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
 const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
 
@@ -3233,11 +3246,11 @@ function App() {
                             onClick={() => toggleFolderCollapsed(rootFolder)}
                             style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
                             title={rootCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
-                          >{rootCollapsed ? '▶' : '▼'}</button>
+                          ><FolderIcon color="#d4af37" /></button>
                           <span
                             onClick={() => toggleFolderCollapsed(rootFolder)}
                             style={{ flex: 1, color: '#d4af37', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
-                          >📦 Templates <span style={{ color: '#a37f1e', fontWeight: 'normal' }}>({matches.length})</span></span>
+                          >Templates <span style={{ color: '#a37f1e', fontWeight: 'normal' }}>({matches.length})</span></span>
                         </div>
                         {!rootCollapsed && (matches.length === 0 ? (
                           <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
@@ -3254,7 +3267,7 @@ function App() {
                                   onClick={() => toggleFolderCollapsed(subKey)}
                                   style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
                                   title={subCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
-                                >{subCollapsed ? '▶' : '▼'}</button>
+                                ><FolderIcon color="#a37f1e" size={12} /></button>
                                 <span
                                   onClick={() => toggleFolderCollapsed(subKey)}
                                   style={{ flex: 1, color: '#a37f1e', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' }}
@@ -3262,7 +3275,7 @@ function App() {
                               </div>
                               {!subCollapsed && items.map((tpl) => (
                                 <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem 0.4rem 1rem', borderRadius: '6px' }}>
-                                  <span style={{ flex: 1, color: '#fcd34d', fontSize: '0.875rem' }}>{tpl.name}</span>
+                                  <DocIcon color="#fcd34d" /><span style={{ flex: 1, color: '#fcd34d', fontSize: '0.875rem' }}>{tpl.name}</span>
                                   <button
                                     onClick={async () => {
                                       setShowSongLibrary(false);
@@ -3347,11 +3360,11 @@ function App() {
                                 onClick={() => toggleFolderCollapsed(folder)}
                                 style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
                                 title={collapsedFolders.has(folder) ? 'Map openklappen' : 'Map dichtklappen'}
-                              >{collapsedFolders.has(folder) ? '▶' : '▼'}</button>
+                              ><FolderIcon color="#94a3b8" /></button>
                               <span
                                 onClick={() => toggleFolderCollapsed(folder)}
                                 style={{ flex: 1, color: '#94a3b8', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
-                              >📁 {folder} <span style={{ color: '#475569', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
+                              >{folder} <span style={{ color: '#475569', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
                               <button
                                 onClick={() => { setRenamingFolder(folder); setRenameFolderInput(folder); }}
                                 style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
@@ -3411,7 +3424,8 @@ function App() {
                               />
                             ) : (
                               <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                <span>{s.id === currentSongId ? '▶ ' : ''}{s.name}</span>
+                                <DocIcon color={s.id === currentSongId ? '#93c5fd' : '#94a3b8'} />
+                                <span>{s.name}</span>
                                 <button
                                   onClick={() => { setRenamingSongId(s.id); setRenameSongInput(s.name); }}
                                   style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
