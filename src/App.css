@@ -50,6 +50,19 @@
   gap: 0.6rem;
 }
 
+/* Header-knoppen: kaal symbool, subtiele glow bij indrukken (chic) */
+.hdr-icon-btn {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: filter 0.15s, color 0.15s, transform 0.1s;
+}
+.hdr-icon-btn:hover { filter: brightness(1.25); }
+.hdr-icon-btn:active {
+  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.85));
+  transform: scale(0.94);
+}
+
 .branding h1 {
   font-size: 1.4rem;
   font-weight: 700;

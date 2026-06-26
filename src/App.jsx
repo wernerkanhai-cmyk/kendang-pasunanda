@@ -2598,6 +2598,7 @@ function App() {
         <div className="header-center">
           {/* Play/pauze — links van de anak-knop, op volle header-hoogte */}
           <button
+            className="hdr-icon-btn"
             onClick={() => togglePlay()}
             title={t('playPause')}
             style={{
@@ -2758,7 +2759,7 @@ function App() {
           {/* ── Practice Mode lock (Full) / Unlock-Full upsell (Performance) ── */}
           {!canEdit ? (
             <button
-              className="practice-mode-btn"
+              className="practice-mode-btn hdr-icon-btn"
               onClick={handleUpsell}
               title="Edit mode zit in de Full-versie — tik om te ontgrendelen"
               style={{
@@ -2776,7 +2777,7 @@ function App() {
             </button>
           ) : (
           <button
-            className={`practice-mode-btn${isPulsing ? ' pulsing' : ''}`}
+            className={`practice-mode-btn hdr-icon-btn${isPulsing ? ' pulsing' : ''}`}
             onClick={() => {
               // Verlaten van edit-mode → eerst nog niet-opgeslagen edits flushen,
               // want vanaf nu (practice mode) wordt opslaan geblokkeerd.
@@ -2816,6 +2817,7 @@ function App() {
           {/* ── Tempo toggle — only visible in practice mode ──────────── */}
           {isLocked && (
             <button
+              className="hdr-icon-btn"
               onClick={handleToggleAllTempoEnabled}
               style={{
                 background: song.some(p => p.tempoTrackEnabled !== false) ? 'rgba(212,175,55,0.15)' : 'transparent',
@@ -2832,6 +2834,7 @@ function App() {
           {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
           <div style={{ position: 'relative' }}>
             <button
+              className="hdr-icon-btn"
               onClick={() => setShowToolsMenu(v => !v)}
               style={{ background: showToolsMenu ? '#334155' : 'transparent', color: '#e2e8f0', padding: '0.6rem 0.9rem', borderRadius: '6px', border: '1px solid var(--border-focus)', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
               title={t('toolsMenu')}
