@@ -3159,17 +3159,11 @@ function App() {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                style={{ background: '#161f30', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
+                style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-1.5rem -1.5rem 0', padding: '0.85rem 1.5rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>{t('songLibraryTitle')}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-
-                    {/* Import — single button, accepts both song and group files */}
-                    <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 0 8px rgba(52,211,153,0.25)' }}>
-                      ⬆ Import
-                      <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
-                    </label>
 
                     <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
@@ -3182,7 +3176,7 @@ function App() {
                       background: 'transparent',
                       color: exportSelection.size > 0 ? '#fbbf24' : '#475569',
                       border: `1px solid ${exportSelection.size > 0 ? 'rgba(251,191,36,0.45)' : '#334155'}`,
-                      borderRadius: '999px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
+                      borderRadius: '6px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
                       cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
                     }}
                     title="Exporteer geselecteerde songs"
@@ -3194,11 +3188,15 @@ function App() {
                       background: 'transparent',
                       color: exportSelection.size > 0 ? '#ef4444' : '#475569',
                       border: `1px solid ${exportSelection.size > 0 ? 'rgba(239,68,68,0.45)' : '#334155'}`,
-                      borderRadius: '999px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
+                      borderRadius: '6px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
                       cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
                     }}
                     title="Verwijder geselecteerde songs"
-                  >🗑 Delete ({exportSelection.size})</button>
+                  >Delete ({exportSelection.size})</button>
+                  <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '6px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    ⬆ Import
+                    <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
+                  </label>
                   <input
                     type="text"
                     value={songSearchQuery}
@@ -3248,7 +3246,7 @@ function App() {
                           ><ChevronIcon collapsed={rootCollapsed} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                           <span
                             onClick={() => toggleFolderCollapsed(rootFolder)}
-                            style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                            style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                           >Templates <span style={{ color: '#64748b', fontWeight: 'normal' }}>({matches.length})</span></span>
                         </div>
                         {!rootCollapsed && (matches.length === 0 ? (
@@ -3261,7 +3259,7 @@ function App() {
                           const items = byCategory[cat];
                           return (
                             <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #2b3650', marginBottom: '0.15rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: 'none', marginBottom: '0.15rem' }}>
                                 <button
                                   onClick={() => toggleFolderCollapsed(subKey)}
                                   style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.1rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
@@ -3269,7 +3267,7 @@ function App() {
                                 ><ChevronIcon collapsed={subCollapsed} color="#cbd5e1" size={8} /><FolderIcon color="#cbd5e1" size={12} /></button>
                                 <span
                                   onClick={() => toggleFolderCollapsed(subKey)}
-                                  style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                                  style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                                 >{cat} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
                               {!subCollapsed && items.map((tpl, ri) => (
@@ -3281,7 +3279,7 @@ function App() {
                                       await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
                                       showToast(`"${tpl.name}" geladen`);
                                     }}
-                                    style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '999px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}
+                                    style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}
                                   >Gebruik</button>
                                   {isAdmin && (
                                     <button
@@ -3362,7 +3360,7 @@ function App() {
                               ><ChevronIcon collapsed={collapsedFolders.has(folder)} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                               <span
                                 onClick={() => toggleFolderCollapsed(folder)}
-                                style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                                style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                               >{folder} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
                               <button
                                 onClick={() => { setRenamingFolder(folder); setRenameFolderInput(folder); }}
@@ -3435,7 +3433,7 @@ function App() {
                             )}
                             <button
                               onClick={() => handleLoadSong(s.id)}
-                              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.5)', borderRadius: '999px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(96,165,250,0.3)' }}
+                              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(96,165,250,0.3)' }}
                             >{t('loadBtn')}</button>
                             <button
                               onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
