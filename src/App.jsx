@@ -3777,9 +3777,12 @@ function App() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '12px', padding: '1.5rem', width: 'min(92vw, 380px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}
+            style={{ background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: 'min(92vw, 380px)', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', color: '#e2e8f0' }}
           >
-            <div style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Song bestaat al</div>
+            <div style={{ margin: '-1.5rem -1.5rem 1rem', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Song bestaat al</span>
+            </div>
             <div style={{ fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '1.2rem', lineHeight: 1.4 }}>
               Er bestaat al een song <strong>“{overwritePrompt.name}”</strong> in de map “{overwritePrompt.folder}”. Wat wil je doen?
             </div>
@@ -3800,9 +3803,12 @@ function App() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '12px', padding: '1.5rem', width: 'min(92vw, 380px)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}
+            style={{ background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: 'min(92vw, 380px)', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', color: '#e2e8f0' }}
           >
-            <div style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Patroon bestaat al</div>
+            <div style={{ margin: '-1.5rem -1.5rem 1rem', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Patroon bestaat al</span>
+            </div>
             <div style={{ fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '1.2rem', lineHeight: 1.4 }}>
               Er bestaat al een patroon <strong>“{snippetOverwritePrompt.name}”</strong> in de map “{snippetOverwritePrompt.folder}”. Wat wil je doen?
             </div>
