@@ -3177,7 +3177,7 @@ function App() {
                       title="Exporteer geselecteerde songs"
                     >⬆ Export ({exportSelection.size})</button>
                     <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                      ⬆ Import
+                      ⬇ Import
                       <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
                     </label>
                     <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
