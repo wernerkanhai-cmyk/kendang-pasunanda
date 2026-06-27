@@ -3162,25 +3162,28 @@ function App() {
                 style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-1.5rem -1.5rem 0', padding: '0.85rem 1.5rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}>{t('songLibraryTitle')}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-
+                    <button
+                      onClick={handleExportSelection}
+                      disabled={exportSelection.size === 0}
+                      style={{
+                        background: 'transparent',
+                        color: exportSelection.size > 0 ? '#fbbf24' : '#94a3b8',
+                        border: `1px solid ${exportSelection.size > 0 ? 'rgba(251,191,36,0.45)' : '#3a3d45'}`,
+                        borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 600,
+                        cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
+                      }}
+                      title="Exporteer geselecteerde songs"
+                    >⬆ Export ({exportSelection.size})</button>
+                    <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                      ⬆ Import
+                      <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
+                    </label>
                     <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <button
-                    onClick={handleExportSelection}
-                    disabled={exportSelection.size === 0}
-                    style={{
-                      background: 'transparent',
-                      color: exportSelection.size > 0 ? '#fbbf24' : '#475569',
-                      border: `1px solid ${exportSelection.size > 0 ? 'rgba(251,191,36,0.45)' : '#334155'}`,
-                      borderRadius: '6px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
-                      cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
-                    }}
-                    title="Exporteer geselecteerde songs"
-                  >⬆ Export ({exportSelection.size})</button>
                   <button
                     onClick={handleDeleteSelection}
                     disabled={exportSelection.size === 0}
@@ -3193,10 +3196,6 @@ function App() {
                     }}
                     title="Verwijder geselecteerde songs"
                   >Delete ({exportSelection.size})</button>
-                  <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '6px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    ⬆ Import
-                    <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
-                  </label>
                   <input
                     type="text"
                     value={songSearchQuery}
