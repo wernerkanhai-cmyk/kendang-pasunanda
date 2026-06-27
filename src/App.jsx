@@ -2521,22 +2521,22 @@ function App() {
 
                   {/* Three explicit save actions */}
                   <button
-                    onClick={() => { handleUpdateSong(); setShowSongMenu(false); }}
+                    onClick={() => { handleUpdateSong(); if (!isLocked) setShowSongMenu(false); }}
                     disabled={!currentSongId}
                     style={{
-                      background: currentSongId ? '#3b82f6' : 'rgba(255,255,255,0.02)',
-                      color: currentSongId ? '#fff' : '#475569',
+                      background: (currentSongId && !isLocked) ? '#3b82f6' : 'rgba(255,255,255,0.02)',
+                      color: (currentSongId && !isLocked) ? '#fff' : '#475569',
                       padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold',
-                      border: '1px solid', borderColor: currentSongId ? '#3b82f6' : '#334155',
-                      cursor: currentSongId ? 'pointer' : 'default', fontSize: '0.85rem',
+                      border: '1px solid', borderColor: (currentSongId && !isLocked) ? '#3b82f6' : '#334155',
+                      cursor: !currentSongId ? 'default' : (isLocked ? 'not-allowed' : 'pointer'), fontSize: '0.85rem',
                     }}
-                    title={currentSongId ? 'Overschrijf de geladen song' : 'Geen song geladen'}
+                    title={isLocked ? 'Verlaat practice mode om op te slaan' : (currentSongId ? 'Overschrijf de geladen song' : 'Geen song geladen')}
                   ><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M2.5 2.5h8l3 3v8a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5z"/><path d="M5 2.5v3.2h5V2.5"/><rect x="4.5" y="8.5" width="7" height="5.5" rx="0.5"/></svg>Update</button>
 
                   <button
-                    onClick={() => { handleSaveAsNew(); setShowSongMenu(false); }}
-                    style={{ background: '#10b981', color: '#fff', padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                    title="Maak een nieuwe song met de huidige naam + folder"
+                    onClick={() => { handleSaveAsNew(); if (!isLocked) setShowSongMenu(false); }}
+                    style={{ background: isLocked ? 'rgba(255,255,255,0.02)' : '#10b981', color: isLocked ? '#475569' : '#fff', padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold', border: isLocked ? '1px solid #334155' : 'none', cursor: isLocked ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}
+                    title={isLocked ? 'Verlaat practice mode om op te slaan' : 'Maak een nieuwe song met de huidige naam + folder'}
                   ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Save as new</button>
 
                   <div style={{ height: '1px', background: '#2b3650', margin: '0.2rem 0' }} />
