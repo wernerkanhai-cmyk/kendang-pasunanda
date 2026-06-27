@@ -659,7 +659,7 @@ const PatternEditor = ({
         <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: (isActive && !isLocked) ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
            {isNamingSnippet ? (
               <div style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', padding: '2px', borderRadius: '4px', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', padding: '3px 4px', borderRadius: '6px', gap: '4px', boxShadow: '0 4px 14px rgba(0,0,0,0.4)' }}>
                   <input
                     autoFocus
                     type="text"
@@ -698,7 +698,7 @@ const PatternEditor = ({
                           }
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        style={{ background: '#0f172a', color: '#cbd5e1', border: 'none', outline: 'none', fontSize: '14px', padding: '0 2px', cursor: 'pointer', maxWidth: '110px' }}
+                        style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', fontSize: '14px', padding: '0 2px', cursor: 'pointer', maxWidth: '110px' }}
                       >
                         {existingFolders.map(f => (
                           <option key={f} value={f}>{f}</option>
@@ -707,8 +707,8 @@ const PatternEditor = ({
                       </select>
                     );
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '5px', padding: '3px 7px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
-                  <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '5px', padding: '3px 7px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✕</button>
+                  <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: 'transparent', color: '#10b981', border: '1px solid rgba(16,185,129,0.45)', borderRadius: '6px', padding: '3px 8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', marginLeft: '2px', boxShadow: '0 0 6px rgba(16,185,129,0.4)' }}>✓</button>
+                  <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.45)', borderRadius: '6px', padding: '3px 8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', marginLeft: '2px', boxShadow: '0 0 6px rgba(239,68,68,0.4)' }}>✕</button>
                 </div>
                 {savedSnippets.length > 0 && (() => {
                   const byFolder = savedSnippets.reduce((acc, s) => {
