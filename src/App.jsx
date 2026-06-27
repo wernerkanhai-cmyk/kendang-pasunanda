@@ -2509,7 +2509,7 @@ function App() {
                   </div>
                   <input type="text" value={songName} onChange={(e) => setSongName(e.target.value)}
                     onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
-                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
+                    style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
                     placeholder={t('songNamePlaceholder')} />
                   {(() => {
                     const existingFolders = Array.from(new Set(savedSongs.map(s => s.folder || 'Algemeen'))).sort();
@@ -2520,7 +2520,7 @@ function App() {
                         onKeyDown={(e) => { if (e.key === 'Escape') { setSongFolder('Algemeen'); setNewSongFolderMode(false); } }}
                         onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
                         onBlur={() => { if (!songFolder) setSongFolder('Algemeen'); setNewSongFolderMode(false); }}
-                        style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
+                        style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
                         placeholder={t('folderPlaceholder')} />
                     ) : (
                       <select
@@ -2529,7 +2529,7 @@ function App() {
                           if (e.target.value === '__NEW__') { setSongFolder(''); setNewSongFolderMode(true); }
                           else setSongFolder(e.target.value);
                         }}
-                        style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px', cursor: 'pointer' }}
+                        style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px', cursor: 'pointer' }}
                       >
                         {existingFolders.map(f => <option key={f} value={f}>{f}</option>)}
                         <option value="__NEW__">+ Nieuwe map...</option>
@@ -2542,7 +2542,7 @@ function App() {
                     onClick={() => { handleUpdateSong(); setShowSongMenu(false); }}
                     disabled={!currentSongId}
                     style={{
-                      background: currentSongId ? '#3b82f6' : '#1e293b',
+                      background: currentSongId ? '#3b82f6' : 'rgba(255,255,255,0.02)',
                       color: currentSongId ? '#fff' : '#475569',
                       padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold',
                       border: '1px solid', borderColor: currentSongId ? '#3b82f6' : '#334155',
@@ -2561,7 +2561,7 @@ function App() {
                     onClick={() => { handleSaveAsCopy(); setShowSongMenu(false); }}
                     disabled={!currentSongId}
                     style={{
-                      background: currentSongId ? '#0f172a' : '#1e293b',
+                      background: currentSongId ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
                       color: currentSongId ? '#e2e8f0' : '#475569',
                       padding: '0.55rem', borderRadius: '6px',
                       border: '1px solid #2b3650',
@@ -2574,12 +2574,12 @@ function App() {
                   <div style={{ height: '1px', background: '#2b3650', margin: '0.2rem 0' }} />
 
                   <button onClick={() => { handleNewSong(); setShowSongMenu(false); }}
-                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+                    style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
                     title="Begin met een lege song"
                   ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>{t('newBtn')}</button>
 
                   <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
-                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+                    style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
                     title="Open de bibliotheek om een song te laden of te verwijderen"
                   ><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><ellipse cx="12" cy="5.5" rx="8" ry="3"/><circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><path d="M4 10c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 14c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 18c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>{t('libraryBtn')}</button>
 
@@ -2605,7 +2605,7 @@ function App() {
                         } catch (err) { alert(err?.message ?? 'Publiceren mislukt'); }
                         setShowSongMenu(false);
                       }}
-                      style={{ background: '#0f172a', color: '#d4af37', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+                      style={{ background: 'rgba(255,255,255,0.05)', color: '#d4af37', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
                       title="Publiceer deze song als template voor alle gebruikers"
                     ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Publiceer als template</button>
                   </>}
