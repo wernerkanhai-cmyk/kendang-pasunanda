@@ -2634,7 +2634,7 @@ function App() {
           >{isPlaying ? '⏸' : '▶'}</button>
           {/* Track volume knobs A + I */}
           {['anak', 'indung'].map(track => {
-            const color = track === 'anak' ? '#60a5fa' : '#d4af37';
+            const color = track === 'anak' ? 'var(--anak-color)' : 'var(--indung-color)';
             const val = trackVolumes[track];
             const angle = -135 + (val / 2) * 270;
             const r = 14, cx = 18, cy = 18;
@@ -2646,7 +2646,7 @@ function App() {
             return (
               <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
                 <svg width="54" height="54" viewBox="0 0 36 36"
-                  style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color}80)` }}
+                  style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color})` }}
                   title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
                   onPointerDown={(e) => {
                     e.preventDefault();
