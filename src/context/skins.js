@@ -38,21 +38,19 @@ export const SKINS = [
     },
   },
   {
-    // PUSAMADA — donker kendang-palet: zwarte regels, witte anak, rode indung.
-    // (Notatie-fase. Chrome volgt later: zwarte panelen + rode knop-glow zijn de
+    // PUSAMADA — donker kendang-palet: donkergrijze regels, witte anak, rode indung.
+    // Maat-/kwartstrepen blijven de donkere default (zichtbaar tegen donkergrijs).
+    // (Notatie-fase. Chrome volgt later: donkere panelen + rode knop-glow zijn de
     //  geplande fase-2-uitbreiding; de knoppen blijven voorlopig modern.)
     id: 'pusamada',
     label: 'PUSAMADA',
     tokens: {
-      '--anak-bg': '#0d0d0d',
+      '--anak-bg': '#2d2d2d',
       '--anak-color': '#ffffff',
       '--anak-text': '#ffffff',
-      '--indung-bg': '#0d0d0d',
+      '--indung-bg': '#2d2d2d',
       '--indung-color': '#ef4444',
       '--indung-text': '#ef4444',
-      '--bar-line': '#e5e7eb', // maatstrepen (bar-lijnen) licht grijs-wit op zwart
-      '--beat-line': '#e5e7eb', // kwart-tel-streepjes wit...
-      '--beat-line-width': '1px', // ...maar dunner dan de maatstrepen (2px)
     },
   },
 ];
