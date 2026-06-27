@@ -1,4 +1,5 @@
-import { jsPDF } from 'jspdf';
+// jsPDF wordt dynamisch geïmporteerd in exportSequencerToPDF (lazy), zodat de
+// ~400 kB bibliotheek niet in de hoofdbundle belandt — pas geladen bij export.
 import { deduplicateGongByBeat, glyphFor } from '../engine/patternLogic';
 
 // Chrome op Windows rendert de notatie-glyphs met een hogere 'top'-baseline dan
@@ -535,6 +536,7 @@ export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) 
   canvas.height = CH;
   const ctx = canvas.getContext('2d');
 
+  const { jsPDF } = await import('jspdf');
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pdfW = pdf.internal.pageSize.getWidth();
   const pdfH = pdf.internal.pageSize.getHeight();
