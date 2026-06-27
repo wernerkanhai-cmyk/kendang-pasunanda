@@ -3217,7 +3217,7 @@ function App() {
                     <option value="recent">Laatst bewerkt</option>
                   </select>
                 </div>
-                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   {/* Templates folder — from database, readable by all, writable by admin */}
                   {(() => {
                     const q = songSearchQuery.toLowerCase();
@@ -3273,9 +3273,9 @@ function App() {
                                   style={{ flex: 1, color: '#a37f1e', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' }}
                                 >{cat} <span style={{ color: '#7a5e16', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
-                              {!subCollapsed && items.map((tpl) => (
-                                <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem 0.4rem 1rem', borderRadius: '6px' }}>
-                                  <DocIcon color="#fcd34d" /><span style={{ flex: 1, color: '#fcd34d', fontSize: '0.875rem' }}>{tpl.name}</span>
+                              {!subCollapsed && items.map((tpl, ri) => (
+                                <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.5rem 0.26rem 1rem', background: ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent' }}>
+                                  <DocIcon color="#fcd34d" size={12} /><span style={{ flex: 1, color: '#fcd34d', fontSize: '0.85rem', fontWeight: 300 }}>{tpl.name}</span>
                                   <button
                                     onClick={async () => {
                                       setShowSongLibrary(false);
@@ -3401,8 +3401,8 @@ function App() {
                             </>
                           )}
                         </div>
-                        {!collapsedFolders.has(folder) && byFolder[folder].map(s => (
-                          <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : 'transparent' }}>
+                        {!collapsedFolders.has(folder) && byFolder[folder].map((s, ri) => (
+                          <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.4rem', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : (ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent') }}>
                             <input
                               type="checkbox"
                               checked={exportSelection.has(s.id)}
@@ -3423,8 +3423,8 @@ function App() {
                                 style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3b82f6', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.875rem' }}
                               />
                             ) : (
-                              <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                <DocIcon color={s.id === currentSongId ? '#93c5fd' : '#94a3b8'} />
+                              <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.85rem', fontWeight: 300, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <DocIcon color={s.id === currentSongId ? '#93c5fd' : '#94a3b8'} size={12} />
                                 <span>{s.name}</span>
                                 <button
                                   onClick={() => { setRenamingSongId(s.id); setRenameSongInput(s.name); }}
