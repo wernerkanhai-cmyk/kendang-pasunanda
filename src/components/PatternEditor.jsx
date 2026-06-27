@@ -1226,14 +1226,14 @@ const PatternEditor = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (isPlaying || isRecording) {
-                setAutoQuantize(!autoQuantize);
-              } else {
+              if (!isPlaying && !isRecording && activeRangeObj) {
                 blink('quantize', () => onSnapToGrid?.());
+              } else {
+                setAutoQuantize(!autoQuantize);
               }
             }}
             style={{ background: blinkBtn === 'quantize' ? '#3b82f6' : (autoQuantize ? 'rgba(96,165,250,0.22)' : 'transparent'), color: blinkBtn === 'quantize' ? '#fff' : '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(167,139,250,0.55)', transition: 'background 0.1s' }}
-            title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selection to grid'}
+            title={(!isPlaying && !isRecording && activeRangeObj) ? 'Snap selectie naar raster' : (autoQuantize ? 'Auto-quantize aan — klik om uit te zetten' : 'Auto-quantize — klik om te activeren (ook vóór afspelen)')}
           >Q</button>
           <button
             onClick={(e) => { e.stopPropagation(); handleToggleAccent(); }}
