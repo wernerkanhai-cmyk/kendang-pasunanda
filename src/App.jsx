@@ -2566,9 +2566,9 @@ function App() {
                   >✨ {t('newBtn')}</button>
 
                   <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
-                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
                     title="Open de bibliotheek om een song te laden of te verwijderen"
-                  >📚 {t('libraryBtn')}</button>
+                  ><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><ellipse cx="12" cy="5.5" rx="8" ry="3"/><circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><path d="M4 10c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 14c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 18c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>{t('libraryBtn')}</button>
 
                   {isAdmin && <>
                     <div style={{ height: '1px', background: '#334155', margin: '0.2rem 0' }} />
@@ -3162,7 +3162,7 @@ function App() {
                 style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-1.5rem -1.5rem 0', padding: '0.85rem 1.5rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>{t('songLibraryTitle')}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><ellipse cx="12" cy="5.5" rx="8" ry="3"/><circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><path d="M4 10c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 14c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 18c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <button
                       onClick={handleExportSelection}
