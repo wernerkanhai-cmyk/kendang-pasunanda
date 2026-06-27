@@ -1147,7 +1147,7 @@ const PatternEditor = ({
 
           <button
             onClick={(e) => { e.stopPropagation(); setTouchSelectMode(v => !v); }}
-            style={{ background: touchSelectMode ? 'rgba(251,146,60,0.15)' : '#1e293b', color: touchSelectMode ? '#fb923c' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: `1px solid ${touchSelectMode ? '#f97316' : '#334155'}`, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            style={{ background: touchSelectMode ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(251,146,60,0.55)' }}
             title={touchSelectMode ? 'Selectie-tool aan — sleep over de tijdlijn (noten verschuiven niet). Klik om uit te zetten.' : 'Selectie-tool — sleep over de tijdlijn om een bereik te selecteren'}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1200,7 +1200,7 @@ const PatternEditor = ({
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
-            style={{ background: inputEnabled ? 'rgba(22,163,74,0.2)' : 'transparent', color: inputEnabled ? '#4ade80' : '#64748b', border: `1px solid ${inputEnabled ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+            style={{ background: inputEnabled ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(74,222,128,0.55)' }}
             title={inputEnabled ? t('inputOn') : t('inputOff')}
           >✏️</button>
           <select
@@ -1219,7 +1219,7 @@ const PatternEditor = ({
           </select>
           <button
             onClick={(e) => { e.stopPropagation(); setMagneticInput(!magneticInput); }}
-            style={{ background: magneticInput ? 'rgba(239,68,68,0.2)' : 'transparent', color: magneticInput ? '#f87171' : '#64748b', border: `1px solid ${magneticInput ? '#ef4444' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+            style={{ background: magneticInput ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(239,68,68,0.55)' }}
             title={t('snapToGrid')}
           >🧲</button>
           <button
@@ -1231,13 +1231,13 @@ const PatternEditor = ({
                 onSnapToGrid?.();
               }
             }}
-            style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
+            style={{ background: autoQuantize ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(167,139,250,0.55)' }}
             title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selection to grid'}
           >Q</button>
           <button
             onClick={(e) => { e.stopPropagation(); handleToggleAccent(); }}
             disabled={!activeRangeObj}
-            style={{ background: 'transparent', color: activeRangeObj ? '#d4af37' : '#475569', border: `1px solid ${activeRangeObj ? '#d4af37' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', fontSize: '0.95rem', fontWeight: 'bold', height: '1.7rem', lineHeight: 1, boxSizing: 'border-box' }}
+            style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', fontSize: '0.95rem', fontWeight: 'bold', height: '1.7rem', lineHeight: 1, boxSizing: 'border-box', boxShadow: '0 0 6px rgba(212,175,55,0.55)' }}
             title="Toggle accent op selectie (›)"
           >›</button>
         </div>
