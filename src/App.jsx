@@ -728,6 +728,7 @@ function App() {
   };
 
   const handleNewSong = () => {
+    if (isLocked) { showToast('Verlaat practice mode om een nieuwe song te maken'); return; }
     const newSongName = `Song ${savedSongs.length + 2}`;
     const fresh = createEmptyPattern(t('defaultSectionName'));
     setSong([fresh]);
@@ -2541,9 +2542,9 @@ function App() {
 
                   <div style={{ height: '1px', background: '#2b3650', margin: '0.2rem 0' }} />
 
-                  <button onClick={() => { handleNewSong(); setShowSongMenu(false); }}
-                    style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
-                    title="Begin met een lege song"
+                  <button onClick={() => { handleNewSong(); if (!isLocked) setShowSongMenu(false); }}
+                    style={{ background: 'rgba(255,255,255,0.05)', color: isLocked ? '#475569' : '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: isLocked ? 'not-allowed' : 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+                    title={isLocked ? 'Verlaat practice mode om een nieuwe song te maken' : 'Begin met een lege song'}
                   ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>{t('newBtn')}</button>
 
                   <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
