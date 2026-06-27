@@ -946,8 +946,26 @@ const T = {
 
 export const LanguageContext = createContext(null);
 
+// Begintaal: een opgeslagen voorkeur wint altijd; anders raden we op basis van de
+// device-/browser-locale (de regio van waaruit de app geopend wordt). Sundanees/
+// Javaans tellen mee als Indonesisch (de doelgroep). Anders val terug op Engels.
+function detectInitialLanguage() {
+  try {
+    const stored = localStorage.getItem('kendangLanguage');
+    if (stored && LANGUAGES.some((l) => l.code === stored)) return stored;
+    const locales = navigator.languages?.length ? navigator.languages : [navigator.language || ''];
+    for (const loc of locales) {
+      const code = String(loc).toLowerCase();
+      if (code.startsWith('nl')) return 'nl';
+      if (code.startsWith('id') || code.startsWith('su') || code.startsWith('jv') || code.startsWith('min')) return 'id';
+      if (code.startsWith('en')) return 'en';
+    }
+  } catch { /* SSR / private mode — negeren */ }
+  return 'en';
+}
+
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState(() => localStorage.getItem('kendangLanguage') || 'en');
+  const [language, setLanguage] = useState(detectInitialLanguage);
 
   const setLang = useCallback((code) => {
     setLanguage(code);
