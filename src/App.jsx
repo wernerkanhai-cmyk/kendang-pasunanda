@@ -2489,12 +2489,16 @@ function App() {
                 <div onClick={() => setShowSongMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
                 <div style={{
                   position: 'fixed', top: '3.5rem', left: '0.5rem', zIndex: 200,
-                  background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+                  background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '10px',
                   padding: '0.75rem', minWidth: '240px', maxWidth: 'calc(100vw - 1rem)',
                   maxHeight: 'calc(100dvh - 4.5rem)', overflowY: 'auto',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                   display: 'flex', flexDirection: 'column', gap: '0.5rem',
                 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.75rem -0.75rem 0.25rem', padding: '0.55rem 0.85rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '10px 10px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1rem', color: '#f1f5f9' }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Song</span>
+                    <button onClick={() => setShowSongMenu(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.1rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+                  </div>
                   <input type="text" value={songName} onChange={(e) => setSongName(e.target.value)}
                     onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
