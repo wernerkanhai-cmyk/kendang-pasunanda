@@ -641,8 +641,8 @@ const PatternEditor = ({
           style={{ fontSize: '16px' }}
         />
 
-        {/* Snippet Library Controls */}
-        <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: !isLocked ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
+        {/* Snippet Library Controls — alleen op de actieve regel, net als de edit-toolbar */}
+        <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: (isActive && !isLocked) ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
            {isNamingSnippet ? (
               <div style={{ position: 'relative' }}>
                 <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', padding: '2px', borderRadius: '4px', gap: '4px' }}>
