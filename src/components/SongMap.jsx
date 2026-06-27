@@ -37,8 +37,8 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
           top: topOffset, left: 0, bottom: 0,
           width: '200px',
           zIndex: 401,
-          background: '#0f172a',
-          borderRight: '1px solid #1e293b',
+          background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)',
+          borderRight: '1px solid #2b3650',
           display: 'flex',
           flexDirection: 'column',
           transform: open ? 'translateX(0)' : 'translateX(-100%)',
@@ -49,11 +49,14 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
         {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0.6rem 0.75rem',
-          borderBottom: '1px solid #1e293b',
+          padding: '0.6rem 0.85rem',
+          background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)',
+          borderBottom: '1px solid #2b3650',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)',
           flexShrink: 0,
         }}>
-          <span style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 'bold', letterSpacing: '0.06em' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
             {t('compositionLabel')}
           </span>
           <button
@@ -72,7 +75,7 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
                 style={{
                   display: 'flex', alignItems: 'center',
                   padding: '0 0.4rem 0 0',
-                  background: isActive ? 'rgba(59,130,246,0.12)' : 'transparent',
+                  background: isActive ? 'rgba(59,130,246,0.14)' : (idx % 2 ? 'rgba(255,255,255,0.03)' : 'transparent'),
                   borderLeft: isActive ? '3px solid #3b82f6' : '3px solid transparent',
                   marginBottom: '1px',
                 }}

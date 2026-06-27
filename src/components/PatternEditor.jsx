@@ -127,6 +127,20 @@ const PatternEditor = ({
     setSnippetSelection(new Set());
     setSnippetSelectKey(k => k + 1); // remount de laad-<select> zodat ook die dichtgaat
   }, [isActive, pattern.id]);
+
+  // Sluit het snippet-beheerpaneel zodra je buiten het paneel (of de beheer-knop)
+  // tikt — zelfde patroon als het compositie-overzicht. Een open sub-dialoog
+  // (snippet verplaatsen) laten we met rust.
+  useEffect(() => {
+    if (!isManagingSnippets) return;
+    const handleOutside = (e) => {
+      if (moveSnippetTarget) return;
+      if (e.target.closest?.('.snippet-manager-panel') || e.target.closest?.('.snippet-manager-toggle')) return;
+      setIsManagingSnippets(false);
+    };
+    window.addEventListener('pointerdown', handleOutside);
+    return () => window.removeEventListener('pointerdown', handleOutside);
+  }, [isManagingSnippets, moveSnippetTarget]);
   const baseSlotWidthRef = useRef(12);
   useEffect(() => {
     if (!timelineRef.current) return;
@@ -641,11 +655,11 @@ const PatternEditor = ({
           style={{ fontSize: '16px' }}
         />
 
-        {/* Snippet Library Controls */}
-        <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: !isLocked ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
+        {/* Snippet Library Controls — alleen op de actieve regel, net als de edit-toolbar */}
+        <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: (isActive && !isLocked) ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
            {isNamingSnippet ? (
               <div style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', padding: '2px', borderRadius: '4px', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', padding: '3px 4px', borderRadius: '6px', gap: '4px', boxShadow: '0 4px 14px rgba(0,0,0,0.4)' }}>
                   <input
                     autoFocus
                     type="text"
@@ -684,7 +698,7 @@ const PatternEditor = ({
                           }
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        style={{ background: '#0f172a', color: '#cbd5e1', border: 'none', outline: 'none', fontSize: '14px', padding: '0 2px', cursor: 'pointer', maxWidth: '110px' }}
+                        style={{ background: 'transparent', color: '#cbd5e1', border: 'none', outline: 'none', fontSize: '14px', padding: '0 2px', cursor: 'pointer', maxWidth: '110px' }}
                       >
                         {existingFolders.map(f => (
                           <option key={f} value={f}>{f}</option>
@@ -693,8 +707,8 @@ const PatternEditor = ({
                       </select>
                     );
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
-                  <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✕</button>
+                  <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: 'transparent', color: '#10b981', border: '1px solid rgba(16,185,129,0.45)', borderRadius: '6px', padding: '3px 8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', marginLeft: '2px', boxShadow: '0 0 6px rgba(16,185,129,0.4)' }}>✓</button>
+                  <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.45)', borderRadius: '6px', padding: '3px 8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', marginLeft: '2px', boxShadow: '0 0 6px rgba(239,68,68,0.4)' }}>✕</button>
                 </div>
                 {savedSnippets.length > 0 && (() => {
                   const byFolder = savedSnippets.reduce((acc, s) => {
@@ -704,10 +718,10 @@ const PatternEditor = ({
                     return acc;
                   }, {});
                   return (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', zIndex: 200, minWidth: '200px', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '8px', zIndex: 200, minWidth: '200px', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 12px 28px rgba(0,0,0,0.55)' }} onClick={(e) => e.stopPropagation()}>
                       {Object.keys(byFolder).sort().map(f => (
                         <div key={f}>
-                          <div style={{ color: '#475569', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.25rem 0.5rem 0.1rem' }}>📁 {f}</div>
+                          <div style={{ color: '#cbd5e1', fontSize: '0.65rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.3rem 0.5rem 0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z" /></svg>{f}</div>
                           {byFolder[f].map(snip => (
                             <button key={snip.id}
                               onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setSnippetName(snip.name); setSnippetFolder(snip.folder || 'Algemeen'); }}
@@ -727,15 +741,16 @@ const PatternEditor = ({
                 style={{ 
                   padding: '0.3rem 0.5rem', 
                   fontSize: '1rem', 
-                  background: activeRangeObj ? '#334155' : 'transparent', 
-                  border: '1px solid ' + (activeRangeObj ? '#334155' : 'var(--border-subtle)'), 
-                  color: activeRangeObj ? '#2dd4bf' : '#64748b', 
-                  borderRadius: '4px', 
+                  background: activeRangeObj ? 'rgba(96,165,250,0.22)' : 'transparent',
+                  border: '1px solid #60a5fa',
+                  color: '#60a5fa',
+                  borderRadius: '4px',
+                  boxShadow: '0 0 6px rgba(45,212,191,0.55)',
                   cursor: activeRangeObj ? 'pointer' : 'default' 
                 }}
                 title={t('saveSnippetTooltip')}
               >
-                💾
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 2.5h8l3 3v8a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5z"/><path d="M5 2.5v3.2h5V2.5"/><rect x="4.5" y="8.5" width="7" height="5.5" rx="0.5"/></svg>
               </button>
            )}
            <select
@@ -750,7 +765,7 @@ const PatternEditor = ({
                  // Force remount so the same snippet can be picked again immediately
                  setSnippetSelectKey(k => k + 1);
               }}
-              style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.3rem', fontSize: '0.8rem', cursor: 'pointer', minWidth: '150px' }}
+              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.3rem', fontSize: '0.8rem', cursor: 'pointer', minWidth: '150px', boxShadow: '0 0 6px rgba(96,165,250,0.45)' }}
            >
               <option value="">{t('placedAtCursor')}</option>
               {Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort().map(folderName => (
@@ -763,16 +778,17 @@ const PatternEditor = ({
            </select>
 
            <button
+             className="snippet-manager-toggle"
              onClick={(e) => { e.stopPropagation(); setIsManagingSnippets(!isManagingSnippets); }}
-             style={{ background: isManagingSnippets ? '#334155' : 'transparent', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '1rem', cursor: 'pointer' }}
+             style={{ background: isManagingSnippets ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 0 6px rgba(34,211,238,0.55)' }}
              title={t('manageSnippetsTooltip')}
            >
-             ⚙️
+             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
            </button>
 
            <button
              onClick={(e) => { e.stopPropagation(); onDuplicate?.(); }}
-             style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+             style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', boxShadow: '0 0 6px rgba(34,197,94,0.55)' }}
              title={t('duplicatePattern')}
            >⧉</button>
 
@@ -780,9 +796,9 @@ const PatternEditor = ({
              <button
                onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
                disabled={!canDelete}
-               style={{ background: 'transparent', color: canDelete ? '#ef4444' : '#334155', border: `1px solid ${canDelete ? '#ef4444' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35 }}
+               style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35, boxShadow: '0 0 6px rgba(239,68,68,0.55)' }}
                title="Delete section"
-             >🗑</button>
+             ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg></button>
            )}
 
            {!isLocked && (() => {
@@ -791,7 +807,7 @@ const PatternEditor = ({
                <button
                  onClick={(e) => { e.stopPropagation(); if (canDel) deleteMeasuresFromEnd?.(1); }}
                  disabled={!canDel}
-                 style={{ background: 'transparent', color: canDel ? '#f87171' : '#334155', border: `1px solid ${canDel ? '#f87171' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.7rem', cursor: canDel ? 'pointer' : 'default', opacity: canDel ? 1 : 0.35 }}
+                 style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.7rem', cursor: canDel ? 'pointer' : 'default', opacity: canDel ? 1 : 0.35, boxShadow: '0 0 6px rgba(251,146,60,0.55)' }}
                  title="Verwijder laatste maat"
                >−1⊣</button>
              );
@@ -833,18 +849,18 @@ const PatternEditor = ({
                setSnippetSelection(new Set());
              };
              return (
-             <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '1rem', zIndex: 100, minWidth: '280px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem' }}>
-                   <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '0.9rem' }}>{t('snippetManagement')}</h4>
+             <div className="snippet-manager-panel" style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '14px', padding: '0.9rem 1rem', zIndex: 100, minWidth: '320px', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.9rem -1rem 0.7rem', padding: '0.5rem 1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '14px 14px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                   <h4 style={{ margin: 0, color: '#f1f5f9', fontSize: '1rem', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>{t('snippetManagement')}</h4>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                      {snippetSelection.size > 0 && (
                        <button
                          onClick={handleBulkDeleteSnippets}
-                         style={{ background: '#1e293b', color: '#ef4444', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                         style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                          title="Verwijder geselecteerde patronen"
                        >Delete ({snippetSelection.size})</button>
                      )}
-                     <button onClick={handleExportSnippets} style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
+                     <button onClick={handleExportSnippets} style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
                      {isAdmin && snippetSelection.size > 0 && (
                        <button
                          onClick={async () => {
@@ -854,11 +870,11 @@ const PatternEditor = ({
                            }
                            setSnippetSelection(new Set());
                          }}
-                         style={{ background: '#1e293b', color: '#d4af37', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+                         style={{ background: 'transparent', color: '#d4af37', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                          title="Publiceer geselecteerde snippets als templates"
                        >📦 Publiceer ({snippetSelection.size})</button>
                      )}
-                     <label style={{ background: '#1e293b', color: '#a78bfa', border: '1px solid #334155', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
+                     <label style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
                        {t('importSnippets')}
                        <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />
                      </label>
@@ -984,12 +1000,12 @@ const PatternEditor = ({
                                   <span
                                     onClick={() => toggleSnippetFolderCollapsed(folderName)}
                                     style={{ flex: 1, fontSize: '0.75rem', color: '#38bdf8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px', cursor: 'pointer' }}
-                                  >📁 {folderName} <span style={{ color: '#475569', fontWeight: 'normal' }}>({snipsInFolder.length})</span></span>
+                                  ><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px', marginRight: '5px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg>{folderName} <span style={{ color: '#475569', fontWeight: 'normal' }}>({snipsInFolder.length})</span></span>
                                   <button
                                     onClick={() => { setRenamingSnippetFolder(folderName); setRenamingSnippetFolderInput(folderName); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.2rem' }}
                                     title="Mapnaam wijzigen"
-                                  >✏</button>
+                                  ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                   <button
                                     onClick={() => handleDeleteSnippetFolder?.(folderName)}
                                     style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0.2rem', display: 'flex', alignItems: 'center' }}
@@ -1029,12 +1045,12 @@ const PatternEditor = ({
                                     onClick={() => { setRenamingSnippetId(snip.id); setRenamingSnippetInput(snip.name); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 4px' }}
                                     title="Hernoemen"
-                                  >✏</button>
+                                  ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                   <button
                                     onClick={() => { setMoveSnippetTarget(snip); setMoveSnippetFolderInput(''); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}
                                     title="Verplaats naar andere map"
-                                  >📁</button>
+                                  ><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg></button>
                                </div>
                             ))}
                          </div>
@@ -1062,8 +1078,8 @@ const PatternEditor = ({
              };
              return (
                <div onClick={closeDialog} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <div onClick={(e) => e.stopPropagation()} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem', fontFamily: 'system-ui, sans-serif' }}>
-                   <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>Verplaats "{moveSnippetTarget.name}"</div>
+                 <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem', fontFamily: 'system-ui, sans-serif' }}>
+                   <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg><span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Verplaats "{moveSnippetTarget.name}"</span></div>
                    <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Huidige map: <strong>{moveSnippetTarget.folder || 'Algemeen'}</strong></div>
                    <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Bestaande mappen:</div>
                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', maxHeight: '180px', overflowY: 'auto' }}>
@@ -1079,7 +1095,7 @@ const PatternEditor = ({
                            padding: '0.45rem 0.75rem', fontSize: '0.85rem',
                            cursor: f === (moveSnippetTarget.folder || 'Algemeen') ? 'default' : 'pointer',
                          }}
-                       >📁 {f}{f === (moveSnippetTarget.folder || 'Algemeen') ? '  (huidige)' : ''}</button>
+                       ><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '6px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg>{f}{f === (moveSnippetTarget.folder || 'Algemeen') ? '  (huidige)' : ''}</button>
                      ))}
                    </div>
                    <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Of nieuwe map:</div>
@@ -1117,7 +1133,7 @@ const PatternEditor = ({
         <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)', overflowX: 'auto', flexWrap: 'nowrap' }}>
           <button
             onClick={(e) => { e.stopPropagation(); blink('clear-all', handleClearPattern); }}
-            style={{ background: blinkBtn === 'clear-all' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'clear-all' ? '#fff' : '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'clear-all' ? '#3b82f6' : 'transparent', color: blinkBtn === 'clear-all' ? '#fff' : '#60a5fa', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 0 6px rgba(239,68,68,0.55)', transition: 'background 0.1s' }}
             title={t('clearSection')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="2" x2="11" y2="11"/><line x1="11" y1="2" x2="2" y2="11"/></svg>
@@ -1127,7 +1143,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('undo', handleUndo); }}
             disabled={undoStack.length === 0}
-            style={{ background: blinkBtn === 'undo' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'undo' ? '#fff' : '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: undoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: undoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'undo' ? '#3b82f6' : 'transparent', color: blinkBtn === 'undo' ? '#fff' : '#60a5fa', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: undoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: undoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 0 6px rgba(34,211,238,0.55)', transition: 'background 0.1s' }}
             title={t('undo')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5A4.5 4.5 0 1 1 6.5 2"/><polyline points="2,2 2,6.5 6.5,6.5"/></svg>
@@ -1136,7 +1152,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('redo', handleRedo); }}
             disabled={redoStack.length === 0}
-            style={{ background: blinkBtn === 'redo' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'redo' ? '#fff' : '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: redoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: redoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'redo' ? '#3b82f6' : 'transparent', color: blinkBtn === 'redo' ? '#fff' : '#60a5fa', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: redoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: redoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 0 6px rgba(45,212,191,0.55)', transition: 'background 0.1s' }}
             title={t('redo')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 6.5A4.5 4.5 0 1 0 6.5 2"/><polyline points="11,2 11,6.5 6.5,6.5"/></svg>
@@ -1147,7 +1163,7 @@ const PatternEditor = ({
 
           <button
             onClick={(e) => { e.stopPropagation(); setTouchSelectMode(v => !v); }}
-            style={{ background: touchSelectMode ? 'rgba(251,146,60,0.15)' : '#1e293b', color: touchSelectMode ? '#fb923c' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: `1px solid ${touchSelectMode ? '#f97316' : '#334155'}`, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            style={{ background: touchSelectMode ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(251,146,60,0.55)' }}
             title={touchSelectMode ? 'Selectie-tool aan — sleep over de tijdlijn (noten verschuiven niet). Klik om uit te zetten.' : 'Selectie-tool — sleep over de tijdlijn om een bereik te selecteren'}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1157,7 +1173,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('copy', handleCopy); }}
             disabled={!activeRangeObj}
-            style={{ background: blinkBtn === 'copy' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'copy' ? '#fff' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'copy' ? '#3b82f6' : 'transparent', color: blinkBtn === 'copy' ? '#fff' : '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(34,197,94,0.55)', transition: 'background 0.1s' }}
             title={t('copy')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1167,7 +1183,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('cut', handleCut); }}
             disabled={!activeRangeObj}
-            style={{ background: blinkBtn === 'cut' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'cut' ? '#fff' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'cut' ? '#3b82f6' : 'transparent', color: blinkBtn === 'cut' ? '#fff' : '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(251,146,60,0.55)', transition: 'background 0.1s' }}
             title={t('cut')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -1178,7 +1194,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('paste', handlePaste); }}
             disabled={!clipboard || !activeRangeObj}
-            style={{ background: blinkBtn === 'paste' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'paste' ? '#fff' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: clipboard && activeRangeObj ? 'pointer' : 'default', opacity: clipboard && activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'paste' ? '#3b82f6' : 'transparent', color: blinkBtn === 'paste' ? '#fff' : '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: clipboard && activeRangeObj ? 'pointer' : 'default', opacity: clipboard && activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(167,139,250,0.55)', transition: 'background 0.1s' }}
             title={t('paste')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1189,7 +1205,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('del', handleClear); }}
             disabled={!activeRangeObj}
-            style={{ background: blinkBtn === 'del' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'del' ? '#fff' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'del' ? '#3b82f6' : 'transparent', color: blinkBtn === 'del' ? '#fff' : '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(244,63,94,0.55)', transition: 'background 0.1s' }}
             title={t('deleteSelection')}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -1200,9 +1216,9 @@ const PatternEditor = ({
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setInputEnabled(!inputEnabled); }}
-            style={{ background: inputEnabled ? 'rgba(22,163,74,0.2)' : 'transparent', color: inputEnabled ? '#4ade80' : '#64748b', border: `1px solid ${inputEnabled ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+            style={{ background: inputEnabled ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(74,222,128,0.55)' }}
             title={inputEnabled ? t('inputOn') : t('inputOff')}
-          >✏️</button>
+          ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
           <select
             value={gridResolution}
             onChange={(e) => { e.stopPropagation(); setGridResolution(Number(e.target.value)); }}
@@ -1219,25 +1235,25 @@ const PatternEditor = ({
           </select>
           <button
             onClick={(e) => { e.stopPropagation(); setMagneticInput(!magneticInput); }}
-            style={{ background: magneticInput ? 'rgba(239,68,68,0.2)' : 'transparent', color: magneticInput ? '#f87171' : '#64748b', border: `1px solid ${magneticInput ? '#ef4444' : '#475569'}`, padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}
+            style={{ background: magneticInput ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.45rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', height: '1.7rem', display: 'flex', alignItems: 'center', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(239,68,68,0.55)' }}
             title={t('snapToGrid')}
-          >🧲</button>
+          ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4v7a7 7 0 0 0 14 0V4"/><line x1="5" y1="4" x2="9" y2="4"/><line x1="15" y1="4" x2="19" y2="4"/><line x1="5" y1="8.5" x2="9" y2="8.5"/><line x1="15" y1="8.5" x2="19" y2="8.5"/></svg></button>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (isPlaying || isRecording) {
-                setAutoQuantize(!autoQuantize);
+              if (!isPlaying && !isRecording && activeRangeObj) {
+                blink('quantize', () => onSnapToGrid?.());
               } else {
-                onSnapToGrid?.();
+                setAutoQuantize(!autoQuantize);
               }
             }}
-            style={{ background: autoQuantize ? 'rgba(22,163,74,0.2)' : 'transparent', color: autoQuantize ? '#4ade80' : '#64748b', border: `1px solid ${autoQuantize ? '#16a34a' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box' }}
-            title={isPlaying || isRecording ? t('autoQuantize') : 'Snap selection to grid'}
+            style={{ background: blinkBtn === 'quantize' ? '#3b82f6' : (autoQuantize ? 'rgba(96,165,250,0.22)' : 'transparent'), color: blinkBtn === 'quantize' ? '#fff' : '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(167,139,250,0.55)', transition: 'background 0.1s' }}
+            title={(!isPlaying && !isRecording && activeRangeObj) ? 'Snap selectie naar raster' : (autoQuantize ? 'Auto-quantize aan — klik om uit te zetten' : 'Auto-quantize — klik om te activeren (ook vóór afspelen)')}
           >Q</button>
           <button
             onClick={(e) => { e.stopPropagation(); handleToggleAccent(); }}
             disabled={!activeRangeObj}
-            style={{ background: 'transparent', color: activeRangeObj ? '#d4af37' : '#475569', border: `1px solid ${activeRangeObj ? '#d4af37' : '#475569'}`, padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', fontSize: '0.95rem', fontWeight: 'bold', height: '1.7rem', lineHeight: 1, boxSizing: 'border-box' }}
+            style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', fontSize: '0.95rem', fontWeight: 'bold', height: '1.7rem', lineHeight: 1, boxSizing: 'border-box', boxShadow: '0 0 6px rgba(212,175,55,0.55)' }}
             title="Toggle accent op selectie (›)"
           >›</button>
         </div>
@@ -1414,13 +1430,13 @@ const PatternEditor = ({
                       }}
                       style={{
                         flexShrink: 0, width: '20px', height: '20px',
-                        background: metronomeMode ? 'rgba(167,139,250,0.2)' : 'transparent',
-                        color: metronomeMode ? '#a78bfa' : '#94a3b8',
-                        border: `1px solid ${metronomeMode ? '#8b5cf6' : '#475569'}`,
+                        background: metronomeMode ? '#60a5fa' : 'transparent',
+                        color: metronomeMode ? '#fff' : '#60a5fa',
+                        border: '1px solid #60a5fa',
                         borderRadius: '3px', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         pointerEvents: 'auto',
-                        boxShadow: metronomeMode ? '0 0 4px rgba(167,139,250,0.4)' : 'none',
+                        boxShadow: metronomeMode ? '0 0 9px rgba(96,165,250,0.7)' : '0 0 5px rgba(96,165,250,0.4)',
                       }}
                       title={`${t('metronome')} — houd ingedrukt voor opties`}
                     >
@@ -1437,7 +1453,7 @@ const PatternEditor = ({
                         />
                         <div
                           onPointerDown={(e) => e.stopPropagation()}
-                          style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+                          style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '6px', minWidth: '140px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)' }}>
                           {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
                             <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#a78bfa' : '#94a3b8', background: metronomeMode === val ? 'rgba(167,139,250,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                               {label}
@@ -1461,14 +1477,14 @@ const PatternEditor = ({
                     onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
                     style={{
                       flexShrink: 0, width: '20px', height: '20px',
-                      background: isLooped ? 'rgba(212,175,55,0.25)' : 'transparent',
-                      color: isLooped ? '#d4af37' : '#f97316',
-                      border: `1px solid ${isLooped ? '#d4af37' : '#f97316'}`,
+                      background: isLooped ? '#f59e0b' : 'transparent',
+                      color: isLooped ? '#fff' : '#f59e0b',
+                      border: '1px solid #f59e0b',
                       borderRadius: '3px', cursor: 'pointer',
                       fontSize: '0.75rem', fontWeight: 'bold',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       pointerEvents: 'auto',
-                      boxShadow: isLooped ? '0 0 6px rgba(212,175,55,0.5)' : 'none',
+                      boxShadow: isLooped ? '0 0 9px rgba(245,158,11,0.7)' : '0 0 5px rgba(245,158,11,0.4)',
                     }}
                     title="Loop deze section"
                   >⟳</button>

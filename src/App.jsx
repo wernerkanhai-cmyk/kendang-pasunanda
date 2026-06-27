@@ -19,6 +19,22 @@ import { useSnippets } from './hooks/useSnippets';
 import { useAuth } from './context/AuthContext';
 import MigrationDialog from './components/MigrationDialog';
 
+// Dunne line-iconen voor de bibliotheek/menu's
+const FolderIcon = ({ color = 'currentColor', size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z" />
+  </svg>
+);
+const DocIcon = ({ color = 'currentColor', size = 13 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M4 1.8h5l3 3v9.4H4z" />
+    <path d="M9 1.8V5h3" />
+  </svg>
+);
+const ChevronIcon = ({ collapsed, color = 'currentColor', size = 9 }) => (
+  <svg width={size} height={size} viewBox="0 0 10 10" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: collapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" /></svg>
+);
+
 const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
 const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
 
@@ -2466,19 +2482,23 @@ function App() {
               onClick={() => setShowSongMenu(v => !v)}
               style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
               title={isModifiedSinceSave ? `${t('manageSong')} — niet opgeslagen wijzigingen` : t('manageSong')}
-            >🎵 {songName || 'Song'}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 4 }}>•</span>}</button>
+            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>{songName || 'Song'}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 4 }}>•</span>}</button>
 
             {showSongMenu && (
               <>
                 <div onClick={() => setShowSongMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
                 <div style={{
                   position: 'fixed', top: '3.5rem', left: '0.5rem', zIndex: 200,
-                  background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+                  background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '10px',
                   padding: '0.75rem', minWidth: '240px', maxWidth: 'calc(100vw - 1rem)',
                   maxHeight: 'calc(100dvh - 4.5rem)', overflowY: 'auto',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                   display: 'flex', flexDirection: 'column', gap: '0.5rem',
                 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.75rem -0.75rem 0.25rem', padding: '0.55rem 0.85rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '10px 10px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1rem', color: '#f1f5f9' }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Song</span>
+                    <button onClick={() => setShowSongMenu(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.1rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+                  </div>
                   <input type="text" value={songName} onChange={(e) => setSongName(e.target.value)}
                     onFocus={(e) => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' })}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px' }}
@@ -2521,13 +2541,13 @@ function App() {
                       cursor: currentSongId ? 'pointer' : 'default', fontSize: '0.85rem',
                     }}
                     title={currentSongId ? 'Overschrijf de geladen song' : 'Geen song geladen'}
-                  >💾 Update</button>
+                  ><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M2.5 2.5h8l3 3v8a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5z"/><path d="M5 2.5v3.2h5V2.5"/><rect x="4.5" y="8.5" width="7" height="5.5" rx="0.5"/></svg>Update</button>
 
                   <button
                     onClick={() => { handleSaveAsNew(); setShowSongMenu(false); }}
                     style={{ background: '#10b981', color: '#fff', padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
                     title="Maak een nieuwe song met de huidige naam + folder"
-                  >➕ Save as new</button>
+                  ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Save as new</button>
 
                   <button
                     onClick={() => { handleSaveAsCopy(); setShowSongMenu(false); }}
@@ -2550,9 +2570,9 @@ function App() {
                   >✨ {t('newBtn')}</button>
 
                   <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
-                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
+                    style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
                     title="Open de bibliotheek om een song te laden of te verwijderen"
-                  >📚 {t('libraryBtn')}</button>
+                  ><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><ellipse cx="12" cy="5.5" rx="8" ry="3"/><circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><path d="M4 10c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 14c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 18c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>{t('libraryBtn')}</button>
 
                   {isAdmin && <>
                     <div style={{ height: '1px', background: '#334155', margin: '0.2rem 0' }} />
@@ -2598,6 +2618,7 @@ function App() {
         <div className="header-center">
           {/* Play/pauze — links van de anak-knop, op volle header-hoogte */}
           <button
+            className="hdr-icon-btn"
             onClick={() => togglePlay()}
             title={t('playPause')}
             style={{
@@ -2611,7 +2632,7 @@ function App() {
           >{isPlaying ? '⏸' : '▶'}</button>
           {/* Track volume knobs A + I */}
           {['anak', 'indung'].map(track => {
-            const color = track === 'anak' ? '#222' : '#cc0000';
+            const color = track === 'anak' ? '#60a5fa' : '#d4af37';
             const val = trackVolumes[track];
             const angle = -135 + (val / 2) * 270;
             const r = 14, cx = 18, cy = 18;
@@ -2622,8 +2643,8 @@ function App() {
             const largeArc = endAngle - startAngle > 180 ? 1 : 0;
             return (
               <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
-                <svg width="36" height="36" viewBox="0 0 36 36"
-                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                <svg width="54" height="54" viewBox="0 0 36 36"
+                  style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color}80)` }}
                   title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
                   onPointerDown={(e) => {
                     e.preventDefault();
@@ -2634,12 +2655,12 @@ function App() {
                   }}
                   onDoubleClick={() => setTrackVolumes(v => ({ ...v, [track]: 1.0 }))}
                 >
-                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
-                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
-                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="2.25" strokeLinecap="round" />
+                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="11.5" fill="#2d3038" opacity="1" />
+                  <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke={color} strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                <span style={{ fontSize: '0.55rem', color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{track === 'anak' ? 'A' : 'I'}</span>
+                <span style={{ fontSize: '0.6rem', color: color, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{track === 'anak' ? 'ANAK' : 'INDUNG'}</span>
               </div>
             );
           })}
@@ -2656,8 +2677,8 @@ function App() {
             const largeArc = endAngle - startAngle > 180 ? 1 : 0;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
-                <svg width="36" height="36" viewBox="0 0 36 36"
-                  style={{ cursor: 'ns-resize', touchAction: 'none' }}
+                <svg width="54" height="54" viewBox="0 0 36 36"
+                  style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color}80)` }}
                   title={`Vox volume: ${Math.round(val * 100)}%`}
                   onPointerDown={(e) => {
                     e.preventDefault();
@@ -2668,12 +2689,12 @@ function App() {
                   }}
                   onDoubleClick={() => setVoxVolume(1.0)}
                 >
-                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
-                  <circle cx={cx} cy={cy} r="9" fill={color} opacity="0.85" />
-                  <line x1={cx} y1={cy} x2={cx + 7 * Math.cos(rad(angle))} y2={cy + 7 * Math.sin(rad(angle))} stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d={`M${arcX(-135)},${arcY(-135)} A${r},${r} 0 1 1 ${arcX(135)},${arcY(135)}`} fill="none" stroke="#334155" strokeWidth="2.25" strokeLinecap="round" />
+                  <path d={`M${arcX(startAngle)},${arcY(startAngle)} A${r},${r} 0 ${largeArc} 1 ${arcX(endAngle)},${arcY(endAngle)}`} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" />
+                  <circle cx={cx} cy={cy} r="11.5" fill="#2d3038" opacity="1" />
+                  <line x1={cx} y1={cy} x2={cx + 9.5 * Math.cos(rad(angle))} y2={cy + 9.5 * Math.sin(rad(angle))} stroke={color} strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                <span style={{ fontSize: '0.55rem', color: '#7c3aed', letterSpacing: '0.05em', textTransform: 'uppercase' }}>V</span>
+                <span style={{ fontSize: '0.6rem', color: '#7c3aed', letterSpacing: '0.08em', textTransform: 'uppercase' }}>VOX</span>
               </div>
             );
           })()}
@@ -2698,7 +2719,7 @@ function App() {
           </div>
 
           {/* ── BPM — naast de microfoon/stem-schakelaar, op volle bar-hoogte ── */}
-          <div style={{ height: '68px', flexShrink: 0, border: '1px solid #475569', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 0.6rem', gap: '6px', boxSizing: 'border-box', background: 'transparent' }}>
+          <div style={{ height: '68px', flexShrink: 0, border: 'none', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 0.6rem', gap: '6px', boxSizing: 'border-box', background: 'transparent' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button onClick={() => handleBpmChange(1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▲</button>
               <button onClick={() => handleBpmChange(-1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▼</button>
@@ -2758,7 +2779,7 @@ function App() {
           {/* ── Practice Mode lock (Full) / Unlock-Full upsell (Performance) ── */}
           {!canEdit ? (
             <button
-              className="practice-mode-btn"
+              className="practice-mode-btn hdr-icon-btn"
               onClick={handleUpsell}
               title="Edit mode zit in de Full-versie — tik om te ontgrendelen"
               style={{
@@ -2776,7 +2797,7 @@ function App() {
             </button>
           ) : (
           <button
-            className={`practice-mode-btn${isPulsing ? ' pulsing' : ''}`}
+            className={`practice-mode-btn hdr-icon-btn${isPulsing ? ' pulsing' : ''}`}
             onClick={() => {
               // Verlaten van edit-mode → eerst nog niet-opgeslagen edits flushen,
               // want vanaf nu (practice mode) wordt opslaan geblokkeerd.
@@ -2816,6 +2837,7 @@ function App() {
           {/* ── Tempo toggle — only visible in practice mode ──────────── */}
           {isLocked && (
             <button
+              className="hdr-icon-btn"
               onClick={handleToggleAllTempoEnabled}
               style={{
                 background: song.some(p => p.tempoTrackEnabled !== false) ? 'rgba(212,175,55,0.15)' : 'transparent',
@@ -2832,6 +2854,7 @@ function App() {
           {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
           <div style={{ position: 'relative' }}>
             <button
+              className="hdr-icon-btn"
               onClick={() => setShowToolsMenu(v => !v)}
               style={{ background: showToolsMenu ? '#334155' : 'transparent', color: '#e2e8f0', padding: '0.6rem 0.9rem', borderRadius: '6px', border: '1px solid var(--border-focus)', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
               title={t('toolsMenu')}
@@ -2843,7 +2866,7 @@ function App() {
                 <div onClick={() => setShowToolsMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
                 <div style={{
                   position: 'fixed', top: 'auto', right: '0.5rem', zIndex: 200,
-                  background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+                  background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '10px',
                   padding: '0.75rem', minWidth: '220px', maxWidth: '92vw',
                   maxHeight: 'calc(100vh - 80px)', overflowY: 'auto',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
@@ -3024,11 +3047,12 @@ function App() {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
               >
-                <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>
-                  Bibliotheek importeren ({pendingImport.songs.length} songs)
-                </span>
+                <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Bibliotheek importeren ({pendingImport.songs.length} songs)</span>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <label style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
                     Importeer in map (leeg = originele mappen bewaren):
@@ -3066,10 +3090,11 @@ function App() {
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
+                  style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
                 >
-                  <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>
-                    Verplaats "{moveSongTarget.name}"
+                  <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+                    <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Verplaats "{moveSongTarget.name}"</span>
                   </div>
                   <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
                     Huidige map: <strong>{moveSongTarget.folder}</strong>
@@ -3140,50 +3165,43 @@ function App() {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '520px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '80dvh', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('songLibraryTitle')}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-1.5rem -1.5rem 0', padding: '0.85rem 1.5rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><ellipse cx="12" cy="5.5" rx="8" ry="3"/><circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><path d="M4 10c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 14c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 18c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-
-                    {/* Export selectie button — only enabled when something is selected */}
                     <button
                       onClick={handleExportSelection}
                       disabled={exportSelection.size === 0}
                       style={{
-                        background: '#1e293b',
-                        color: exportSelection.size > 0 ? '#fbbf24' : '#475569',
-                        border: '1px solid #334155',
-                        borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
-                        cursor: exportSelection.size > 0 ? 'pointer' : 'default',
+                        background: 'transparent',
+                        color: exportSelection.size > 0 ? '#fbbf24' : '#94a3b8',
+                        border: `1px solid ${exportSelection.size > 0 ? 'rgba(251,191,36,0.45)' : '#3a3d45'}`,
+                        borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 600,
+                        cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
                       }}
                       title="Exporteer geselecteerde songs"
-                    >Export ({exportSelection.size})</button>
-
-                    {/* Verwijder selectie button — directly visible, no dropdown */}
-                    <button
-                      onClick={handleDeleteSelection}
-                      disabled={exportSelection.size === 0}
-                      style={{
-                        background: '#1e293b',
-                        color: exportSelection.size > 0 ? '#ef4444' : '#475569',
-                        border: '1px solid #334155',
-                        borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem',
-                        cursor: exportSelection.size > 0 ? 'pointer' : 'default',
-                      }}
-                      title="Verwijder geselecteerde songs"
-                    >Delete ({exportSelection.size})</button>
-
-                    {/* Import — single button, accepts both song and group files */}
-                    <label style={{ background: '#1e293b', color: '#34d399', border: '1px solid #334155', borderRadius: '5px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}>
-                      Import
+                    ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Export ({exportSelection.size})</button>
+                    <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Import
                       <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
                     </label>
-
                     <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button
+                    onClick={handleDeleteSelection}
+                    disabled={exportSelection.size === 0}
+                    style={{
+                      background: 'transparent',
+                      color: exportSelection.size > 0 ? '#ef4444' : '#475569',
+                      border: `1px solid ${exportSelection.size > 0 ? 'rgba(239,68,68,0.45)' : '#334155'}`,
+                      borderRadius: '6px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
+                      cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
+                    }}
+                    title="Verwijder geselecteerde songs"
+                  >Delete ({exportSelection.size})</button>
                   <input
                     type="text"
                     value={songSearchQuery}
@@ -3201,7 +3219,7 @@ function App() {
                     <option value="recent">Laatst bewerkt</option>
                   </select>
                 </div>
-                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
                   {/* Templates folder — from database, readable by all, writable by admin */}
                   {(() => {
                     const q = songSearchQuery.toLowerCase();
@@ -3225,16 +3243,16 @@ function App() {
 
                     return (
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #d4af37', marginBottom: '0.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #2b3650', marginBottom: '0.25rem' }}>
                           <button
                             onClick={() => toggleFolderCollapsed(rootFolder)}
-                            style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                            style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                             title={rootCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
-                          >{rootCollapsed ? '▶' : '▼'}</button>
+                          ><ChevronIcon collapsed={rootCollapsed} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                           <span
                             onClick={() => toggleFolderCollapsed(rootFolder)}
-                            style={{ flex: 1, color: '#d4af37', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
-                          >📦 Templates <span style={{ color: '#a37f1e', fontWeight: 'normal' }}>({matches.length})</span></span>
+                            style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                          >Templates <span style={{ color: '#64748b', fontWeight: 'normal' }}>({matches.length})</span></span>
                         </div>
                         {!rootCollapsed && (matches.length === 0 ? (
                           <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
@@ -3246,27 +3264,27 @@ function App() {
                           const items = byCategory[cat];
                           return (
                             <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #3f2e10', marginBottom: '0.15rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: 'none', marginBottom: '0.15rem' }}>
                                 <button
                                   onClick={() => toggleFolderCollapsed(subKey)}
-                                  style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
+                                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.1rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                                   title={subCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
-                                >{subCollapsed ? '▶' : '▼'}</button>
+                                ><ChevronIcon collapsed={subCollapsed} color="#cbd5e1" size={8} /><FolderIcon color="#cbd5e1" size={12} /></button>
                                 <span
                                   onClick={() => toggleFolderCollapsed(subKey)}
-                                  style={{ flex: 1, color: '#a37f1e', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' }}
-                                >{cat} <span style={{ color: '#7a5e16', fontWeight: 'normal' }}>({items.length})</span></span>
+                                  style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                                >{cat} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
-                              {!subCollapsed && items.map((tpl) => (
-                                <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem 0.4rem 1rem', borderRadius: '6px' }}>
-                                  <span style={{ flex: 1, color: '#fcd34d', fontSize: '0.875rem' }}>{tpl.name}</span>
+                              {!subCollapsed && items.map((tpl, ri) => (
+                                <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.5rem 0.26rem 1rem', background: ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent' }}>
+                                  <DocIcon color="#fcd34d" size={12} /><span style={{ flex: 1, color: '#fcd34d', fontSize: '0.85rem', fontWeight: 300 }}>{tpl.name}</span>
                                   <button
                                     onClick={async () => {
                                       setShowSongLibrary(false);
                                       await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
                                       showToast(`"${tpl.name}" geladen`);
                                     }}
-                                    style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
+                                    style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}
                                   >Gebruik</button>
                                   {isAdmin && (
                                     <button
@@ -3342,18 +3360,18 @@ function App() {
                             <>
                               <button
                                 onClick={() => toggleFolderCollapsed(folder)}
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                                style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                                 title={collapsedFolders.has(folder) ? 'Map openklappen' : 'Map dichtklappen'}
-                              >{collapsedFolders.has(folder) ? '▶' : '▼'}</button>
+                              ><ChevronIcon collapsed={collapsedFolders.has(folder)} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                               <span
                                 onClick={() => toggleFolderCollapsed(folder)}
-                                style={{ flex: 1, color: '#94a3b8', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
-                              >📁 {folder} <span style={{ color: '#475569', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
+                                style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                              >{folder} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
                               <button
                                 onClick={() => { setRenamingFolder(folder); setRenameFolderInput(folder); }}
                                 style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
                                 title="Mapnaam wijzigen"
-                              >✏</button>
+                              ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                               {(() => {
                                 const folderSongs = byFolder[folder];
                                 const selectedInFolder = folderSongs.filter(s => exportSelection.has(s.id));
@@ -3385,8 +3403,8 @@ function App() {
                             </>
                           )}
                         </div>
-                        {!collapsedFolders.has(folder) && byFolder[folder].map(s => (
-                          <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.25rem', borderRadius: '6px', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : 'transparent' }}>
+                        {!collapsedFolders.has(folder) && byFolder[folder].map((s, ri) => (
+                          <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.4rem', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : (ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent') }}>
                             <input
                               type="checkbox"
                               checked={exportSelection.has(s.id)}
@@ -3407,30 +3425,31 @@ function App() {
                                 style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3b82f6', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.875rem' }}
                               />
                             ) : (
-                              <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                <span>{s.id === currentSongId ? '▶ ' : ''}{s.name}</span>
+                              <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.85rem', fontWeight: 300, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <DocIcon color={s.id === currentSongId ? '#93c5fd' : '#94a3b8'} size={12} />
+                                <span>{s.name}</span>
                                 <button
                                   onClick={() => { setRenamingSongId(s.id); setRenameSongInput(s.name); }}
                                   style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
                                   title="Naam wijzigen"
-                                >✏</button>
+                                ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                 <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{s.date}</span>
                               </span>
                             )}
                             <button
                               onClick={() => handleLoadSong(s.id)}
-                              style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
+                              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(96,165,250,0.3)' }}
                             >{t('loadBtn')}</button>
                             <button
                               onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
                               title="Verplaats naar andere map"
-                            >📁</button>
+                            ><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg></button>
                             <button
                               onClick={() => handleExportSong(s)}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
                               title={t('exportSongTitle')}
-                            >↑</button>
+                            ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
                           </div>
                         ))}
                       </div>
@@ -3772,10 +3791,13 @@ function App() {
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+            style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.2rem', borderBottom: '1px solid #334155' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('manualTitle')}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                {t('manualTitle')}
+              </span>
               <button onClick={() => setShowManual(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.3rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ overflowY: 'auto', padding: '1.2rem', color: '#cbd5e1', fontSize: '0.85rem', lineHeight: 1.7 }}>
