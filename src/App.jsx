@@ -2488,7 +2488,7 @@ function App() {
             <button
               id="song-save-btn"
               onClick={() => setShowSongMenu(v => !v)}
-              style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 'bold', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 400, letterSpacing: '0.01em', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
               title={isModifiedSinceSave ? `${t('manageSong')} — niet opgeslagen wijzigingen` : t('manageSong')}
             ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>{songName || 'Song'}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 4 }}>•</span>}</button>
 
