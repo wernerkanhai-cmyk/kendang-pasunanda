@@ -17,6 +17,7 @@ import { useSongs } from './hooks/useSongs';
 import { loadSong as loadSongFromCloud } from './services/songRepo';
 import { useSnippets } from './hooks/useSnippets';
 import { useAuth } from './context/AuthContext';
+import { useTheme } from './context/ThemeContext';
 import MigrationDialog from './components/MigrationDialog';
 
 // Dunne line-iconen voor de bibliotheek/menu's
@@ -51,6 +52,7 @@ const TrashIcon = ({ size = 14 }) => (
 
 function App() {
   const t = useT();
+  const { theme, setTheme, skins } = useTheme();
   const { language, setLanguage } = useLanguage();
 
   const [song, setSong] = useState(() => {
@@ -2872,6 +2874,33 @@ function App() {
                   boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                   display: 'flex', flexDirection: 'column', gap: '0.4rem',
                 }}>
+                  {/* Weergave / Skin — gevuld vanuit de skin-registry (src/context/skins.js) */}
+                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Weergave</div>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    {skins.map(s => {
+                      const active = theme === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          onClick={() => setTheme(s.id)}
+                          style={{
+                            flex: '1 1 auto',
+                            background: active ? '#60a5fa' : 'transparent',
+                            color: active ? '#fff' : '#60a5fa',
+                            border: '1px solid #60a5fa',
+                            borderRadius: '6px',
+                            padding: '0.35rem 0.5rem',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            boxShadow: active ? '0 0 8px rgba(96,165,250,0.5)' : 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >{s.label}</button>
+                      );
+                    })}
+                  </div>
+
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
 
                   {/* PDF */}

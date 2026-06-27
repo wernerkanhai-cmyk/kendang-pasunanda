@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { DEFAULT_SOUND_SETTINGS } from '../engine/SamplePlayer';
 import { useT } from '../i18n';
-import { useTheme } from '../context/ThemeContext';
 
 const SOUND_LABELS = {
   tung: 'Tung', dong: 'Dong', ting: 'Ting', det: 'Det',
@@ -30,7 +29,6 @@ export default function SoundSettingsContent({
   onVoicePackChange,
 }) {
   const t = useT();
-  const { theme, setTheme } = useTheme();
   const showPackSelectors = !!availablePacks;
 
   const trackList = Array.isArray(tracks) && tracks.length > 0

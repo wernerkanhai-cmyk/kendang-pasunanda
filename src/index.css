@@ -35,22 +35,6 @@
   --transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* ──────────────────────────────────────────────────────────────
-   Skin: CLASSIC — witte notatie-regels, zwarte anak / rode indung
-   (het v1.0-palet). Alleen het palet wisselt; de structuur (SVG-iconen,
-   metallic balken, layout) blijft in beide skins gelijk. Modern is de
-   default in :root hierboven.
-   ────────────────────────────────────────────────────────────── */
-body.theme-classic {
-  --anak-bg: #ffffff;
-  --anak-color: #000000;
-  --anak-text: #000000;
-
-  --indung-bg: #ffffff;
-  --indung-color: #cc0000;
-  --indung-text: #cc0000;
-}
-
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
