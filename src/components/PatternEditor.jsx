@@ -834,18 +834,18 @@ const PatternEditor = ({
                setSnippetSelection(new Set());
              };
              return (
-             <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: '#161f30', border: '1px solid #2b3650', borderRadius: '14px', padding: '1rem 1.1rem', zIndex: 100, minWidth: '320px', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem' }}>
-                   <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><span>🧩</span>{t('snippetManagement')}</h4>
+             <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '14px', padding: '0.9rem 1rem', zIndex: 100, minWidth: '320px', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.9rem -1rem 0.7rem', padding: '0.5rem 1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '14px 14px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                   <h4 style={{ margin: 0, color: '#f1f5f9', fontSize: '1rem', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>{t('snippetManagement')}</h4>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                      {snippetSelection.size > 0 && (
                        <button
                          onClick={handleBulkDeleteSnippets}
-                         style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '999px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                         style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                          title="Verwijder geselecteerde patronen"
                        >Delete ({snippetSelection.size})</button>
                      )}
-                     <button onClick={handleExportSnippets} style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '999px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
+                     <button onClick={handleExportSnippets} style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
                      {isAdmin && snippetSelection.size > 0 && (
                        <button
                          onClick={async () => {
@@ -855,11 +855,11 @@ const PatternEditor = ({
                            }
                            setSnippetSelection(new Set());
                          }}
-                         style={{ background: 'transparent', color: '#d4af37', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '999px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                         style={{ background: 'transparent', color: '#d4af37', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                          title="Publiceer geselecteerde snippets als templates"
                        >📦 Publiceer ({snippetSelection.size})</button>
                      )}
-                     <label style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '999px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
+                     <label style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
                        {t('importSnippets')}
                        <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />
                      </label>
