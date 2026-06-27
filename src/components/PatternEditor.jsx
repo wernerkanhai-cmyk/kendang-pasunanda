@@ -1117,7 +1117,7 @@ const PatternEditor = ({
         <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '0.2rem 1rem', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.15)', overflowX: 'auto', flexWrap: 'nowrap' }}>
           <button
             onClick={(e) => { e.stopPropagation(); blink('clear-all', handleClearPattern); }}
-            style={{ background: blinkBtn === 'clear-all' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'clear-all' ? '#fff' : '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'clear-all' ? '#3b82f6' : 'transparent', color: blinkBtn === 'clear-all' ? '#fff' : '#60a5fa', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 0 6px rgba(239,68,68,0.55)', transition: 'background 0.1s' }}
             title={t('clearSection')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="2" x2="11" y2="11"/><line x1="11" y1="2" x2="2" y2="11"/></svg>
@@ -1127,7 +1127,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('undo', handleUndo); }}
             disabled={undoStack.length === 0}
-            style={{ background: blinkBtn === 'undo' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'undo' ? '#fff' : '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: undoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: undoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'undo' ? '#3b82f6' : 'transparent', color: blinkBtn === 'undo' ? '#fff' : '#60a5fa', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: undoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: undoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 0 6px rgba(34,211,238,0.55)', transition: 'background 0.1s' }}
             title={t('undo')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5A4.5 4.5 0 1 1 6.5 2"/><polyline points="2,2 2,6.5 6.5,6.5"/></svg>
@@ -1136,7 +1136,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('redo', handleRedo); }}
             disabled={redoStack.length === 0}
-            style={{ background: blinkBtn === 'redo' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'redo' ? '#fff' : '#94a3b8', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #334155', cursor: redoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: redoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'redo' ? '#3b82f6' : 'transparent', color: blinkBtn === 'redo' ? '#fff' : '#60a5fa', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: redoStack.length > 0 ? 'pointer' : 'default', fontSize: '0.8rem', opacity: redoStack.length > 0 ? 1 : 0.35, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 0 6px rgba(45,212,191,0.55)', transition: 'background 0.1s' }}
             title={t('redo')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 6.5A4.5 4.5 0 1 0 6.5 2"/><polyline points="11,2 11,6.5 6.5,6.5"/></svg>
@@ -1157,7 +1157,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('copy', handleCopy); }}
             disabled={!activeRangeObj}
-            style={{ background: blinkBtn === 'copy' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'copy' ? '#fff' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'copy' ? '#3b82f6' : 'transparent', color: blinkBtn === 'copy' ? '#fff' : '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(34,197,94,0.55)', transition: 'background 0.1s' }}
             title={t('copy')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1167,7 +1167,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('cut', handleCut); }}
             disabled={!activeRangeObj}
-            style={{ background: blinkBtn === 'cut' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'cut' ? '#fff' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'cut' ? '#3b82f6' : 'transparent', color: blinkBtn === 'cut' ? '#fff' : '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(251,146,60,0.55)', transition: 'background 0.1s' }}
             title={t('cut')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -1178,7 +1178,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('paste', handlePaste); }}
             disabled={!clipboard || !activeRangeObj}
-            style={{ background: blinkBtn === 'paste' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'paste' ? '#fff' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: clipboard && activeRangeObj ? 'pointer' : 'default', opacity: clipboard && activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'paste' ? '#3b82f6' : 'transparent', color: blinkBtn === 'paste' ? '#fff' : '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: clipboard && activeRangeObj ? 'pointer' : 'default', opacity: clipboard && activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(167,139,250,0.55)', transition: 'background 0.1s' }}
             title={t('paste')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1189,7 +1189,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); blink('del', handleClear); }}
             disabled={!activeRangeObj}
-            style={{ background: blinkBtn === 'del' ? '#3b82f6' : '#1e293b', color: blinkBtn === 'del' ? '#fff' : '#94a3b8', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #334155', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', transition: 'background 0.1s' }}
+            style={{ background: blinkBtn === 'del' ? '#3b82f6' : 'transparent', color: blinkBtn === 'del' ? '#fff' : '#60a5fa', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid #60a5fa', cursor: activeRangeObj ? 'pointer' : 'default', opacity: activeRangeObj ? 1 : 0.35, display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(244,63,94,0.55)', transition: 'background 0.1s' }}
             title={t('deleteSelection')}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
