@@ -643,24 +643,6 @@ function App() {
     }
   };
 
-  const handleSaveAsCopy = async () => {
-    if (isLocked) { showToast('Verlaat practice mode om op te slaan'); return; }
-    const baseName = songName.trim() || 'Naamloos';
-    const folder = songFolder.trim() || 'Algemeen';
-    // Kopie krijgt altijd een unieke naam zodat er geen dubbele namen ontstaan.
-    const copyName = makeUniqueSongName(`${baseName} (kopie)`, folder);
-    await _persist({
-      id: null,
-      name: copyName,
-      folder,
-      bpm,
-      patterns: JSON.parse(JSON.stringify(song)),
-    });
-    // Stay on the original song — the copy is a snapshot in the library.
-    // User can load it from there if they want to work on it.
-    showToast(`"${copyName}" opgeslagen in library`);
-  };
-
   // ── Auto-save ────────────────────────────────────────────────────────────
   // When a cloud song is loaded and the user makes changes:
   //   1. Debounce 5 seconds after the last edit and silently save.
@@ -2556,20 +2538,6 @@ function App() {
                     style={{ background: '#10b981', color: '#fff', padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
                     title="Maak een nieuwe song met de huidige naam + folder"
                   ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Save as new</button>
-
-                  <button
-                    onClick={() => { handleSaveAsCopy(); setShowSongMenu(false); }}
-                    disabled={!currentSongId}
-                    style={{
-                      background: currentSongId ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
-                      color: currentSongId ? '#e2e8f0' : '#475569',
-                      padding: '0.55rem', borderRadius: '6px',
-                      border: '1px solid #2b3650',
-                      cursor: currentSongId ? 'pointer' : 'default', fontSize: '0.85rem',
-                      display: 'flex', alignItems: 'center', gap: '0.45rem',
-                    }}
-                    title={currentSongId ? 'Kopieer naar nieuwe entry met "(kopie)" achter de naam' : 'Geen song geladen'}
-                  ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Save copy</button>
 
                   <div style={{ height: '1px', background: '#2b3650', margin: '0.2rem 0' }} />
 
