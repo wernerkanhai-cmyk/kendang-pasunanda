@@ -1477,14 +1477,14 @@ const PatternEditor = ({
                     onClick={(e) => { e.stopPropagation(); onToggleSectionLoop?.(); }}
                     style={{
                       flexShrink: 0, width: '20px', height: '20px',
-                      background: isLooped ? 'rgba(96,165,250,0.18)' : 'transparent',
-                      color: '#60a5fa',
-                      border: '1px solid #60a5fa',
+                      background: isLooped ? '#f59e0b' : 'transparent',
+                      color: isLooped ? '#fff' : '#f59e0b',
+                      border: '1px solid #f59e0b',
                       borderRadius: '3px', cursor: 'pointer',
                       fontSize: '0.75rem', fontWeight: 'bold',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       pointerEvents: 'auto',
-                      boxShadow: isLooped ? '0 0 9px rgba(96,165,250,0.7)' : '0 0 5px rgba(96,165,250,0.4)',
+                      boxShadow: isLooped ? '0 0 9px rgba(245,158,11,0.7)' : '0 0 5px rgba(245,158,11,0.4)',
                     }}
                     title="Loop deze section"
                   >⟳</button>
