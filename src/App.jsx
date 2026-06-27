@@ -3165,34 +3165,6 @@ function App() {
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
-                    {/* Export selectie button — only enabled when something is selected */}
-                    <button
-                      onClick={handleExportSelection}
-                      disabled={exportSelection.size === 0}
-                      style={{
-                        background: 'transparent',
-                        color: exportSelection.size > 0 ? '#fbbf24' : '#475569',
-                        border: `1px solid ${exportSelection.size > 0 ? 'rgba(251,191,36,0.45)' : '#334155'}`,
-                        borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
-                        cursor: exportSelection.size > 0 ? 'pointer' : 'default',
-                      }}
-                      title="Exporteer geselecteerde songs"
-                    >⬆ Export ({exportSelection.size})</button>
-
-                    {/* Verwijder selectie button — directly visible, no dropdown */}
-                    <button
-                      onClick={handleDeleteSelection}
-                      disabled={exportSelection.size === 0}
-                      style={{
-                        background: 'transparent',
-                        color: exportSelection.size > 0 ? '#ef4444' : '#475569',
-                        border: `1px solid ${exportSelection.size > 0 ? 'rgba(239,68,68,0.45)' : '#334155'}`,
-                        borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
-                        cursor: exportSelection.size > 0 ? 'pointer' : 'default',
-                      }}
-                      title="Verwijder geselecteerde songs"
-                    >🗑 Delete ({exportSelection.size})</button>
-
                     {/* Import — single button, accepts both song and group files */}
                     <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '999px', padding: '0.35rem 0.85rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 0 8px rgba(52,211,153,0.25)' }}>
                       ⬆ Import
@@ -3203,6 +3175,30 @@ function App() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button
+                    onClick={handleExportSelection}
+                    disabled={exportSelection.size === 0}
+                    style={{
+                      background: 'transparent',
+                      color: exportSelection.size > 0 ? '#fbbf24' : '#475569',
+                      border: `1px solid ${exportSelection.size > 0 ? 'rgba(251,191,36,0.45)' : '#334155'}`,
+                      borderRadius: '999px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
+                      cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
+                    }}
+                    title="Exporteer geselecteerde songs"
+                  >⬆ Export ({exportSelection.size})</button>
+                  <button
+                    onClick={handleDeleteSelection}
+                    disabled={exportSelection.size === 0}
+                    style={{
+                      background: 'transparent',
+                      color: exportSelection.size > 0 ? '#ef4444' : '#475569',
+                      border: `1px solid ${exportSelection.size > 0 ? 'rgba(239,68,68,0.45)' : '#334155'}`,
+                      borderRadius: '999px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
+                      cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
+                    }}
+                    title="Verwijder geselecteerde songs"
+                  >🗑 Delete ({exportSelection.size})</button>
                   <input
                     type="text"
                     value={songSearchQuery}
