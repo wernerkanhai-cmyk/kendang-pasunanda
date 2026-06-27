@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSongs } from '../hooks/useSongs';
+import { useT } from '../i18n';
 
 const STORAGE_KEY = 'kendangSavedSongs';
 const FLAG_DONE = 'kendangMigrationDone';
@@ -21,6 +22,7 @@ export default function MigrationDialog() {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const t = useT();
 
   useEffect(() => {
     if (!user) { setOpen(false); return; }
@@ -81,7 +83,7 @@ export default function MigrationDialog() {
   };
 
   const handleCleanupLocal = () => {
-    if (!confirm('Lokale kopieën nu definitief verwijderen?')) return;
+    if (!confirm(t('confirmCleanupLocal'))) return;
     localStorage.removeItem(STORAGE_KEY);
     setOpen(false);
   };
@@ -89,7 +91,7 @@ export default function MigrationDialog() {
   const handleSkip = () => setOpen(false);
 
   const handleDecline = () => {
-    if (!confirm('Weet je het zeker? Dit dialoogvenster komt dan niet meer terug.')) return;
+    if (!confirm(t('confirmDeclineMigration'))) return;
     localStorage.setItem(FLAG_DECLINED, 'yes');
     setOpen(false);
   };
@@ -99,19 +101,15 @@ export default function MigrationDialog() {
   return (
     <div style={overlay}>
       <div style={dialog}>
-        <div style={title}>☁ Songs migreren naar je account</div>
+        <div style={title}>☁ {t('migrateTitle')}</div>
 
         {!success ? (
           <>
-            <div style={body}>
-              Je hebt <strong>{localSongs.length}</strong> song{localSongs.length === 1 ? '' : 's'} in
-              dit apparaat staan vanuit een eerdere versie van Kendang Pasunanda.
-              Wil je deze nu uploaden naar je account zodat ze beschikbaar zijn op al je apparaten?
-            </div>
+            <div style={body}>{t('migrateBody')(localSongs.length)}</div>
 
             {busy && (
               <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                Bezig met uploaden… {progress.done} / {progress.total}
+                {t('migrateUploading')(progress.done, progress.total)}
               </div>
             )}
             {error && (
@@ -120,31 +118,28 @@ export default function MigrationDialog() {
 
             <div style={buttonRow}>
               <button onClick={handleUpload} disabled={busy} style={primaryBtn}>
-                Upload allemaal
+                {t('migrateUploadAll')}
               </button>
               <button onClick={handleSkip} disabled={busy} style={secondaryBtn}>
-                Niet nu
+                {t('migrateNotNow')}
               </button>
               <button onClick={handleDecline} disabled={busy} style={dangerBtn}>
-                Negeer voorgoed
+                {t('migrateDecline')}
               </button>
             </div>
           </>
         ) : (
           <>
-            <div style={body}>
-              ✅ Klaar! <strong>{progress.done}</strong> song{progress.done === 1 ? '' : 's'} staan
-              nu in de cloud. Je kunt de lokale kopieën nu verwijderen, of nog even bewaren als backup.
-            </div>
+            <div style={body}>✅ {t('migrateDoneBody')(progress.done)}</div>
             <div style={buttonRow}>
               <button onClick={handleCleanupLocal} style={primaryBtn}>
-                Verwijder lokale kopieën
+                {t('migrateDeleteLocal')}
               </button>
               <button
                 onClick={() => { localStorage.setItem(FLAG_KEEP_LOCAL, 'yes'); setOpen(false); }}
                 style={secondaryBtn}
               >
-                Bewaar lokale kopieën
+                {t('migrateKeepLocal')}
               </button>
             </div>
           </>
