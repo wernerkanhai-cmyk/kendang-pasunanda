@@ -2866,7 +2866,7 @@ function App() {
                 <div onClick={() => setShowToolsMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 190 }} />
                 <div style={{
                   position: 'fixed', top: 'auto', right: '0.5rem', zIndex: 200,
-                  background: '#1e293b', border: '1px solid #334155', borderRadius: '10px',
+                  background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '10px',
                   padding: '0.75rem', minWidth: '220px', maxWidth: '92vw',
                   maxHeight: 'calc(100vh - 80px)', overflowY: 'auto',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
@@ -3047,7 +3047,7 @@ function App() {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
               >
                 <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>
                   Bibliotheek importeren ({pendingImport.songs.length} songs)
@@ -3089,7 +3089,7 @@ function App() {
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
+                  style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
                 >
                   <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>
                     Verplaats "{moveSongTarget.name}"
@@ -3789,7 +3789,7 @@ function App() {
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+            style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.2rem', borderBottom: '1px solid #334155' }}>
               <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('manualTitle')}</span>
