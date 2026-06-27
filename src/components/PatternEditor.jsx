@@ -659,7 +659,7 @@ const PatternEditor = ({
         <div onClick={(e) => e.stopPropagation()} style={{ marginLeft: '0.5rem', display: (isActive && !isLocked) ? 'flex' : 'none', alignItems: 'center', gap: '0.3rem', position: 'relative' }}>
            {isNamingSnippet ? (
               <div style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', padding: '3px 4px', borderRadius: '6px', gap: '4px', boxShadow: '0 4px 14px rgba(0,0,0,0.4)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', background: 'var(--panel-bg)', border: '1px solid #2b3650', padding: '3px 4px', borderRadius: '6px', gap: '4px', boxShadow: '0 4px 14px rgba(0,0,0,0.4)' }}>
                   <input
                     autoFocus
                     type="text"
@@ -718,7 +718,7 @@ const PatternEditor = ({
                     return acc;
                   }, {});
                   return (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '8px', zIndex: 200, minWidth: '200px', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 12px 28px rgba(0,0,0,0.55)' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '8px', zIndex: 200, minWidth: '200px', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 12px 28px rgba(0,0,0,0.55)' }} onClick={(e) => e.stopPropagation()}>
                       {Object.keys(byFolder).sort().map(f => (
                         <div key={f}>
                           <div style={{ color: '#cbd5e1', fontSize: '0.65rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.3rem 0.5rem 0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z" /></svg>{f}</div>
@@ -849,7 +849,7 @@ const PatternEditor = ({
                setSnippetSelection(new Set());
              };
              return (
-             <div className="snippet-manager-panel" style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '14px', padding: '0.9rem 1rem', zIndex: 100, minWidth: '320px', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
+             <div className="snippet-manager-panel" style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '14px', padding: '0.9rem 1rem', zIndex: 100, minWidth: '320px', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.9rem -1rem 0.7rem', padding: '0.5rem 1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '14px 14px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
                    <h4 style={{ margin: 0, color: '#f1f5f9', fontSize: '1rem', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>{t('snippetManagement')}</h4>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -1078,7 +1078,7 @@ const PatternEditor = ({
              };
              return (
                <div onClick={closeDialog} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem', fontFamily: 'system-ui, sans-serif' }}>
+                 <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem', fontFamily: 'system-ui, sans-serif' }}>
                    <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg><span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Verplaats "{moveSnippetTarget.name}"</span></div>
                    <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Huidige map: <strong>{moveSnippetTarget.folder || 'Algemeen'}</strong></div>
                    <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Bestaande mappen:</div>
@@ -1453,7 +1453,7 @@ const PatternEditor = ({
                         />
                         <div
                           onPointerDown={(e) => e.stopPropagation()}
-                          style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '6px', minWidth: '140px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)' }}>
+                          style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '6px', minWidth: '140px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)' }}>
                           {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
                             <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#a78bfa' : '#94a3b8', background: metronomeMode === val ? 'rgba(167,139,250,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                               {label}

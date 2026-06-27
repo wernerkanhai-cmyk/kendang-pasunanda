@@ -11,7 +11,10 @@
   --bg-dark: #0a0b10;
   --bg-panel: #14161f;
   --bg-row: #1d1f2a;
-  
+
+  /* Chrome: paneel-/dialoog-/menu-body (grafiet). Skins kunnen 'm overschrijven. */
+  --panel-bg: linear-gradient(180deg, #2c2f37 0%, #191b21 100%);
+
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-focus: rgba(255, 255, 255, 0.2);
   

@@ -106,7 +106,7 @@
 
 /* Drum-module (Pad + Geluid tabs) in dezelfde grafiet als de rest van de UI */
 .drum-module.glass-panel {
-  background: linear-gradient(180deg, #2c2f37 0%, #191b21 100%);
+  background: var(--panel-bg);
 }
 
 .sequencer-section {

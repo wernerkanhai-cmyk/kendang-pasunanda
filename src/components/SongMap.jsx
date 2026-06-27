@@ -37,7 +37,7 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
           top: topOffset, left: 0, bottom: 0,
           width: '200px',
           zIndex: 401,
-          background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)',
+          background: 'var(--panel-bg)',
           borderRight: '1px solid #2b3650',
           display: 'flex',
           flexDirection: 'column',

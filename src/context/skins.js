@@ -56,6 +56,8 @@ export const SKINS = [
       '--indung-bg': '#242424',
       '--indung-color': '#ef4444',
       '--indung-text': '#ef4444',
+      // Chrome: paneel-/dialoog-/menu-bodies bijna zwart (donkerder dan de regels).
+      '--panel-bg': 'linear-gradient(180deg, #1e1e1e 0%, #141414 100%)',
     },
   },
 ];
