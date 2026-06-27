@@ -703,7 +703,7 @@ const PatternEditor = ({
                         {existingFolders.map(f => (
                           <option key={f} value={f}>{f}</option>
                         ))}
-                        <option value="__NEW__">+ Nieuwe map...</option>
+                        <option value="__NEW__">{t('newFolderOption')}</option>
                       </select>
                     );
                   })()}
@@ -797,7 +797,7 @@ const PatternEditor = ({
                onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
                disabled={!canDelete}
                style={{ background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35, boxShadow: '0 0 6px rgba(239,68,68,0.55)' }}
-               title="Delete section"
+               title={t('deleteSectionTooltip')}
              ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg></button>
            )}
 
@@ -808,7 +808,7 @@ const PatternEditor = ({
                  onClick={(e) => { e.stopPropagation(); if (canDel) deleteMeasuresFromEnd?.(1); }}
                  disabled={!canDel}
                  style={{ background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.7rem', cursor: canDel ? 'pointer' : 'default', opacity: canDel ? 1 : 0.35, boxShadow: '0 0 6px rgba(251,146,60,0.55)' }}
-                 title="Verwijder laatste maat"
+                 title={t('deleteLastMeasure')}
                >−1⊣</button>
              );
            })()}
@@ -841,7 +841,7 @@ const PatternEditor = ({
              const handleBulkDeleteSnippets = async () => {
                if (snippetSelection.size === 0) return;
                const ids = Array.from(snippetSelection);
-               if (!window.confirm(`Weet je zeker dat je ${ids.length} patroon${ids.length === 1 ? '' : 'en'} wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`)) return;
+               if (!window.confirm(t('confirmBulkDeleteSnippets')(ids.length))) return;
                for (const id of ids) {
                  // eslint-disable-next-line no-await-in-loop
                  try { await handleDeleteSnippetSilently?.(id); } catch (_) { /* ignore */ }
@@ -857,8 +857,8 @@ const PatternEditor = ({
                        <button
                          onClick={handleBulkDeleteSnippets}
                          style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-                         title="Verwijder geselecteerde patronen"
-                       >Delete ({snippetSelection.size})</button>
+                         title={t('deleteSelectedSnippets')}
+                       >{t('bulkDeleteBtn')(snippetSelection.size)}</button>
                      )}
                      <button onClick={handleExportSnippets} style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
                      {isAdmin && snippetSelection.size > 0 && (
@@ -871,8 +871,8 @@ const PatternEditor = ({
                            setSnippetSelection(new Set());
                          }}
                          style={{ background: 'transparent', color: '#d4af37', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-                         title="Publiceer geselecteerde snippets als templates"
-                       >📦 Publiceer ({snippetSelection.size})</button>
+                         title={t('publishSnippetsTooltip')}
+                       >{t('publishSnippetsBtn')(snippetSelection.size)}</button>
                      )}
                      <label style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
                        {t('importSnippets')}
@@ -900,7 +900,7 @@ const PatternEditor = ({
                       </div>
                       {!isCollapsed && (factorySnippets.length === 0 ? (
                         <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.3rem 0.5rem' }}>
-                          Nog geen snippet templates beschikbaar.
+                          {t('noSnippetTemplatesYet')}
                         </div>
                       ) : (() => {
                         const byCategory = factorySnippets.reduce((acc, s) => {
@@ -920,7 +920,7 @@ const PatternEditor = ({
                                 <button
                                   onClick={() => toggleSnippetFolderCollapsed(subKey)}
                                   style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
-                                  title={subCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                                  title={subCollapsed ? t('expandFolder') : t('collapseFolder')}
                                 >{subCollapsed ? '▶' : '▼'}</button>
                                 <span
                                   onClick={() => toggleSnippetFolderCollapsed(subKey)}
@@ -933,15 +933,15 @@ const PatternEditor = ({
                                   <button
                                     onClick={() => handleInsertSnippet?.(tpl)}
                                     style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}
-                                  >Insert</button>
+                                  >{t('insertBtn')}</button>
                                   {isAdmin && (
                                     <button
                                       onClick={async () => {
-                                        if (!window.confirm(`Snippet template "${tpl.name}" verwijderen?`)) return;
-                                        try { await onRemoveSnippetTemplate?.(tpl.id); } catch (err) { alert(err?.message ?? 'Verwijderen mislukt'); }
+                                        if (!window.confirm(t('confirmDeleteTemplate')(tpl.name))) return;
+                                        try { await onRemoveSnippetTemplate?.(tpl.id); } catch (err) { alert(err?.message ?? t('deleteFailed')); }
                                       }}
                                       style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
-                                      title="Template verwijderen"
+                                      title={t('deleteTemplateTooltip')}
                                     >
                                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
@@ -976,7 +976,7 @@ const PatternEditor = ({
                                 ref={(el) => { if (el) el.indeterminate = someChecked; }}
                                 onChange={() => toggleSnippetFolderSelection(snipsInFolder)}
                                 style={{ accentColor: '#a78bfa', cursor: 'pointer' }}
-                                title="Selecteer hele map"
+                                title={t('selectEntireFolder')}
                               />
                               {renamingSnippetFolder === folderName ? (
                                 <input
@@ -995,7 +995,7 @@ const PatternEditor = ({
                                   <button
                                     onClick={() => toggleSnippetFolderCollapsed(folderName)}
                                     style={{ background: 'none', border: 'none', color: '#38bdf8', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
-                                    title={isCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                                    title={isCollapsed ? t('expandFolder') : t('collapseFolder')}
                                   >{isCollapsed ? '▶' : '▼'}</button>
                                   <span
                                     onClick={() => toggleSnippetFolderCollapsed(folderName)}
@@ -1004,12 +1004,12 @@ const PatternEditor = ({
                                   <button
                                     onClick={() => { setRenamingSnippetFolder(folderName); setRenamingSnippetFolderInput(folderName); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.2rem' }}
-                                    title="Mapnaam wijzigen"
+                                    title={t('renameFolderTooltip')}
                                   ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                   <button
                                     onClick={() => handleDeleteSnippetFolder?.(folderName)}
                                     style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0.2rem', display: 'flex', alignItems: 'center' }}
-                                    title="Hele map verwijderen"
+                                    title={t('deleteEntireFolder')}
                                   >
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
@@ -1044,12 +1044,12 @@ const PatternEditor = ({
                                   <button
                                     onClick={() => { setRenamingSnippetId(snip.id); setRenamingSnippetInput(snip.name); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 4px' }}
-                                    title="Hernoemen"
+                                    title={t('renameTooltip')}
                                   ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                   <button
                                     onClick={() => { setMoveSnippetTarget(snip); setMoveSnippetFolderInput(''); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}
-                                    title="Verplaats naar andere map"
+                                    title={t('moveToOtherFolder')}
                                   ><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg></button>
                                </div>
                             ))}
@@ -1079,9 +1079,9 @@ const PatternEditor = ({
              return (
                <div onClick={closeDialog} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                  <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem', fontFamily: 'system-ui, sans-serif' }}>
-                   <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg><span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Verplaats "{moveSnippetTarget.name}"</span></div>
-                   <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Huidige map: <strong>{moveSnippetTarget.folder || 'Algemeen'}</strong></div>
-                   <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Bestaande mappen:</div>
+                   <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg><span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>{t('moveSongTitle')(moveSnippetTarget.name)}</span></div>
+                   <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{t('currentFolderLabel')} <strong>{moveSnippetTarget.folder || 'Algemeen'}</strong></div>
+                   <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>{t('existingFoldersLabel')}</div>
                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', maxHeight: '180px', overflowY: 'auto' }}>
                      {existingFolders.map(f => (
                        <button
@@ -1095,19 +1095,19 @@ const PatternEditor = ({
                            padding: '0.45rem 0.75rem', fontSize: '0.85rem',
                            cursor: f === (moveSnippetTarget.folder || 'Algemeen') ? 'default' : 'pointer',
                          }}
-                       ><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '6px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg>{f}{f === (moveSnippetTarget.folder || 'Algemeen') ? '  (huidige)' : ''}</button>
+                       ><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '6px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg>{f}{f === (moveSnippetTarget.folder || 'Algemeen') ? '  ' + t('currentFolderTag') : ''}</button>
                      ))}
                    </div>
-                   <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Of nieuwe map:</div>
+                   <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>{t('orNewFolderLabel')}</div>
                    <input
                      type="text" value={moveSnippetFolderInput}
                      onChange={(e) => setMoveSnippetFolderInput(e.target.value)}
                      onKeyDown={(e) => { if (e.key === 'Enter' && moveSnippetFolderInput.trim()) moveTo(moveSnippetFolderInput); }}
-                     placeholder="bv. Tepak Dua, Mincid, ..."
+                     placeholder={t('snippetMoveFolderPlaceholder')}
                      style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
                    />
                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                     <button onClick={closeDialog} style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}>Annuleer</button>
+                     <button onClick={closeDialog} style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}>{t('cancelBtn')}</button>
                      <button
                        onClick={() => moveTo(moveSnippetFolderInput)}
                        disabled={!moveSnippetFolderInput.trim()}
@@ -1119,7 +1119,7 @@ const PatternEditor = ({
                          cursor: moveSnippetFolderInput.trim() ? 'pointer' : 'default',
                          fontSize: '0.85rem', fontWeight: 'bold',
                        }}
-                     >Verplaats</button>
+                     >{t('moveBtn')}</button>
                    </div>
                  </div>
                </div>
@@ -1137,7 +1137,7 @@ const PatternEditor = ({
             title={t('clearSection')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="2" x2="11" y2="11"/><line x1="11" y1="2" x2="2" y2="11"/></svg>
-            Clear
+            {t('clearBtn')}
           </button>
           <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
           <button
@@ -1147,7 +1147,7 @@ const PatternEditor = ({
             title={t('undo')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6.5A4.5 4.5 0 1 1 6.5 2"/><polyline points="2,2 2,6.5 6.5,6.5"/></svg>
-            Undo
+            {t('undoBtn')}
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); blink('redo', handleRedo); }}
@@ -1156,7 +1156,7 @@ const PatternEditor = ({
             title={t('redo')}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 6.5A4.5 4.5 0 1 0 6.5 2"/><polyline points="11,2 11,6.5 6.5,6.5"/></svg>
-            Redo
+            {t('redoBtn')}
           </button>
 
           <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }} />
@@ -1164,7 +1164,7 @@ const PatternEditor = ({
           <button
             onClick={(e) => { e.stopPropagation(); setTouchSelectMode(v => !v); }}
             style={{ background: touchSelectMode ? 'rgba(var(--accent-rgb),0.22)' : 'transparent', color: 'var(--accent)', padding: '0.25rem 0.45rem', borderRadius: '4px', border: '1px solid var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 0 6px rgba(251,146,60,0.55)' }}
-            title={touchSelectMode ? 'Selectie-tool aan — sleep over de tijdlijn (noten verschuiven niet). Klik om uit te zetten.' : 'Selectie-tool — sleep over de tijdlijn om een bereik te selecteren'}
+            title={touchSelectMode ? t('selectToolOnTooltip') : t('selectToolTooltip')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="7.5" y1="1" x2="7.5" y2="14"/><line x1="1" y1="7.5" x2="14" y2="7.5"/>
@@ -1248,13 +1248,13 @@ const PatternEditor = ({
               }
             }}
             style={{ background: blinkBtn === 'quantize' ? '#3b82f6' : (autoQuantize ? 'rgba(var(--accent-rgb),0.22)' : 'transparent'), color: blinkBtn === 'quantize' ? '#fff' : 'var(--accent)', border: '1px solid var(--accent)', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold', height: '1.7rem', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(167,139,250,0.55)', transition: 'background 0.1s' }}
-            title={(!isPlaying && !isRecording && activeRangeObj) ? 'Snap selectie naar raster' : (autoQuantize ? 'Auto-quantize aan — klik om uit te zetten' : 'Auto-quantize — klik om te activeren (ook vóór afspelen)')}
+            title={(!isPlaying && !isRecording && activeRangeObj) ? t('snapSelectionToGrid') : (autoQuantize ? t('autoQuantizeOnTooltip') : t('autoQuantizeOffTooltip'))}
           >Q</button>
           <button
             onClick={(e) => { e.stopPropagation(); handleToggleAccent(); }}
             disabled={!activeRangeObj}
             style={{ background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: activeRangeObj ? 'pointer' : 'default', fontSize: '0.95rem', fontWeight: 'bold', height: '1.7rem', lineHeight: 1, boxSizing: 'border-box', boxShadow: '0 0 6px rgba(212,175,55,0.55)' }}
-            title="Toggle accent op selectie (›)"
+            title={t('toggleAccentTooltip')}
           >›</button>
         </div>
       )}
@@ -1375,7 +1375,7 @@ const PatternEditor = ({
                 <button
                   onPointerDown={(e) => { e.stopPropagation(); onToggleSolo(track.id); }}
                   style={{ flexShrink: 0, width: '19px', height: '19px', marginRight: '2px', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  title={soloTrack === track.id ? `${track.label} gedempt — klik om aan te zetten` : `${track.label} aan — klik om te dempen`}
+                  title={soloTrack === track.id ? t('trackMutedTooltip')(track.label) : t('trackOnTooltip')(track.label)}
                 >
                   <div style={{ width: '5px', height: '5px', borderRadius: '50%', pointerEvents: 'none', background: soloTrack === track.id ? '#475569' : '#22c55e', boxShadow: soloTrack === track.id ? 'inset 0 1px 2px rgba(0,0,0,0.5)' : '0 0 3px 1px rgba(34,197,94,0.8), 0 0 7px 2px rgba(34,197,94,0.35)' }} />
                 </button>
@@ -1438,7 +1438,7 @@ const PatternEditor = ({
                         pointerEvents: 'auto',
                         boxShadow: metronomeMode ? '0 0 9px rgba(var(--accent-rgb),0.7)' : '0 0 5px rgba(var(--accent-rgb),0.4)',
                       }}
-                      title={`${t('metronome')} — houd ingedrukt voor opties`}
+                      title={t('metronomeHoldTooltip')(t('metronome'))}
                     >
                       <svg width="10" height="12" viewBox="0 0 11 13" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="1,12 10,12 7.5,1 3.5,1" fill="none"/>
@@ -1454,13 +1454,13 @@ const PatternEditor = ({
                         <div
                           onPointerDown={(e) => e.stopPropagation()}
                           style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '6px', minWidth: '140px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)' }}>
-                          {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
+                          {[['', t('metronomeOff')], ['4', t('metronome4')], ['8', t('metronome8')], ['4+play', t('metronome4Play')], ['8+play', t('metronome8Play')], ['on', t('metronomeOn')]].map(([val, label]) => (
                             <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#a78bfa' : '#94a3b8', background: metronomeMode === val ? 'rgba(167,139,250,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                               {label}
                             </button>
                           ))}
                           <div style={{ padding: '0.4rem 0.75rem 0.5rem', borderTop: '1px solid #334155' }} onPointerDown={(e) => e.stopPropagation()}>
-                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>volume</div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.3rem' }}>{t('metronomeVolume')}</div>
                             <input
                               type="range" min="0" max="1" step="0.05"
                               value={metronomeVolume}
@@ -1486,7 +1486,7 @@ const PatternEditor = ({
                       pointerEvents: 'auto',
                       boxShadow: isLooped ? '0 0 9px rgba(245,158,11,0.7)' : '0 0 5px rgba(245,158,11,0.4)',
                     }}
-                    title="Loop deze section"
+                    title={t('loopThisSection')}
                   >⟳</button>
                 </div>
               )}

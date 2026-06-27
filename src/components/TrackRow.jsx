@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import './TrackRow.css';
+import { useT } from '../i18n';
 import {
   SYMBOL_REST,
   TOP_HAND_SOUNDS,
@@ -30,6 +31,7 @@ const getVerticalPositionClass = (value, hand) => {
 };
 
 const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, isLocked = false, selectMode = false, onRangeSelect }) => {
+  const t = useT();
   const [dragOverSlot, setDragOverSlot] = useState(null);
   const [popup, setPopup] = useState(null); // { slotIndex, x, y }
   const lastTapRef = useRef({ slotIndex: -1, time: 0 });
@@ -713,7 +715,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
             <button
               onClick={(e) => { e.stopPropagation(); onInsertSymbol(popup.slotIndex, '.'); setPopup(null); }}
               style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '4px', padding: '3px 10px', cursor: 'pointer', color: '#64748b', fontSize: '0.75rem' }}
-            >· Rust</button>
+            >{t('restMenuItem')}</button>
           </div>
         </div>
       )}

@@ -229,7 +229,7 @@ const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTri
               ))}
             </div>
             <div style={{ borderTop: '1px solid #334155', paddingTop: '0.3rem' }}>
-              <div style={{ fontSize: '0.6rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 'bold', marginBottom: '3px' }}>Combinatieslagen</div>
+              <div style={{ fontSize: '0.6rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 'bold', marginBottom: '3px' }}>{t('comboStrokes')}</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px 6px' }}>
                 {COMBO_LEGEND.map(({ glyphs, name }) => (
                   <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.65rem' }}>
@@ -265,14 +265,14 @@ const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTri
           >{t('legendBtn')}</button>
           <img
             src={ensembleImg}
-            alt="Kendang Ensemble"
+            alt={t('ensembleAlt')}
             style={{ width: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.4)) drop-shadow(0 0 18px rgba(255,255,255,0.18))' }}
           />
 
           {/* Gong — zweeft boven de trommelset */}
           <img
             src={gongImg}
-            alt="Gong"
+            alt={t('gongAlt')}
             onClick={() => onGongTrigger && onGongTrigger()}
             title="Gong"
             style={{

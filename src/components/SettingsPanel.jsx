@@ -133,7 +133,7 @@ export default function SoundSettingsContent({
         <span
           onClick={() => { if (previewable) onPlay(sound, activeTrack); }}
           style={{ color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', cursor: previewable ? 'pointer' : 'default', userSelect: 'none' }}
-          title={previewable ? 'Tik om te beluisteren' : undefined}
+          title={previewable ? t('previewSoundTooltip') : undefined}
         >{SOUND_LABELS[sound] || sound}</span>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
@@ -152,7 +152,7 @@ export default function SoundSettingsContent({
 
         <button onClick={() => onReset(sound)} disabled={isDefault}
           style={{ background: 'transparent', border: 'none', color: isDefault ? '#1e3a5f' : '#64748b', cursor: isDefault ? 'default' : 'pointer', fontSize: '1rem', padding: 0 }}
-          title="Reset">↺</button>
+          title={t('resetTooltip')}>↺</button>
       </div>
     );
   };
@@ -164,7 +164,7 @@ export default function SoundSettingsContent({
         <div style={{ borderBottom: '1px solid #334155', paddingBottom: '0.4rem', marginBottom: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
           {availablePacks.notation?.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={labelStyle}>Notatie</span>
+              <span style={labelStyle}>{t('notationLabel')}</span>
               <select value={notationPackId || ''} onChange={(e) => onNotationPackChange?.(e.target.value)} style={selectStyle}>
                 {availablePacks.notation.map(p => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
               </select>
@@ -172,9 +172,9 @@ export default function SoundSettingsContent({
           )}
           {availablePacks.voice?.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={labelStyle}>Stem</span>
+              <span style={labelStyle}>{t('voiceLabel')}</span>
               <select value={voicePackId || ''} onChange={(e) => onVoicePackChange?.(e.target.value || null)} style={selectStyle}>
-                <option value="">— geen vocale stem —</option>
+                <option value="">{t('noVoiceOption')}</option>
                 {availablePacks.voice.map(p => <option key={p.id} value={p.id}>{p.name || p.id}</option>)}
               </select>
             </div>
@@ -213,7 +213,7 @@ export default function SoundSettingsContent({
         <button
           onClick={handleResetAllForTrack}
           style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '4px', color: '#94a3b8', padding: '0.15rem 0.3rem', cursor: 'pointer', fontSize: '0.65rem', gridColumn: '1' }}
-          title={`Reset alle waarden voor ${activeTrack}`}
+          title={t('resetAllForTrack')(activeTrack)}
         >{t('resetAll')}</button>
         <span style={{ color: '#64748b', fontSize: '0.7rem', textAlign: 'center' }}>{t('volumeLabel')}</span>
         <span style={{ color: '#64748b', fontSize: '0.7rem', textAlign: 'center' }}>{t('pitchLabel')}</span>
@@ -229,7 +229,7 @@ export default function SoundSettingsContent({
       {auxIds.length > 0 && (
         <>
           <div style={{ marginTop: '0.5rem', paddingTop: '0.3rem', borderTop: '1px solid #334155', color: '#64748b', fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.15rem' }}>
-            Aux
+            {t('auxLabel')}
           </div>
           {auxIds.map(auxId =>
             renderRow(auxId, auxSettings[auxId], auxDefaults[auxId], handleAuxGain, handleAuxPitch, handleAuxResetSound, true)
@@ -246,7 +246,7 @@ export default function SoundSettingsContent({
             <button
               onClick={() => onCursorOffsetChange(0)}
               style={{ background: 'transparent', border: 'none', color: cursorOffsetMs === 0 ? '#1e3a5f' : '#64748b', cursor: cursorOffsetMs === 0 ? 'default' : 'pointer', fontSize: '1rem', padding: 0 }}
-              title="Reset">↺</button>
+              title={t('resetTooltip')}>↺</button>
           </div>
           <input type="range" min="-3000" max="500" step="25" value={cursorOffsetMs}
             onChange={e => onCursorOffsetChange(parseInt(e.target.value, 10))}
