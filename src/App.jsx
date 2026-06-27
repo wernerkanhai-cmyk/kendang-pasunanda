@@ -3049,9 +3049,10 @@ function App() {
                 onClick={(e) => e.stopPropagation()}
                 style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
               >
-                <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>
-                  Bibliotheek importeren ({pendingImport.songs.length} songs)
-                </span>
+                <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Bibliotheek importeren ({pendingImport.songs.length} songs)</span>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <label style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
                     Importeer in map (leeg = originele mappen bewaren):
@@ -3091,8 +3092,9 @@ function App() {
                   onClick={(e) => e.stopPropagation()}
                   style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
                 >
-                  <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>
-                    Verplaats "{moveSongTarget.name}"
+                  <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+                    <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Verplaats "{moveSongTarget.name}"</span>
                   </div>
                   <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
                     Huidige map: <strong>{moveSongTarget.folder}</strong>
@@ -3791,8 +3793,11 @@ function App() {
             onClick={e => e.stopPropagation()}
             style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.2rem', borderBottom: '1px solid #334155' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>{t('manualTitle')}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                {t('manualTitle')}
+              </span>
               <button onClick={() => setShowManual(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.3rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ overflowY: 'auto', padding: '1.2rem', color: '#cbd5e1', fontSize: '0.85rem', lineHeight: 1.7 }}>
