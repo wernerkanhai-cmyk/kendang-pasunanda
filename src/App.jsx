@@ -3158,8 +3158,8 @@ function App() {
                 onClick={(e) => e.stopPropagation()}
                 style={{ background: '#161f30', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.1rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><span style={{ fontSize: '1.1rem' }}>📚</span>{t('songLibraryTitle')}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-1.5rem -1.5rem 0', padding: '0.85rem 1.5rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><span style={{ fontSize: '1.2rem' }}>📚</span>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
                     {/* Export selectie button — only enabled when something is selected */}
@@ -3270,7 +3270,7 @@ function App() {
                                 ><FolderIcon color="#a37f1e" size={12} /></button>
                                 <span
                                   onClick={() => toggleFolderCollapsed(subKey)}
-                                  style={{ flex: 1, color: '#a37f1e', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                  style={{ flex: 1, color: '#a37f1e', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                                 >{cat} <span style={{ color: '#7a5e16', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
                               {!subCollapsed && items.map((tpl, ri) => (
