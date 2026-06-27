@@ -1430,8 +1430,8 @@ const PatternEditor = ({
                       }}
                       style={{
                         flexShrink: 0, width: '20px', height: '20px',
-                        background: metronomeMode ? 'rgba(96,165,250,0.18)' : 'transparent',
-                        color: '#60a5fa',
+                        background: metronomeMode ? '#60a5fa' : 'transparent',
+                        color: metronomeMode ? '#fff' : '#60a5fa',
                         border: '1px solid #60a5fa',
                         borderRadius: '3px', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
