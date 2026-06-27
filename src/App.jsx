@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, Fragment } from 'react';
 import { useEdition } from './edition/EditionContext.jsx';
 import './App.css';
 import { createEmptyPattern, writeSymbolToPattern, getHandForSound, generateEmptySlots, SYMBOL_REST, sanitizePattern } from './engine/patternLogic';
+import { encodeData, decodeData } from './utils/serialize';
 import PatternEditor from './components/PatternEditor';
 import SongMap from './components/SongMap';
 import DrumPad from './components/DrumPad';
@@ -36,8 +37,6 @@ const ChevronIcon = ({ collapsed, color = 'currentColor', size = 9 }) => (
   <svg width={size} height={size} viewBox="0 0 10 10" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: collapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" /></svg>
 );
 
-const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
-const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
 
 // Inline trash icon — uses currentColor so the parent button's `color` actually applies.
 const TrashIcon = ({ size = 14 }) => (
@@ -930,15 +929,20 @@ function App() {
     reader.onload = (ev) => {
       try {
         const imported = decodeData(ev.target.result);
+        // Een song is geldig als elke pattern de kern-tracks (anak/indung) als
+        // array bevat — anders crasht de sequencer later. sanitizePattern coerced
+        // wél bestaande array-tracks, maar niet ontbrekende/niet-array tracks.
+        const isValidSong = (s) => s && s.name && Array.isArray(s.patterns) && s.patterns.length > 0
+          && s.patterns.every(p => p && Array.isArray(p.anak) && Array.isArray(p.indung));
         if (Array.isArray(imported)) {
           const valid = imported
-            .filter(s => s.name && Array.isArray(s.patterns) && s.patterns.length > 0)
+            .filter(isValidSong)
             .map(s => ({ ...s, patterns: s.patterns.map(sanitizePattern) }));
           if (valid.length === 0) throw new Error('Geen geldige songs in bestand');
           const suggested = file.name.replace(/\.(kendang-lib|kendang)$/i, '').replace(/[_-]/g, ' ');
           setImportFolderName(suggested);
           setPendingImport({ songs: valid });
-        } else if (imported && imported.name && Array.isArray(imported.patterns) && imported.patterns.length > 0) {
+        } else if (isValidSong(imported)) {
           // Reuse the song-import path by faking the file event shape
           // (handleImportSong reads the file again from e.target.files[0],
           // so we just call its inner logic inline).
