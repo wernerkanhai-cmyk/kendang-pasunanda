@@ -535,7 +535,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
 
         {/* Gong block overlays — 1 beat (12 slots) breed, uitgelijnd op beatgrens, 1px naar links */}
         {gongBeats.map(beatStart => {
-          const gongColor = trackId === 'anak' ? 'rgba(96,165,250,0.95)' : 'rgba(212,175,55,0.95)';
+          const gongColor = trackId === 'anak' ? 'var(--anak-color)' : 'var(--indung-color)';
           return (
             <div
               key={`gong-${beatStart}`}
