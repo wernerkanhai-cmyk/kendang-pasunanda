@@ -159,34 +159,6 @@ export default function SoundSettingsContent({
 
   return (
     <div style={{ overflowY: 'auto', flex: 1, padding: '0.25rem 0' }}>
-      {/* Skin / weergave — wissel tussen de moderne en klassieke look */}
-      <div style={{ borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
-        <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: '0.35rem' }}>Weergave</div>
-        <div style={{ display: 'flex', gap: '0.4rem' }}>
-          {[{ id: 'modern', label: 'Modern' }, { id: 'classic', label: 'Klassiek' }].map(opt => {
-            const active = theme === opt.id;
-            return (
-              <button
-                key={opt.id}
-                onClick={() => setTheme(opt.id)}
-                style={{
-                  flex: 1,
-                  background: active ? '#60a5fa' : 'transparent',
-                  color: active ? '#fff' : '#60a5fa',
-                  border: '1px solid #60a5fa',
-                  borderRadius: '6px',
-                  padding: '0.4rem 0.6rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: active ? '0 0 8px rgba(96,165,250,0.5)' : 'none',
-                  transition: 'background 0.15s, color 0.15s',
-                }}
-              >{opt.label}</button>
-            );
-          })}
-        </div>
-      </div>
       {/* Pack-selectors */}
       {showPackSelectors && (
         <div style={{ borderBottom: '1px solid #334155', paddingBottom: '0.4rem', marginBottom: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>

@@ -50,7 +50,7 @@ const SongMap = ({ song, activePatternId, open, topOffset = 0, onClose, onActiva
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0.6rem 0.85rem',
-          background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)',
+          background: 'var(--header-bg)',
           borderBottom: '1px solid #2b3650',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)',
           flexShrink: 0,

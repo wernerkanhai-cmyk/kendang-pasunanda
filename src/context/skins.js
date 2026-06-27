@@ -58,6 +58,11 @@ export const SKINS = [
       '--indung-text': '#ef4444',
       // Chrome: paneel-/dialoog-/menu-bodies bijna zwart (donkerder dan de regels).
       '--panel-bg': 'linear-gradient(180deg, #1e1e1e 0%, #141414 100%)',
+      // Chrome: headers donker met subtiele sheen; accent + glow rood.
+      '--header-bg': 'linear-gradient(90deg, #171717 0%, #2a2a2a 50%, #171717 100%)',
+      '--app-header-bg': 'linear-gradient(90deg, #141414 0%, #262626 50%, #141414 100%)',
+      '--accent': '#ef4444',
+      '--accent-rgb': '239, 68, 68',
     },
   },
 ];

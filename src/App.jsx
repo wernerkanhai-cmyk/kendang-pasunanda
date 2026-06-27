@@ -2503,7 +2503,7 @@ function App() {
                   boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                   display: 'flex', flexDirection: 'column', gap: '0.5rem',
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.75rem -0.75rem 0.25rem', padding: '0.55rem 0.85rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '10px 10px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.75rem -0.75rem 0.25rem', padding: '0.55rem 0.85rem', background: 'var(--header-bg)', borderRadius: '10px 10px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1rem', color: '#f1f5f9' }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Song</span>
                     <button onClick={() => setShowSongMenu(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.1rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
                   </div>
@@ -2721,7 +2721,7 @@ function App() {
           >
             <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', opacity: sampleSet === 'kendang' ? 1 : 0.25, transition: 'opacity 0.3s', filter: sampleSet === 'kendang' ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' : 'none' }}>🥁</div>
             <div style={{ width: '4px', height: '68%', background: '#2a2e3a', borderRadius: '2px', flexShrink: 0, position: 'relative', boxShadow: '1px 0 2px rgba(255,255,255,0.05), -1px 0 2px rgba(0,0,0,0.3)' }}>
-              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: '6px', height: '18px', borderRadius: '2px', background: sampleSet === 'kendang' ? '#60a5fa' : '#a78bfa', boxShadow: sampleSet === 'kendang' ? '0 0 6px 2px rgba(96,165,250,0.7)' : '0 0 6px 2px rgba(167,139,250,0.7)', transition: 'background 0.3s, box-shadow 0.3s' }} />
+              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: '6px', height: '18px', borderRadius: '2px', background: sampleSet === 'kendang' ? 'var(--accent)' : '#a78bfa', boxShadow: sampleSet === 'kendang' ? '0 0 6px 2px rgba(var(--accent-rgb),0.7)' : '0 0 6px 2px rgba(167,139,250,0.7)', transition: 'background 0.3s, box-shadow 0.3s' }} />
             </div>
             <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', opacity: sampleSet === 'vox' ? 1 : 0.25, transition: 'opacity 0.3s', filter: sampleSet === 'vox' ? 'drop-shadow(0 0 4px rgba(167,139,250,0.8))' : 'none' }}>🎤</div>
           </div>
@@ -2748,7 +2748,7 @@ function App() {
                   if (e.key === 'Escape') setBpmEditing(false);
                   e.stopPropagation();
                 }}
-                style={{ width: '4ch', fontWeight: 'bold', fontSize: '2rem', color: '#fff', background: '#334155', border: '1px solid #60a5fa', borderRadius: '4px', textAlign: 'center', padding: '0.1rem' }}
+                style={{ width: '4ch', fontWeight: 'bold', fontSize: '2rem', color: '#fff', background: '#334155', border: '1px solid var(--accent)', borderRadius: '4px', textAlign: 'center', padding: '0.1rem' }}
               />
             ) : (
               <span
@@ -2891,15 +2891,15 @@ function App() {
                           onClick={() => setTheme(s.id)}
                           style={{
                             flex: '1 1 auto',
-                            background: active ? '#60a5fa' : 'transparent',
-                            color: active ? '#fff' : '#60a5fa',
-                            border: '1px solid #60a5fa',
+                            background: active ? 'var(--accent)' : 'transparent',
+                            color: active ? '#fff' : 'var(--accent)',
+                            border: '1px solid var(--accent)',
                             borderRadius: '6px',
                             padding: '0.35rem 0.5rem',
                             fontSize: '0.78rem',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            boxShadow: active ? '0 0 8px rgba(96,165,250,0.5)' : 'none',
+                            boxShadow: active ? '0 0 8px rgba(var(--accent-rgb),0.5)' : 'none',
                             whiteSpace: 'nowrap',
                           }}
                         >{s.labelKey ? t(s.labelKey) : s.label}</button>
@@ -3084,7 +3084,7 @@ function App() {
                 onClick={(e) => e.stopPropagation()}
                 style={{ background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '1rem' }}
               >
-                <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Bibliotheek importeren ({pendingImport.songs.length} songs)</span>
                 </div>
@@ -3127,7 +3127,7 @@ function App() {
                   onClick={(e) => e.stopPropagation()}
                   style={{ background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
                 >
-                  <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
                     <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Verplaats "{moveSongTarget.name}"</span>
                   </div>
@@ -3202,7 +3202,7 @@ function App() {
                 onClick={(e) => e.stopPropagation()}
                 style={{ background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-1.5rem -1.5rem 0', padding: '0.85rem 1.5rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-1.5rem -1.5rem 0', padding: '0.85rem 1.5rem', background: 'var(--header-bg)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><ellipse cx="12" cy="5.5" rx="8" ry="3"/><circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><path d="M4 10c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 14c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 18c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <button
@@ -3473,7 +3473,7 @@ function App() {
                             )}
                             <button
                               onClick={() => handleLoadSong(s.id)}
-                              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(96,165,250,0.3)' }}
+                              style={{ background: 'transparent', color: 'var(--accent)', border: '1px solid rgba(var(--accent-rgb),0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(var(--accent-rgb),0.3)' }}
                             >{t('loadBtn')}</button>
                             <button
                               onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
@@ -3828,7 +3828,7 @@ function App() {
             onClick={e => e.stopPropagation()}
             style={{ background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '12px', width: '100%', maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.7rem 1.1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                 {t('manualTitle')}
