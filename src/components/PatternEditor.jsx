@@ -727,10 +727,11 @@ const PatternEditor = ({
                 style={{ 
                   padding: '0.3rem 0.5rem', 
                   fontSize: '1rem', 
-                  background: activeRangeObj ? '#334155' : 'transparent', 
-                  border: '1px solid ' + (activeRangeObj ? '#334155' : 'var(--border-subtle)'), 
-                  color: activeRangeObj ? '#2dd4bf' : '#64748b', 
-                  borderRadius: '4px', 
+                  background: activeRangeObj ? 'rgba(96,165,250,0.22)' : 'transparent',
+                  border: '1px solid #60a5fa',
+                  color: '#60a5fa',
+                  borderRadius: '4px',
+                  boxShadow: '0 0 6px rgba(45,212,191,0.55)',
                   cursor: activeRangeObj ? 'pointer' : 'default' 
                 }}
                 title={t('saveSnippetTooltip')}
@@ -750,7 +751,7 @@ const PatternEditor = ({
                  // Force remount so the same snippet can be picked again immediately
                  setSnippetSelectKey(k => k + 1);
               }}
-              style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.3rem', fontSize: '0.8rem', cursor: 'pointer', minWidth: '150px' }}
+              style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.3rem', fontSize: '0.8rem', cursor: 'pointer', minWidth: '150px', boxShadow: '0 0 6px rgba(96,165,250,0.45)' }}
            >
               <option value="">{t('placedAtCursor')}</option>
               {Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort().map(folderName => (
@@ -764,7 +765,7 @@ const PatternEditor = ({
 
            <button
              onClick={(e) => { e.stopPropagation(); setIsManagingSnippets(!isManagingSnippets); }}
-             style={{ background: isManagingSnippets ? '#334155' : 'transparent', color: '#cbd5e1', border: '1px solid var(--border-focus)', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '1rem', cursor: 'pointer' }}
+             style={{ background: isManagingSnippets ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 0 6px rgba(34,211,238,0.55)' }}
              title={t('manageSnippetsTooltip')}
            >
              ⚙️
@@ -772,7 +773,7 @@ const PatternEditor = ({
 
            <button
              onClick={(e) => { e.stopPropagation(); onDuplicate?.(); }}
-             style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}
+             style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', boxShadow: '0 0 6px rgba(34,197,94,0.55)' }}
              title={t('duplicatePattern')}
            >⧉</button>
 
@@ -780,7 +781,7 @@ const PatternEditor = ({
              <button
                onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
                disabled={!canDelete}
-               style={{ background: 'transparent', color: canDelete ? '#ef4444' : '#334155', border: `1px solid ${canDelete ? '#ef4444' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35 }}
+               style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: canDelete ? 'pointer' : 'default', opacity: canDelete ? 1 : 0.35, boxShadow: '0 0 6px rgba(239,68,68,0.55)' }}
                title="Delete section"
              >🗑</button>
            )}
@@ -791,7 +792,7 @@ const PatternEditor = ({
                <button
                  onClick={(e) => { e.stopPropagation(); if (canDel) deleteMeasuresFromEnd?.(1); }}
                  disabled={!canDel}
-                 style={{ background: 'transparent', color: canDel ? '#f87171' : '#334155', border: `1px solid ${canDel ? '#f87171' : '#1e293b'}`, borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.7rem', cursor: canDel ? 'pointer' : 'default', opacity: canDel ? 1 : 0.35 }}
+                 style={{ background: 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '0.7rem', cursor: canDel ? 'pointer' : 'default', opacity: canDel ? 1 : 0.35, boxShadow: '0 0 6px rgba(251,146,60,0.55)' }}
                  title="Verwijder laatste maat"
                >−1⊣</button>
              );
