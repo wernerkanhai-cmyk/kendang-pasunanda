@@ -65,7 +65,7 @@ export const capsFor = (edition) => {
   const full = edition === 'full';
   return {
     edition,
-    canEdit: full,        // edit mode bereikbaar
+    canEdit: true,        // SLOT TIJDELIJK ERAF — edit mode altijd bereikbaar. Zet terug op `full` om weer te vergrendelen.
     canExportMidi: full,  // toekomstig: MIDI import/export
     canUseProPacks: full, // toekomstig: pro sample-/ritme-packs
   };
