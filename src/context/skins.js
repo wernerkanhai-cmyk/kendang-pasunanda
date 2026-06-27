@@ -16,6 +16,7 @@ export const SKINS = [
   {
     id: 'modern',
     label: 'Modern',
+    labelKey: 'skinModern', // i18n-sleutel (val terug op label als afwezig)
     tokens: {
       '--anak-bg': 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)',
       '--anak-color': '#60a5fa',
@@ -28,6 +29,7 @@ export const SKINS = [
   {
     id: 'classic',
     label: 'Klassiek',
+    labelKey: 'skinClassic',
     tokens: {
       '--anak-bg': '#ffffff',
       '--anak-color': '#000000',

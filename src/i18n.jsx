@@ -10,6 +10,9 @@ const T = {
   en: {
     // Tools menu
     toolsMenu: 'Tools',
+    skinLabel: 'Display',
+    skinModern: 'Modern',
+    skinClassic: 'Classic',
     pdfSection: 'PDF',
     exportPdf: '📄 Export as PDF',
     pdfLayoutSettings: '⚙️ PDF layout settings',
@@ -126,6 +129,9 @@ const T = {
   },
   nl: {
     toolsMenu: 'Extra',
+    skinLabel: 'Weergave',
+    skinModern: 'Modern',
+    skinClassic: 'Klassiek',
     pdfSection: 'PDF',
     exportPdf: '📄 Exporteer als PDF',
     pdfLayoutSettings: '⚙️ PDF layout instellingen',
@@ -226,6 +232,9 @@ const T = {
   },
   id: {
     toolsMenu: 'Alat',
+    skinLabel: 'Tampilan',
+    skinModern: 'Modern',
+    skinClassic: 'Klasik',
     pdfSection: 'PDF',
     exportPdf: '📄 Ekspor sebagai PDF',
     pdfLayoutSettings: '⚙️ Pengaturan tata letak PDF',

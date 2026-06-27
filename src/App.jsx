@@ -2875,7 +2875,7 @@ function App() {
                   display: 'flex', flexDirection: 'column', gap: '0.4rem',
                 }}>
                   {/* Weergave / Skin — gevuld vanuit de skin-registry (src/context/skins.js) */}
-                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Weergave</div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('skinLabel')}</div>
                   <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                     {skins.map(s => {
                       const active = theme === s.id;
@@ -2896,7 +2896,7 @@ function App() {
                             boxShadow: active ? '0 0 8px rgba(96,165,250,0.5)' : 'none',
                             whiteSpace: 'nowrap',
                           }}
-                        >{s.label}</button>
+                        >{s.labelKey ? t(s.labelKey) : s.label}</button>
                       );
                     })}
                   </div>
