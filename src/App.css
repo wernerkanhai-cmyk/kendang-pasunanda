@@ -164,7 +164,7 @@
 
 .bar-separator {
   width: 2px;
-  background: var(--bar-separator, #6b7280);
+  background: #6b7280;
   margin: 0 4px;
 }
 

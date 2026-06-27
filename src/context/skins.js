@@ -50,7 +50,7 @@ export const SKINS = [
       '--indung-bg': '#0d0d0d',
       '--indung-color': '#ef4444',
       '--indung-text': '#ef4444',
-      '--bar-separator': '#e5e7eb', // maatstrepen licht grijs-wit op zwart
+      '--bar-line': '#e5e7eb', // maatstrepen (bar-lijnen) licht grijs-wit op zwart
     },
   },
 ];
