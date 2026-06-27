@@ -1063,7 +1063,7 @@ const PatternEditor = ({
              };
              return (
                <div onClick={closeDialog} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <div onClick={(e) => e.stopPropagation()} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem', fontFamily: 'system-ui, sans-serif' }}>
+                 <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '12px', padding: '1.5rem', width: '340px', display: 'flex', flexDirection: 'column', gap: '0.8rem', fontFamily: 'system-ui, sans-serif' }}>
                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: '#e2e8f0' }}>Verplaats "{moveSnippetTarget.name}"</div>
                    <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Huidige map: <strong>{moveSnippetTarget.folder || 'Algemeen'}</strong></div>
                    <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Bestaande mappen:</div>
@@ -1438,7 +1438,7 @@ const PatternEditor = ({
                         />
                         <div
                           onPointerDown={(e) => e.stopPropagation()}
-                          style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: '#1e293b', border: '1px solid #475569', borderRadius: '4px', minWidth: '140px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+                          style={{ position: 'fixed', top: metronomeMenuPos.top, left: metronomeMenuPos.left, zIndex: 9999, background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '6px', minWidth: '140px', boxShadow: '0 8px 20px rgba(0,0,0,0.5)' }}>
                           {[['', 'off'], ['4', '4'], ['8', '8'], ['4+play', '4 + play'], ['8+play', '8 + play'], ['on', 'on']].map(([val, label]) => (
                             <button key={val} onPointerDown={(e) => { e.stopPropagation(); setMetronomeMode(val); setShowMetronomeMenu(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', cursor: 'pointer', color: metronomeMode === val ? '#a78bfa' : '#94a3b8', background: metronomeMode === val ? 'rgba(167,139,250,0.1)' : 'transparent', border: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                               {label}
