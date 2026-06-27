@@ -51,6 +51,8 @@ export const SKINS = [
       '--indung-color': '#ef4444',
       '--indung-text': '#ef4444',
       '--bar-line': '#e5e7eb', // maatstrepen (bar-lijnen) licht grijs-wit op zwart
+      '--beat-line': '#e5e7eb', // kwart-tel-streepjes wit...
+      '--beat-line-width': '1px', // ...maar dunner dan de maatstrepen (2px)
     },
   },
 ];

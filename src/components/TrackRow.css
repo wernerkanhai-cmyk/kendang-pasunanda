@@ -149,7 +149,7 @@
 }
 
 .beat-start {
-  border-left: 2px solid rgba(0, 0, 0, 0.2); /* Every 12 slots (Quarter note) */
+  border-left: var(--beat-line-width, 2px) solid var(--beat-line, rgba(0, 0, 0, 0.2)); /* Every 12 slots (Quarter note) */
 }
 
 .grid-line {
