@@ -1000,12 +1000,12 @@ const PatternEditor = ({
                                   <span
                                     onClick={() => toggleSnippetFolderCollapsed(folderName)}
                                     style={{ flex: 1, fontSize: '0.75rem', color: '#38bdf8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px', cursor: 'pointer' }}
-                                  >📁 {folderName} <span style={{ color: '#475569', fontWeight: 'normal' }}>({snipsInFolder.length})</span></span>
+                                  ><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px', marginRight: '5px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg>{folderName} <span style={{ color: '#475569', fontWeight: 'normal' }}>({snipsInFolder.length})</span></span>
                                   <button
                                     onClick={() => { setRenamingSnippetFolder(folderName); setRenamingSnippetFolderInput(folderName); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.2rem' }}
                                     title="Mapnaam wijzigen"
-                                  >✏</button>
+                                  ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                   <button
                                     onClick={() => handleDeleteSnippetFolder?.(folderName)}
                                     style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0.2rem', display: 'flex', alignItems: 'center' }}
@@ -1045,12 +1045,12 @@ const PatternEditor = ({
                                     onClick={() => { setRenamingSnippetId(snip.id); setRenamingSnippetInput(snip.name); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 4px' }}
                                     title="Hernoemen"
-                                  >✏</button>
+                                  ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                   <button
                                     onClick={() => { setMoveSnippetTarget(snip); setMoveSnippetFolderInput(''); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.85rem', padding: '0 4px' }}
                                     title="Verplaats naar andere map"
-                                  >📁</button>
+                                  ><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg></button>
                                </div>
                             ))}
                          </div>
@@ -1095,7 +1095,7 @@ const PatternEditor = ({
                            padding: '0.45rem 0.75rem', fontSize: '0.85rem',
                            cursor: f === (moveSnippetTarget.folder || 'Algemeen') ? 'default' : 'pointer',
                          }}
-                       >📁 {f}{f === (moveSnippetTarget.folder || 'Algemeen') ? '  (huidige)' : ''}</button>
+                       ><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '6px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg>{f}{f === (moveSnippetTarget.folder || 'Algemeen') ? '  (huidige)' : ''}</button>
                      ))}
                    </div>
                    <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>Of nieuwe map:</div>
