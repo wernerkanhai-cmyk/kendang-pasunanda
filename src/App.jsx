@@ -114,7 +114,7 @@ function App() {
   // Upsell wanneer een Performance-gebruiker wil bewerken.
   // TODO: hier komt de StoreKit in-app aankoopflow — na geslaagde aankoop → unlockFull().
   const handleUpsell = () => {
-    showToast('Edit mode zit in de Full-versie. (Dev: voeg ?full=1 toe aan de URL om te testen.)');
+    showToast(t('editFullVersionToast'));
   };
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
@@ -536,7 +536,7 @@ function App() {
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Cloud save failed, falling back to localStorage:', err);
-        alert('Opslaan in cloud mislukt — opgeslagen alleen lokaal.');
+        alert(t('cloudSaveFailed'));
       }
     }
     if (!result) {
@@ -561,7 +561,7 @@ function App() {
   };
 
   const handleUpdateSong = async () => {
-    if (isLocked) { showToast('Verlaat practice mode om op te slaan'); return; }
+    if (isLocked) { showToast(t('practiceExitToSave')); return; }
     if (!currentSongId) return;
     const fresh = await _persist({
       id: currentSongId,
@@ -572,7 +572,7 @@ function App() {
     });
     if (fresh) {
       setCurrentSongId(fresh.id);
-      showToast('Opgeslagen ✓');
+      showToast(t('savedToast'));
     }
   };
 
@@ -599,7 +599,7 @@ function App() {
   };
 
   const handleSaveAsNew = async () => {
-    if (isLocked) { showToast('Verlaat practice mode om op te slaan'); return; }
+    if (isLocked) { showToast(t('practiceExitToSave')); return; }
     const name = songName.trim() || 'Naamloos';
     const folder = songFolder.trim() || 'Algemeen';
     const existing = savedSongs.find(s => s.name === name && (s.folder || 'Algemeen') === folder);
@@ -611,7 +611,7 @@ function App() {
     const fresh = await _persist({ id: null, name, folder, bpm, patterns: JSON.parse(JSON.stringify(song)) });
     if (fresh) {
       setCurrentSongId(fresh.id);
-      showToast('Nieuwe song opgeslagen ✓');
+      showToast(t('newSongSavedToast'));
     }
   };
 
@@ -625,7 +625,7 @@ function App() {
       setCurrentSongId(fresh.id);
       setSongName(p.name);
       setSongFolder(p.folder);
-      showToast(`"${p.name}" overschreven ✓`);
+      showToast(t('overwrittenToast')(p.name));
     }
   };
 
@@ -639,7 +639,7 @@ function App() {
     if (fresh) {
       setCurrentSongId(fresh.id);
       setSongName(uniqueName);
-      showToast(`Opgeslagen als "${uniqueName}" ✓`);
+      showToast(t('savedAsToast')(uniqueName));
     }
   };
 
@@ -706,7 +706,7 @@ function App() {
     if (fresh && song.id === currentSongId) setSongName(trimmed);
     setRenamingSongId(null);
     setRenameSongInput('');
-    if (fresh) showToast(`Hernoemd naar "${trimmed}"`);
+    if (fresh) showToast(t('renamedToast')(trimmed));
   };
 
   // Move a saved song to a different folder. Reuses _persist so the cloud
@@ -724,11 +724,11 @@ function App() {
     if (fresh && song.id === currentSongId) setSongFolder(folder);
     setMoveSongTarget(null);
     setMoveSongFolderInput('');
-    if (fresh) showToast(`Verplaatst naar "${folder}"`);
+    if (fresh) showToast(t('movedToast')(folder));
   };
 
   const handleNewSong = () => {
-    if (isLocked) { showToast('Verlaat practice mode om een nieuwe song te maken'); return; }
+    if (isLocked) { showToast(t('practiceExitToNew')); return; }
     const newSongName = `Song ${savedSongs.length + 2}`;
     const fresh = createEmptyPattern(t('defaultSectionName'));
     setSong([fresh]);
@@ -759,29 +759,29 @@ function App() {
 
   const handleDeleteSong = async (id) => {
     const target = savedSongs.find(s => s.id === id);
-    const name = target?.name || 'deze song';
+    const name = target?.name || t('thisSong');
     setPendingDelete({ type: 'song', key: id });
     // Yield to the browser so the red highlight paints before the blocking confirm.
     await new Promise(r => setTimeout(r, 50));
-    const ok = window.confirm(`Weet je zeker dat je "${name}" wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`);
+    const ok = window.confirm(t('confirmDeleteSong')(name));
     setPendingDelete(null);
     if (!ok) return;
     if (user) {
       try {
         await cloudRemove(id);
         if (currentSongId === id) setCurrentSongId(null);
-        showToast(`"${name}" verwijderd`);
+        showToast(t('deletedToast')(name));
         return;
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Cloud delete failed, falling back to localStorage:', err);
-        alert('Verwijderen in cloud mislukt.');
+        alert(t('cloudDeleteFailed'));
         return;
       }
     }
     setLocalSavedSongs(prev => prev.filter(s => s.id !== id));
     if (currentSongId === id) setCurrentSongId(null);
-    showToast(`"${name}" verwijderd`);
+    showToast(t('deletedToast')(name));
   };
 
   const handleDeleteFolder = async (folderName) => {
@@ -789,7 +789,7 @@ function App() {
     if (inFolder.length === 0) return;
     setPendingDelete({ type: 'folder', key: folderName });
     await new Promise(r => setTimeout(r, 50));
-    const msg = `Weet je zeker dat je de map "${folderName}" wilt verwijderen?\n\nDit verwijdert ${inFolder.length} song${inFolder.length === 1 ? '' : 's'} permanent.\n\nDeze actie kan niet ongedaan worden gemaakt.`;
+    const msg = t('confirmDeleteFolder')(folderName, inFolder.length);
     const ok = window.confirm(msg);
     setPendingDelete(null);
     if (!ok) return;
@@ -805,7 +805,7 @@ function App() {
     setCollapsedFolders(prev => {
       const next = new Set(prev); next.delete(folderName); return next;
     });
-    showToast(`Map "${folderName}" verwijderd (${inFolder.length} song${inFolder.length === 1 ? '' : 's'})`);
+    showToast(t('folderDeletedToast')(folderName, inFolder.length));
   };
 
   const handleRenameFolder = async (oldName, newName) => {
@@ -848,7 +848,7 @@ function App() {
     if (picked.length === 0) return;
     setPendingDelete({ type: 'bulk', key: 'selection' });
     await new Promise(r => setTimeout(r, 50));
-    const ok = window.confirm(`Weet je zeker dat je ${picked.length} song${picked.length === 1 ? '' : 's'} wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`);
+    const ok = window.confirm(t('confirmDeleteSelection')(picked.length));
     setPendingDelete(null);
     if (!ok) return;
     let removed = 0;
@@ -864,7 +864,7 @@ function App() {
     }
     if (picked.some(s => s.id === currentSongId)) setCurrentSongId(null);
     setExportSelection(new Set());
-    showToast(`${removed} song${removed === 1 ? '' : 's'} verwijderd`);
+    showToast(t('selectionDeletedToast')(removed));
   };
 
   const handleExportSelection = () => {
@@ -921,7 +921,7 @@ function App() {
           const valid = imported
             .filter(isValidSong)
             .map(s => ({ ...s, patterns: s.patterns.map(sanitizePattern) }));
-          if (valid.length === 0) throw new Error('Geen geldige songs in bestand');
+          if (valid.length === 0) throw new Error(t('invalidSongsInFile'));
           const suggested = file.name.replace(/\.(kendang-lib|kendang)$/i, '').replace(/[_-]/g, ' ');
           setImportFolderName(suggested);
           setPendingImport({ songs: valid });
@@ -2197,7 +2197,7 @@ function App() {
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Cloud snippet save failed:', err);
-        alert('Patroon opslaan in cloud mislukt — opgeslagen alleen lokaal.');
+        alert(t('snippetCloudSaveFailed'));
       }
     }
     const newSnippet = {
@@ -2233,7 +2233,7 @@ function App() {
     if (!p) return;
     setSnippetOverwritePrompt(null);
     await _persistSnippet(p.name, p.folder, p.data, p.existing.id);
-    showToast(`"${p.name}" overschreven ✓`);
+    showToast(t('overwrittenToast')(p.name));
   };
 
   // Keuze uit het dubbele-snippetnaam-dialoog: als genummerde naam opslaan.
@@ -2243,27 +2243,27 @@ function App() {
     setSnippetOverwritePrompt(null);
     const uniqueName = makeUniqueSnippetName(p.name, p.folder);
     await _persistSnippet(uniqueName, p.folder, p.data, null);
-    showToast(`Opgeslagen als "${uniqueName}" ✓`);
+    showToast(t('savedAsToast')(uniqueName));
   };
 
   const handleDeleteSnippet = async (snippetId) => {
     const target = savedSnippets.find(s => s.id === snippetId);
-    const name = target?.name || 'dit patroon';
-    if (!window.confirm(`Weet je zeker dat je "${name}" wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`)) return;
+    const name = target?.name || t('thisPattern');
+    if (!window.confirm(t('confirmDeleteSnippet')(name))) return;
     if (user) {
       try {
         await cloudSnippetRemove(snippetId);
-        showToast(`Patroon "${name}" verwijderd`);
+        showToast(t('snippetDeletedToast')(name));
         return;
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Cloud snippet delete failed:', err);
-        alert('Patroon verwijderen in cloud mislukt.');
+        alert(t('snippetCloudDeleteFailed'));
         return;
       }
     }
     setLocalSavedSnippets(prev => prev.filter(s => s.id !== snippetId));
-    showToast(`Patroon "${name}" verwijderd`);
+    showToast(t('snippetDeletedToast')(name));
   };
 
   // Silent delete (no confirm) — used by bulk-delete which prompts once up front.
@@ -2282,11 +2282,11 @@ function App() {
     if (user) {
       try {
         await cloudSnippetSave({ id: snippet.id, name: trimmed, folder: snippet.folder || 'Algemeen', data: snippet.data });
-        showToast(`Hernoemd naar "${trimmed}"`);
-      } catch (err) { console.error('Snippet rename failed:', err); alert('Hernoemen mislukt.'); }
+        showToast(t('renamedToast')(trimmed));
+      } catch (err) { console.error('Snippet rename failed:', err); alert(t('renameFailed')); }
     } else {
       setLocalSavedSnippets(prev => prev.map(s => s.id === snippet.id ? { ...s, name: trimmed } : s));
-      showToast(`Hernoemd naar "${trimmed}"`);
+      showToast(t('renamedToast')(trimmed));
     }
   };
 
@@ -2296,11 +2296,11 @@ function App() {
     if (user) {
       try {
         await cloudSnippetSave({ id: snippet.id, name: snippet.name, folder, data: snippet.data });
-        showToast(`Verplaatst naar "${folder}"`);
-      } catch (err) { console.error('Snippet move failed:', err); alert('Verplaatsen mislukt.'); }
+        showToast(t('movedToast')(folder));
+      } catch (err) { console.error('Snippet move failed:', err); alert(t('moveFailed')); }
     } else {
       setLocalSavedSnippets(prev => prev.map(s => s.id === snippet.id ? { ...s, folder } : s));
-      showToast(`Verplaatst naar "${folder}"`);
+      showToast(t('movedToast')(folder));
     }
   };
 
@@ -2316,13 +2316,13 @@ function App() {
     } else {
       setLocalSavedSnippets(prev => prev.map(s => (s.folder || 'Algemeen') === oldName ? { ...s, folder: trimmed } : s));
     }
-    showToast(`Map "${oldName}" → "${trimmed}"`);
+    showToast(t('folderRenamedToast')(oldName, trimmed));
   };
 
   const handleDeleteSnippetFolder = async (folderName) => {
     const inFolder = savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName);
     if (inFolder.length === 0) return;
-    const msg = `Weet je zeker dat je de map "${folderName}" wilt verwijderen?\n\nDit verwijdert ${inFolder.length} patroon${inFolder.length === 1 ? '' : 'en'} permanent.\n\nDeze actie kan niet ongedaan worden gemaakt.`;
+    const msg = t('confirmDeleteSnippetFolder')(folderName, inFolder.length);
     if (!window.confirm(msg)) return;
     if (user) {
       for (const s of inFolder) {
@@ -2332,7 +2332,7 @@ function App() {
     } else {
       setLocalSavedSnippets(prev => prev.filter(s => (s.folder || 'Algemeen') !== folderName));
     }
-    showToast(`Map "${folderName}" verwijderd`);
+    showToast(t('snippetFolderDeletedToast')(folderName));
   };
 
   const handleExportSnippets = () => {
@@ -2472,8 +2472,8 @@ function App() {
               id="song-save-btn"
               onClick={() => setShowSongMenu(v => !v)}
               style={{ background: showSongMenu ? '#334155' : '#1e293b', color: '#e2e8f0', padding: '0.6rem 1rem', borderRadius: '6px', fontWeight: 400, letterSpacing: '0.01em', border: '1px solid var(--border-focus)', cursor: 'pointer', whiteSpace: 'nowrap' }}
-              title={isModifiedSinceSave ? `${t('manageSong')} — niet opgeslagen wijzigingen` : t('manageSong')}
-            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>{songName || 'Song'}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 4 }}>•</span>}</button>
+              title={isModifiedSinceSave ? `${t('manageSong')} — ${t('unsavedChangesSuffix')}` : t('manageSong')}
+            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>{songName || t('songLabel')}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 4 }}>•</span>}</button>
 
             {showSongMenu && (
               <>
@@ -2487,7 +2487,7 @@ function App() {
                   display: 'flex', flexDirection: 'column', gap: '0.5rem',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.75rem -0.75rem 0.25rem', padding: '0.55rem 0.85rem', background: 'var(--header-bg)', borderRadius: '10px 10px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1rem', color: '#f1f5f9' }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Song</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1rem', color: '#f1f5f9' }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>{t('songLabel')}</span>
                     <button onClick={() => setShowSongMenu(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.1rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
                   </div>
                   <input type="text" value={songName} onChange={(e) => setSongName(e.target.value)}
@@ -2515,7 +2515,7 @@ function App() {
                         style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '16px', cursor: 'pointer' }}
                       >
                         {existingFolders.map(f => <option key={f} value={f}>{f}</option>)}
-                        <option value="__NEW__">+ Nieuwe map...</option>
+                        <option value="__NEW__">{t('newFolderOption')}</option>
                       </select>
                     );
                   })()}
@@ -2531,25 +2531,25 @@ function App() {
                       border: '1px solid', borderColor: (currentSongId && !isLocked) ? '#3b82f6' : '#334155',
                       cursor: !currentSongId ? 'default' : (isLocked ? 'not-allowed' : 'pointer'), fontSize: '0.85rem',
                     }}
-                    title={isLocked ? 'Verlaat practice mode om op te slaan' : (currentSongId ? 'Overschrijf de geladen song' : 'Geen song geladen')}
-                  ><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M2.5 2.5h8l3 3v8a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5z"/><path d="M5 2.5v3.2h5V2.5"/><rect x="4.5" y="8.5" width="7" height="5.5" rx="0.5"/></svg>Update</button>
+                    title={isLocked ? t('practiceExitToSave') : (currentSongId ? t('songOverwriteTitle') : t('songNotLoaded'))}
+                  ><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M2.5 2.5h8l3 3v8a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5z"/><path d="M5 2.5v3.2h5V2.5"/><rect x="4.5" y="8.5" width="7" height="5.5" rx="0.5"/></svg>{t('saveUpdate')}</button>
 
                   <button
                     onClick={() => { handleSaveAsNew(); if (!isLocked) setShowSongMenu(false); }}
                     style={{ background: isLocked ? 'rgba(255,255,255,0.02)' : '#10b981', color: isLocked ? '#475569' : '#fff', padding: '0.55rem', borderRadius: '6px', fontWeight: 'bold', border: isLocked ? '1px solid #334155' : 'none', cursor: isLocked ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}
-                    title={isLocked ? 'Verlaat practice mode om op te slaan' : 'Maak een nieuwe song met de huidige naam + folder'}
-                  ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Save as new</button>
+                    title={isLocked ? t('practiceExitToSave') : t('saveAsNewTooltip')}
+                  ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>{t('saveAsNew')}</button>
 
                   <div style={{ height: '1px', background: '#2b3650', margin: '0.2rem 0' }} />
 
                   <button onClick={() => { handleNewSong(); if (!isLocked) setShowSongMenu(false); }}
                     style={{ background: 'rgba(255,255,255,0.05)', color: isLocked ? '#475569' : '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: isLocked ? 'not-allowed' : 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
-                    title={isLocked ? 'Verlaat practice mode om een nieuwe song te maken' : 'Begin met een lege song'}
+                    title={isLocked ? t('practiceExitToNew') : t('newSongTooltip')}
                   ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>{t('newBtn')}</button>
 
                   <button onClick={() => { setShowSongLibrary(true); setShowSongMenu(false); }}
                     style={{ background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
-                    title="Open de bibliotheek om een song te laden of te verwijderen"
+                    title={t('songMenuOpenLibrary')}
                   ><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><ellipse cx="12" cy="5.5" rx="8" ry="3"/><circle cx="12" cy="5.5" r="1.2" fill="currentColor" stroke="none"/><path d="M4 10c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 14c0 1.66 3.58 3 8 3s8-1.34 8-3"/><path d="M4 18c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>{t('libraryBtn')}</button>
 
                   {isAdmin && <>
@@ -2570,13 +2570,13 @@ function App() {
                               tempoTrack: p.tempoTrack || [],
                             })),
                           });
-                          showToast('Template gepubliceerd ✓');
-                        } catch (err) { alert(err?.message ?? 'Publiceren mislukt'); }
+                          showToast(t('templatePublishedToast'));
+                        } catch (err) { alert(err?.message ?? t('publishFailed')); }
                         setShowSongMenu(false);
                       }}
                       style={{ background: 'rgba(255,255,255,0.05)', color: '#d4af37', border: '1px solid #2b3650', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
-                      title="Publiceer deze song als template voor alle gebruikers"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Publiceer als template</button>
+                      title={t('publishTemplateTooltip')}
+                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>{t('publishTemplateBtn')}</button>
                   </>}
                 </div>
               </>
@@ -2588,7 +2588,7 @@ function App() {
             id="songbuilder-btn"
             onClick={handleOpenSongMap}
             style={{ background: 'transparent', border: '1px solid #334155', borderRadius: '6px', color: '#64748b', cursor: 'pointer', padding: '0.6rem 0.75rem', fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}
-            title="Compositie-overzicht"
+            title={t('songbuilderTitle')}
           >☰</button>
         </div>
 
@@ -2623,7 +2623,7 @@ function App() {
               <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
                 <svg width="54" height="54" viewBox="0 0 36 36"
                   style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color})` }}
-                  title={`${track === 'anak' ? 'Anak' : 'Indung'} volume: ${Math.round(val * 100)}%`}
+                  title={t('volumeTooltip')(track === 'anak' ? 'Anak' : 'Indung', Math.round(val * 100))}
                   onPointerDown={(e) => {
                     e.preventDefault();
                     const startY = e.clientY, startVal = val;
@@ -2657,7 +2657,7 @@ function App() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
                 <svg width="54" height="54" viewBox="0 0 36 36"
                   style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color}80)` }}
-                  title={`Vox volume: ${Math.round(val * 100)}%`}
+                  title={t('volumeTooltip')('Vox', Math.round(val * 100))}
                   onPointerDown={(e) => {
                     e.preventDefault();
                     const startY = e.clientY, startVal = val;
@@ -2743,7 +2743,7 @@ function App() {
                   }
                   bpmDragRef.current = null;
                 }}
-                title="Sleep omhoog/omlaag of klik om te typen"
+                title={t('bpmDragTooltip')}
               >
                 {realtimeBpm !== null ? <span style={{ color: '#d4af37' }}>{realtimeBpm}</span> : bpm}
               </span>
@@ -2759,7 +2759,7 @@ function App() {
             <button
               className="practice-mode-btn hdr-icon-btn"
               onClick={handleUpsell}
-              title="Edit mode zit in de Full-versie — tik om te ontgrendelen"
+              title={t('editFullVersionTooltip')}
               style={{
                 background: 'rgba(212,175,55,0.15)', color: '#d4af37',
                 border: '1px solid #d4af37', borderRadius: '6px',
@@ -2785,7 +2785,7 @@ function App() {
                 if (next) {
                   // Show a one-time hint when first entering practice mode.
                   if (localStorage.getItem('kendangPracticeTipSeen') !== 'yes') {
-                    showToast('Practice mode aan — invoer is uitgeschakeld');
+                    showToast(t('practiceModeToast'));
                     localStorage.setItem('kendangPracticeTipSeen', 'yes');
                   }
                 }
@@ -2802,7 +2802,7 @@ function App() {
               boxShadow: isLocked ? '0 0 8px rgba(212,175,55,0.4)' : 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0,
             }}
-            title={isLocked ? 'Practice Mode aan — klik om te bewerken' : 'Enter Practice Mode'}
+            title={isLocked ? t('practiceModeOnTooltip') : t('enterPracticeMode')}
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"
               style={{ filter: isLocked ? 'drop-shadow(0 0 5px rgba(255,215,0,0.6))' : 'none', transition: 'filter 0.25s' }}>
@@ -2825,7 +2825,7 @@ function App() {
                 fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.03em',
                 boxShadow: song.some(p => p.tempoTrackEnabled !== false) ? '0 0 6px rgba(212,175,55,0.3)' : 'none',
               }}
-              title={song.some(p => p.tempoTrackEnabled !== false) ? 'Tempo-automatisering uit — oefen op globaal BPM' : 'Tempo-automatisering aan'}
+              title={song.some(p => p.tempoTrackEnabled !== false) ? t('tempoAutomationOffTooltip') : t('tempoAutomationOnTooltip')}
             >{song.some(p => p.tempoTrackEnabled !== false) ? '♩ TEMPO' : '♩ GLOBAL'}</button>
           )}
 
@@ -3056,17 +3056,17 @@ function App() {
               >
                 <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Bibliotheek importeren ({pendingImport.songs.length} songs)</span>
+                  <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>{t('importLibraryTitle')(pendingImport.songs.length)}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <label style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
-                    Importeer in map (leeg = originele mappen bewaren):
+                    {t('importIntoFolderLabel')}
                   </label>
                   <input
                     type="text"
                     value={importFolderName}
                     onChange={(e) => setImportFolderName(e.target.value)}
-                    placeholder="bijv. Werner, Gapur, ..."
+                    placeholder={t('importFolderPlaceholder')}
                     autoFocus
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
                   />
@@ -3075,11 +3075,11 @@ function App() {
                   <button
                     onClick={() => { setPendingImport(null); setImportFolderName(''); }}
                     style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}
-                  >Annuleer</button>
+                  >{t('cancelBtn')}</button>
                   <button
                     onClick={() => confirmImportLibrary(importFolderName.trim() || null)}
                     style={{ background: '#3b82f6', border: 'none', borderRadius: '6px', color: '#fff', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
-                  >Importeer</button>
+                  >{t('importBtn')}</button>
                 </div>
               </div>
             </div>
@@ -3099,13 +3099,13 @@ function App() {
                 >
                   <div style={{ margin: '-1.5rem -1.5rem 0', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
-                    <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Verplaats "{moveSongTarget.name}"</span>
+                    <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>{t('moveSongTitle')(moveSongTarget.name)}</span>
                   </div>
                   <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
-                    Huidige map: <strong>{moveSongTarget.folder}</strong>
+                    {t('currentFolderLabel')} <strong>{moveSongTarget.folder}</strong>
                   </div>
                   <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>
-                    Bestaande mappen:
+                    {t('existingFoldersLabel')}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', maxHeight: '180px', overflowY: 'auto' }}>
                     {existingFolders.map(f => (
@@ -3124,26 +3124,26 @@ function App() {
                           cursor: f === moveSongTarget.folder ? 'default' : 'pointer',
                         }}
                       >
-                        📁 {f}{f === moveSongTarget.folder ? '  (huidige)' : ''}
+                        📁 {f}{f === moveSongTarget.folder ? `  ${t('currentFolderTag')}` : ''}
                       </button>
                     ))}
                   </div>
                   <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '-0.4rem' }}>
-                    Of nieuwe map:
+                    {t('orNewFolderLabel')}
                   </div>
                   <input
                     type="text"
                     value={moveSongFolderInput}
                     onChange={(e) => setMoveSongFolderInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && moveSongFolderInput.trim()) handleMoveSongToFolder(moveSongTarget, moveSongFolderInput); }}
-                    placeholder="bv. Buka'an, Pangjadi, ..."
+                    placeholder={t('moveFolderPlaceholder')}
                     style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
                   />
                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                     <button
                       onClick={() => { setMoveSongTarget(null); setMoveSongFolderInput(''); }}
                       style={{ background: 'transparent', border: '1px solid #475569', borderRadius: '6px', color: '#94a3b8', padding: '0.4rem 0.9rem', cursor: 'pointer', fontSize: '0.85rem' }}
-                    >Annuleer</button>
+                    >{t('cancelBtn')}</button>
                     <button
                       onClick={() => handleMoveSongToFolder(moveSongTarget, moveSongFolderInput)}
                       disabled={!moveSongFolderInput.trim()}
@@ -3155,7 +3155,7 @@ function App() {
                         cursor: moveSongFolderInput.trim() ? 'pointer' : 'default',
                         fontSize: '0.85rem', fontWeight: 'bold',
                       }}
-                    >Verplaats</button>
+                    >{t('moveBtn')}</button>
                   </div>
                 </div>
               </div>
@@ -3185,10 +3185,10 @@ function App() {
                         borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 600,
                         cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
                       }}
-                      title="Exporteer geselecteerde songs"
-                    ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Export ({exportSelection.size})</button>
+                      title={t('exportSelectedTooltip')}
+                    ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>{t('exportLabel')} ({exportSelection.size})</button>
                     <label style={{ background: 'transparent', color: '#34d399', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Import
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>{t('importLabel')}
                       <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
                     </label>
                     <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
@@ -3205,8 +3205,8 @@ function App() {
                       borderRadius: '6px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
                       cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
                     }}
-                    title="Verwijder geselecteerde songs"
-                  >Delete ({exportSelection.size})</button>
+                    title={t('deleteSelectedTooltip')}
+                  >{t('deleteBtn')} ({exportSelection.size})</button>
                   <input
                     type="text"
                     value={songSearchQuery}
@@ -3218,10 +3218,10 @@ function App() {
                     value={librarySort}
                     onChange={(e) => setLibrarySort(e.target.value)}
                     style={{ background: '#0f172a', color: '#cbd5e1', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.5rem', fontSize: '0.78rem', cursor: 'pointer' }}
-                    title="Sorteren"
+                    title={t('sortTooltip')}
                   >
-                    <option value="name">Naam A-Z</option>
-                    <option value="recent">Laatst bewerkt</option>
+                    <option value="name">{t('sortNameAZ')}</option>
+                    <option value="recent">{t('sortRecent')}</option>
                   </select>
                 </div>
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -3252,16 +3252,16 @@ function App() {
                           <button
                             onClick={() => toggleFolderCollapsed(rootFolder)}
                             style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                            title={rootCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                            title={rootCollapsed ? t('expandFolder') : t('collapseFolder')}
                           ><ChevronIcon collapsed={rootCollapsed} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                           <span
                             onClick={() => toggleFolderCollapsed(rootFolder)}
                             style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
-                          >Templates <span style={{ color: '#64748b', fontWeight: 'normal' }}>({matches.length})</span></span>
+                          >{t('templatesFolder')} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({matches.length})</span></span>
                         </div>
                         {!rootCollapsed && (matches.length === 0 ? (
                           <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
-                            Nog geen templates beschikbaar.
+                            {t('noTemplatesYet')}
                           </div>
                         ) : categories.map(cat => {
                           const subKey = `__TEMPLATES__/${cat}`;
@@ -3273,7 +3273,7 @@ function App() {
                                 <button
                                   onClick={() => toggleFolderCollapsed(subKey)}
                                   style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.1rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                                  title={subCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
+                                  title={subCollapsed ? t('expandFolder') : t('collapseFolder')}
                                 ><ChevronIcon collapsed={subCollapsed} color="#cbd5e1" size={8} /><FolderIcon color="#cbd5e1" size={12} /></button>
                                 <span
                                   onClick={() => toggleFolderCollapsed(subKey)}
@@ -3287,19 +3287,19 @@ function App() {
                                     onClick={async () => {
                                       setShowSongLibrary(false);
                                       await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
-                                      showToast(`"${tpl.name}" geladen`);
+                                      showToast(t('templateLoadedToast')(tpl.name));
                                     }}
                                     style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}
-                                  >Gebruik</button>
+                                  >{t('useBtn')}</button>
                                   {isAdmin && (
                                     <button
                                       onClick={async () => {
-                                        if (!window.confirm(`Template "${tpl.name}" verwijderen?`)) return;
-                                        try { await removeTemplate(tpl.id); showToast('Template verwijderd'); }
-                                        catch (err) { alert(err?.message ?? 'Verwijderen mislukt'); }
+                                        if (!window.confirm(t('confirmDeleteTemplate')(tpl.name))) return;
+                                        try { await removeTemplate(tpl.id); showToast(t('templateDeletedToast')); }
+                                        catch (err) { alert(err?.message ?? t('deleteFailed')); }
                                       }}
                                       style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
-                                      title="Template verwijderen"
+                                      title={t('deleteTemplateTooltip')}
                                     ><TrashIcon size={12} /></button>
                                   )}
                                 </div>
@@ -3339,7 +3339,7 @@ function App() {
                       folders = Object.keys(byFolder).sort();
                     }
                     if (folders.length === 0) return (
-                      <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>Geen resultaten.</p>
+                      <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>{t('noResults')}</p>
                     );
                     return folders.map(folder => (
                       <div key={folder}>
@@ -3349,7 +3349,7 @@ function App() {
                             checked={byFolder[folder].length > 0 && byFolder[folder].every(s => exportSelection.has(s.id))}
                             ref={(el) => { if (el) el.indeterminate = byFolder[folder].some(s => exportSelection.has(s.id)) && !byFolder[folder].every(s => exportSelection.has(s.id)); }}
                             onChange={() => toggleExportFolder(byFolder[folder])}
-                            title="Selecteer hele map voor export"
+                            title={t('selectFolderForExport')}
                             style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
                           />
                           {renamingFolder === folder ? (
@@ -3366,7 +3366,7 @@ function App() {
                               <button
                                 onClick={() => toggleFolderCollapsed(folder)}
                                 style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                                title={collapsedFolders.has(folder) ? 'Map openklappen' : 'Map dichtklappen'}
+                                title={collapsedFolders.has(folder) ? t('expandFolder') : t('collapseFolder')}
                               ><ChevronIcon collapsed={collapsedFolders.has(folder)} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                               <span
                                 onClick={() => toggleFolderCollapsed(folder)}
@@ -3375,7 +3375,7 @@ function App() {
                               <button
                                 onClick={() => { setRenamingFolder(folder); setRenameFolderInput(folder); }}
                                 style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
-                                title="Mapnaam wijzigen"
+                                title={t('renameFolderTooltip')}
                               ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                               {(() => {
                                 const folderSongs = byFolder[folder];
@@ -3401,7 +3401,7 @@ function App() {
                                       padding: '0.15rem 0.3rem',
                                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     }}
-                                    title={allSelected ? 'Hele map verwijderen' : hasSelection ? `Verwijder ${selectedInFolder.length} geselecteerde song${selectedInFolder.length === 1 ? '' : 's'}` : 'Selecteer eerst songs om te verwijderen'}
+                                    title={allSelected ? t('deleteEntireFolder') : hasSelection ? t('deleteSelectedSongs')(selectedInFolder.length) : t('selectSongsFirst')}
                                   ><TrashIcon size={13} /></button>
                                 );
                               })()}
@@ -3414,7 +3414,7 @@ function App() {
                               type="checkbox"
                               checked={exportSelection.has(s.id)}
                               onChange={() => toggleExportSong(s.id)}
-                              title="Selecteer voor export"
+                              title={t('selectForExport')}
                               style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
                             />
                             {renamingSongId === s.id ? (
@@ -3436,7 +3436,7 @@ function App() {
                                 <button
                                   onClick={() => { setRenamingSongId(s.id); setRenameSongInput(s.name); }}
                                   style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
-                                  title="Naam wijzigen"
+                                  title={t('renameTooltip')}
                                 ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                 <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{s.date}</span>
                               </span>
@@ -3448,7 +3448,7 @@ function App() {
                             <button
                               onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                              title="Verplaats naar andere map"
+                              title={t('moveToOtherFolder')}
                             ><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg></button>
                             <button
                               onClick={() => handleExportSong(s)}
@@ -3571,7 +3571,7 @@ function App() {
         <main className="sequencer-section">
         <div className="song-timeline">
           <div style={{ padding: '0.4rem 1rem 0.2rem', fontSize: '1.1rem', fontWeight: 'bold', color: '#e2e8f0', letterSpacing: '0.02em', textAlign: 'center' }}>
-            {songName}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 6 }} title="Niet opgeslagen wijzigingen">•</span>}
+            {songName}{isModifiedSinceSave && <span style={{ color: '#fbbf24', marginLeft: 6 }} title={t('unsavedChangesSuffix')}>•</span>}
           </div>
           <SongMap
             song={song}
@@ -3610,8 +3610,8 @@ function App() {
                       <button
                         onClick={() => insertSongBlockAfter(song[idx - 1].id)}
                         style={{ background: 'transparent', color: '#334155', border: '1px solid #1e293b', borderRadius: '4px', padding: '0.05rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', lineHeight: 1.4 }}
-                        title="Voeg regel in"
-                      >+ Regel</button>
+                        title={t('insertSection')}
+                      >{t('insertSectionBtn')}</button>
                       <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.04)' }} />
                     </div>
                   )}
@@ -3751,15 +3751,15 @@ function App() {
           >
             <div style={{ margin: '-1.5rem -1.5rem 1rem', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Song bestaat al</span>
+              <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>{t('songExistsTitle')}</span>
             </div>
             <div style={{ fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '1.2rem', lineHeight: 1.4 }}>
-              Er bestaat al een song <strong>“{overwritePrompt.name}”</strong> in de map “{overwritePrompt.folder}”. Wat wil je doen?
+              {t('songExistsBody')(overwritePrompt.name, overwritePrompt.folder)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <button onClick={confirmOverwriteSave} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.875rem' }}>Overschrijven</button>
-              <button onClick={confirmNumberedSave} style={{ background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontSize: '0.875rem' }}>Opslaan als “{makeUniqueSongName(overwritePrompt.name, overwritePrompt.folder)}”</button>
-              <button onClick={() => setOverwritePrompt(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>Annuleren</button>
+              <button onClick={confirmOverwriteSave} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.875rem' }}>{t('overwriteBtn')}</button>
+              <button onClick={confirmNumberedSave} style={{ background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontSize: '0.875rem' }}>{t('saveAsLabel')(makeUniqueSongName(overwritePrompt.name, overwritePrompt.folder))}</button>
+              <button onClick={() => setOverwritePrompt(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>{t('cancelLabel')}</button>
             </div>
           </div>
         </div>
@@ -3777,15 +3777,15 @@ function App() {
           >
             <div style={{ margin: '-1.5rem -1.5rem 1rem', padding: '0.7rem 1.1rem', background: 'var(--header-bg)', borderBottom: '1px solid #2b3650', borderRadius: '11px 11px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9, color: '#f1f5f9' }}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>Patroon bestaat al</span>
+              <span style={{ fontSize: '0.95rem', color: '#f1f5f9', fontWeight: 400, letterSpacing: '0.01em' }}>{t('snippetExistsTitle')}</span>
             </div>
             <div style={{ fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '1.2rem', lineHeight: 1.4 }}>
-              Er bestaat al een patroon <strong>“{snippetOverwritePrompt.name}”</strong> in de map “{snippetOverwritePrompt.folder}”. Wat wil je doen?
+              {t('snippetExistsBody')(snippetOverwritePrompt.name, snippetOverwritePrompt.folder)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <button onClick={confirmSnippetOverwrite} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.875rem' }}>Overschrijven</button>
-              <button onClick={confirmSnippetNumbered} style={{ background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontSize: '0.875rem' }}>Opslaan als “{makeUniqueSnippetName(snippetOverwritePrompt.name, snippetOverwritePrompt.folder)}”</button>
-              <button onClick={() => setSnippetOverwritePrompt(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>Annuleren</button>
+              <button onClick={confirmSnippetOverwrite} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.875rem' }}>{t('overwriteBtn')}</button>
+              <button onClick={confirmSnippetNumbered} style={{ background: '#334155', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '6px', padding: '0.6rem', cursor: 'pointer', fontSize: '0.875rem' }}>{t('saveAsLabel')(makeUniqueSnippetName(snippetOverwritePrompt.name, snippetOverwritePrompt.folder))}</button>
+              <button onClick={() => setSnippetOverwritePrompt(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '0.4rem', cursor: 'pointer', fontSize: '0.85rem' }}>{t('cancelLabel')}</button>
             </div>
           </div>
         </div>
