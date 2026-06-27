@@ -693,8 +693,8 @@ const PatternEditor = ({
                       </select>
                     );
                   })()}
-                  <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
-                  <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '2px', padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✕</button>
+                  <button onClick={(e) => { e.stopPropagation(); confirmSaveSnippet(); }} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '5px', padding: '3px 7px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✓</button>
+                  <button onClick={(e) => { e.stopPropagation(); cancelSaveSnippet(); }} style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '5px', padding: '3px 7px', fontSize: '0.7rem', cursor: 'pointer', marginLeft: '2px' }}>✕</button>
                 </div>
                 {savedSnippets.length > 0 && (() => {
                   const byFolder = savedSnippets.reduce((acc, s) => {
@@ -704,10 +704,10 @@ const PatternEditor = ({
                     return acc;
                   }, {});
                   return (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', zIndex: 200, minWidth: '200px', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '8px', zIndex: 200, minWidth: '200px', maxHeight: '200px', overflowY: 'auto', boxShadow: '0 12px 28px rgba(0,0,0,0.55)' }} onClick={(e) => e.stopPropagation()}>
                       {Object.keys(byFolder).sort().map(f => (
                         <div key={f}>
-                          <div style={{ color: '#475569', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.25rem 0.5rem 0.1rem' }}>📁 {f}</div>
+                          <div style={{ color: '#cbd5e1', fontSize: '0.65rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.3rem 0.5rem 0.15rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z" /></svg>{f}</div>
                           {byFolder[f].map(snip => (
                             <button key={snip.id}
                               onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setSnippetName(snip.name); setSnippetFolder(snip.folder || 'Algemeen'); }}
