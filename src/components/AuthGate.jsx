@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useT } from '../i18n';
 
 export default function AuthGate({ children }) {
   const { user, loading, recoveryMode, signIn, signUp, resetPassword, setNewPassword } = useAuth();
@@ -11,11 +12,12 @@ export default function AuthGate({ children }) {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
+  const t = useT();
 
   if (loading) {
     return (
       <div style={fullScreen}>
-        <div style={{ color: '#94a3b8' }}>Laden…</div>
+        <div style={{ color: '#94a3b8' }}>{t('authLoading')}</div>
       </div>
     );
   }
@@ -25,17 +27,17 @@ export default function AuthGate({ children }) {
       e.preventDefault();
       setError('');
       setInfo('');
-      if (recoveryPw.length < 6) { setError('Wachtwoord moet minimaal 6 tekens zijn'); return; }
-      if (recoveryPw !== recoveryPw2) { setError('De wachtwoorden komen niet overeen'); return; }
+      if (recoveryPw.length < 6) { setError(t('pwMin6')); return; }
+      if (recoveryPw !== recoveryPw2) { setError(t('pwMismatch')); return; }
       setBusy(true);
       try {
         const { error: err } = await setNewPassword(recoveryPw);
         if (err) throw err;
-        setInfo('Wachtwoord opgeslagen. Je bent nu ingelogd.');
+        setInfo(t('pwSavedLoggedIn'));
         setRecoveryPw('');
         setRecoveryPw2('');
       } catch (err) {
-        setError(err?.message ?? 'Er ging iets mis');
+        setError(err?.message ?? t('somethingWrong'));
       } finally {
         setBusy(false);
       }
@@ -43,13 +45,13 @@ export default function AuthGate({ children }) {
     return (
       <div style={fullScreen}>
         <form onSubmit={handleRecoverySubmit} style={form}>
-          <div style={title}>Stel een nieuw wachtwoord in</div>
-          <div style={subtitle}>Voer hieronder je nieuwe wachtwoord in om je account te herstellen.</div>
-          <input type="password" autoComplete="new-password" placeholder="Nieuw wachtwoord" value={recoveryPw} onChange={(e) => setRecoveryPw(e.target.value)} required minLength={6} style={input} autoFocus />
-          <input type="password" autoComplete="new-password" placeholder="Herhaal nieuw wachtwoord" value={recoveryPw2} onChange={(e) => setRecoveryPw2(e.target.value)} required minLength={6} style={input} />
+          <div style={title}>{t('recoveryTitle')}</div>
+          <div style={subtitle}>{t('recoverySubtitle')}</div>
+          <input type="password" autoComplete="new-password" placeholder={t('newPwPlaceholder')} value={recoveryPw} onChange={(e) => setRecoveryPw(e.target.value)} required minLength={6} style={input} autoFocus />
+          <input type="password" autoComplete="new-password" placeholder={t('repeatPwPlaceholder')} value={recoveryPw2} onChange={(e) => setRecoveryPw2(e.target.value)} required minLength={6} style={input} />
           {error && <div style={errorBox}>{error}</div>}
           {info && <div style={infoBox}>{info}</div>}
-          <button type="submit" disabled={busy} style={submitBtn}>{busy ? '…' : 'Wachtwoord opslaan'}</button>
+          <button type="submit" disabled={busy} style={submitBtn}>{busy ? '…' : t('savePwBtn')}</button>
         </form>
       </div>
     );
@@ -69,14 +71,14 @@ export default function AuthGate({ children }) {
       } else if (mode === 'signup') {
         const { error: err } = await signUp(email.trim(), password);
         if (err) throw err;
-        setInfo('Account aangemaakt. Controleer je e-mail om te bevestigen.');
+        setInfo(t('accountCreated'));
       } else if (mode === 'forgot') {
         const { error: err } = await resetPassword(email.trim());
         if (err) throw err;
-        setInfo('Reset-link verstuurd. Controleer je e-mail.');
+        setInfo(t('resetLinkSent'));
       }
     } catch (err) {
-      setError(err?.message ?? 'Er ging iets mis');
+      setError(err?.message ?? t('somethingWrong'));
     } finally {
       setBusy(false);
     }
@@ -87,9 +89,9 @@ export default function AuthGate({ children }) {
       <form onSubmit={handleSubmit} style={form} autoComplete="on">
         <div style={title}>Kendang Pasunanda</div>
         <div style={subtitle}>
-          {mode === 'signin' && 'Log in op je account'}
-          {mode === 'signup' && 'Maak een nieuw account aan'}
-          {mode === 'forgot' && 'Wachtwoord vergeten — vul je e-mail in'}
+          {mode === 'signin' && t('signinSubtitle')}
+          {mode === 'signup' && t('signupSubtitle')}
+          {mode === 'forgot' && t('forgotSubtitle')}
         </div>
 
         <input
@@ -100,7 +102,7 @@ export default function AuthGate({ children }) {
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck="false"
-          placeholder="E-mailadres"
+          placeholder={t('emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -114,7 +116,7 @@ export default function AuthGate({ children }) {
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck="false"
-            placeholder="Wachtwoord"
+            placeholder={t('pwPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -127,7 +129,7 @@ export default function AuthGate({ children }) {
         {info && <div style={infoBox}>{info}</div>}
 
         <button type="submit" disabled={busy} style={submitBtn}>
-          {busy ? '…' : mode === 'signin' ? 'Inloggen' : mode === 'signup' ? 'Registreren' : 'Stuur reset-link'}
+          {busy ? '…' : mode === 'signin' ? t('signinBtn') : mode === 'signup' ? t('signupBtn') : t('sendResetBtn')}
         </button>
 
         {mode !== 'forgot' && (
@@ -136,7 +138,7 @@ export default function AuthGate({ children }) {
             onClick={() => { setMode(m => m === 'signin' ? 'signup' : 'signin'); setError(''); setInfo(''); }}
             style={switchBtn}
           >
-            {mode === 'signin' ? 'Nog geen account? Registreer' : 'Al een account? Log in'}
+            {mode === 'signin' ? t('toSignup') : t('toSignin')}
           </button>
         )}
         {mode === 'signin' && (
@@ -145,7 +147,7 @@ export default function AuthGate({ children }) {
             onClick={() => { setMode('forgot'); setError(''); setInfo(''); }}
             style={switchBtn}
           >
-            Wachtwoord vergeten?
+            {t('forgotPwBtn')}
           </button>
         )}
         {mode === 'forgot' && (
@@ -154,10 +156,10 @@ export default function AuthGate({ children }) {
             onClick={() => { setMode('signin'); setError(''); setInfo(''); }}
             style={switchBtn}
           >
-            Terug naar inloggen
+            {t('backToSignin')}
           </button>
         )}
-        <div style={copyright}>© {new Date().getFullYear()} Werner Kanhai. Alle rechten voorbehouden.</div>
+        <div style={copyright}>{t('copyright')(new Date().getFullYear())}</div>
       </form>
     </div>
   );
