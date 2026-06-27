@@ -32,6 +32,9 @@ export const SKINS = [
       '--anak-bg': '#ffffff',
       '--anak-color': '#000000',
       '--anak-text': '#000000',
+      // Anak-volumeknop zit op de donkere header; zwart zou daar onzichtbaar zijn.
+      // (Modern/PUSAMADA zetten dit niet en vallen terug op --anak-color.)
+      '--knob-anak': '#e5e7eb',
       '--indung-bg': '#ffffff',
       '--indung-color': '#cc0000',
       '--indung-text': '#cc0000',

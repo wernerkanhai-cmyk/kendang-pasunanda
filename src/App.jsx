@@ -2634,7 +2634,7 @@ function App() {
           >{isPlaying ? '⏸' : '▶'}</button>
           {/* Track volume knobs A + I */}
           {['anak', 'indung'].map(track => {
-            const color = track === 'anak' ? 'var(--anak-color)' : 'var(--indung-color)';
+            const color = track === 'anak' ? 'var(--knob-anak, var(--anak-color))' : 'var(--knob-indung, var(--indung-color))';
             const val = trackVolumes[track];
             const angle = -135 + (val / 2) * 270;
             const r = 14, cx = 18, cy = 18;
