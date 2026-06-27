@@ -31,6 +31,9 @@ const DocIcon = ({ color = 'currentColor', size = 13 }) => (
     <path d="M9 1.8V5h3" />
   </svg>
 );
+const ChevronIcon = ({ collapsed, color = 'currentColor', size = 9 }) => (
+  <svg width={size} height={size} viewBox="0 0 10 10" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: collapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" /></svg>
+);
 
 const encodeData = (data) => btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(data))));
 const decodeData = (text) => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
@@ -3159,7 +3162,7 @@ function App() {
                 style={{ background: '#161f30', border: '1px solid #2b3650', borderRadius: '16px', padding: '1.5rem', width: '560px', maxWidth: 'calc(100vw - 2rem)', maxHeight: '82dvh', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 24px 64px rgba(0,0,0,0.55)' }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-1.5rem -1.5rem 0', padding: '0.85rem 1.5rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '16px 16px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><span style={{ fontSize: '1.2rem' }}>📚</span>{t('songLibraryTitle')}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 400, fontSize: '1.25rem', letterSpacing: '0.01em', color: '#f1f5f9' }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>{t('songLibraryTitle')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
 
                     {/* Export selectie button — only enabled when something is selected */}
@@ -3241,16 +3244,16 @@ function App() {
 
                     return (
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #d4af37', marginBottom: '0.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #2b3650', marginBottom: '0.25rem' }}>
                           <button
                             onClick={() => toggleFolderCollapsed(rootFolder)}
-                            style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                            style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                             title={rootCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
-                          ><FolderIcon color="#d4af37" /></button>
+                          ><ChevronIcon collapsed={rootCollapsed} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                           <span
                             onClick={() => toggleFolderCollapsed(rootFolder)}
-                            style={{ flex: 1, color: '#d4af37', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
-                          >Templates <span style={{ color: '#a37f1e', fontWeight: 'normal' }}>({matches.length})</span></span>
+                            style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                          >Templates <span style={{ color: '#64748b', fontWeight: 'normal' }}>({matches.length})</span></span>
                         </div>
                         {!rootCollapsed && (matches.length === 0 ? (
                           <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
@@ -3262,16 +3265,16 @@ function App() {
                           const items = byCategory[cat];
                           return (
                             <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #3f2e10', marginBottom: '0.15rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #2b3650', marginBottom: '0.15rem' }}>
                                 <button
                                   onClick={() => toggleFolderCollapsed(subKey)}
-                                  style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
+                                  style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.1rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                                   title={subCollapsed ? 'Map openklappen' : 'Map dichtklappen'}
-                                ><FolderIcon color="#a37f1e" size={12} /></button>
+                                ><ChevronIcon collapsed={subCollapsed} color="#cbd5e1" size={8} /><FolderIcon color="#cbd5e1" size={12} /></button>
                                 <span
                                   onClick={() => toggleFolderCollapsed(subKey)}
-                                  style={{ flex: 1, color: '#a37f1e', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
-                                >{cat} <span style={{ color: '#7a5e16', fontWeight: 'normal' }}>({items.length})</span></span>
+                                  style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                                >{cat} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
                               {!subCollapsed && items.map((tpl, ri) => (
                                 <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.5rem 0.26rem 1rem', background: ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent' }}>
@@ -3358,13 +3361,13 @@ function App() {
                             <>
                               <button
                                 onClick={() => toggleFolderCollapsed(folder)}
-                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                                style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                                 title={collapsedFolders.has(folder) ? 'Map openklappen' : 'Map dichtklappen'}
-                              ><FolderIcon color="#94a3b8" /></button>
+                              ><ChevronIcon collapsed={collapsedFolders.has(folder)} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                               <span
                                 onClick={() => toggleFolderCollapsed(folder)}
-                                style={{ flex: 1, color: '#94a3b8', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
-                              >{folder} <span style={{ color: '#475569', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
+                                style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                              >{folder} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
                               <button
                                 onClick={() => { setRenamingFolder(folder); setRenameFolderInput(folder); }}
                                 style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
