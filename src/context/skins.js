@@ -38,18 +38,18 @@ export const SKINS = [
     },
   },
   {
-    // PUSAMADA — kendang-palet: witte regels, rode anak, gouden indung.
-    // (Rood/wit/goud in de notatie; zwart in de structuurlijnen. Goud zit
-    //  daarnaast al in de chrome-/edit-knopjes.)
+    // PUSAMADA — donker kendang-palet: zwarte regels, witte anak, rode indung.
+    // (Notatie-fase. Chrome volgt later: zwarte panelen + rode knop-glow zijn de
+    //  geplande fase-2-uitbreiding; de knoppen blijven voorlopig modern.)
     id: 'pusamada',
     label: 'PUSAMADA',
     tokens: {
-      '--anak-bg': '#ffffff',
-      '--anak-color': '#c1121f',
-      '--anak-text': '#c1121f',
-      '--indung-bg': '#ffffff',
-      '--indung-color': '#a07814',
-      '--indung-text': '#a07814',
+      '--anak-bg': '#0d0d0d',
+      '--anak-color': '#ffffff',
+      '--anak-text': '#ffffff',
+      '--indung-bg': '#0d0d0d',
+      '--indung-color': '#ef4444',
+      '--indung-text': '#ef4444',
     },
   },
 ];
