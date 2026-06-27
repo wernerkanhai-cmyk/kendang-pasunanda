@@ -45,10 +45,10 @@ export const SKINS = [
     id: 'pusamada',
     label: 'PUSAMADA',
     tokens: {
-      '--anak-bg': '#2d2d2d',
+      '--anak-bg': '#242424',
       '--anak-color': '#ffffff',
       '--anak-text': '#ffffff',
-      '--indung-bg': '#2d2d2d',
+      '--indung-bg': '#242424',
       '--indung-color': '#ef4444',
       '--indung-text': '#ef4444',
     },
