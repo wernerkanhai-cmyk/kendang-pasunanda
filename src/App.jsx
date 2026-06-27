@@ -931,17 +931,19 @@ function App() {
       try {
         const imported = decodeData(ev.target.result);
         if (Array.isArray(imported)) {
-          const valid = imported.filter(s => s.name && Array.isArray(s.patterns));
-          if (valid.length === 0) throw new Error();
+          const valid = imported
+            .filter(s => s.name && Array.isArray(s.patterns) && s.patterns.length > 0)
+            .map(s => ({ ...s, patterns: s.patterns.map(sanitizePattern) }));
+          if (valid.length === 0) throw new Error('Geen geldige songs in bestand');
           const suggested = file.name.replace(/\.(kendang-lib|kendang)$/i, '').replace(/[_-]/g, ' ');
           setImportFolderName(suggested);
           setPendingImport({ songs: valid });
-        } else if (imported && imported.name && Array.isArray(imported.patterns)) {
+        } else if (imported && imported.name && Array.isArray(imported.patterns) && imported.patterns.length > 0) {
           // Reuse the song-import path by faking the file event shape
           // (handleImportSong reads the file again from e.target.files[0],
           // so we just call its inner logic inline).
           (async () => {
-            const valid = [imported];
+            const valid = [{ ...imported, patterns: imported.patterns.map(sanitizePattern) }];
             if (user) {
               let ok = 0;
               for (const s of valid) {
