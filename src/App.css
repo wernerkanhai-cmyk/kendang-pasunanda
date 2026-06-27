@@ -104,6 +104,11 @@
   border: none;
 }
 
+/* Drum-module (Pad + Geluid tabs) in dezelfde grafiet als de rest van de UI */
+.drum-module.glass-panel {
+  background: linear-gradient(180deg, #2c2f37 0%, #191b21 100%);
+}
+
 .sequencer-section {
   flex: 1;
   overflow-y: auto;

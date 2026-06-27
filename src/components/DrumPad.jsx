@@ -178,24 +178,28 @@ const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTri
     return combos.map(c => ({ ...c, glyphs: c.sounds.map(s => glyphFor(s, notationPack)) }));
   }, [notationPack]);
 
-  const tabBtn = (id, label) => (
+  const tabBtn = (id, label, icon) => (
     <button
       onClick={() => setActiveTab(id)}
       style={{
-        flex: 1, background: activeTab === id ? '#334155' : 'transparent',
-        color: activeTab === id ? '#e2e8f0' : '#64748b',
+        flex: 1, background: 'transparent',
+        color: activeTab === id ? '#f1f5f9' : '#64748b',
         border: 'none', borderBottom: `2px solid ${activeTab === id ? '#3b82f6' : 'transparent'}`,
-        padding: '0.3rem 0', fontSize: '0.75rem', cursor: 'pointer', fontWeight: activeTab === id ? 'bold' : 'normal',
+        padding: '0.5rem 0', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 400,
+        letterSpacing: '0.01em',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+        textShadow: activeTab === id ? '0 0 8px rgba(59,130,246,0.5)' : 'none',
+        transition: 'color 0.15s',
       }}
-    >{label}</button>
+    >{icon}{label}</button>
   );
 
   return (
     <section className="drum-module glass-panel">
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #334155', marginBottom: '0.25rem' }}>
-        {tabBtn('pad', `🥁 ${t('padTab')}`)}
-        {tabBtn('geluid', t('soundTab'))}
+      <div style={{ display: 'flex', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)', marginBottom: '0.25rem' }}>
+        {tabBtn('pad', t('padTab'), <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>)}
+        {tabBtn('geluid', t('soundTab'), <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>)}
       </div>
 
       {activeTab === 'geluid' && soundSettings && onSoundSettingsChange && (
@@ -262,7 +266,7 @@ const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTri
           <img
             src={ensembleImg}
             alt="Kendang Ensemble"
-            style={{ width: '100%', height: 'auto', display: 'block' }}
+            style={{ width: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.4)) drop-shadow(0 0 18px rgba(255,255,255,0.18))' }}
           />
 
           {/* Gong — zweeft boven de trommelset */}
@@ -278,7 +282,7 @@ const DrumPad = ({ notationPack, instrumentPack, onTrigger, inputMode, onGongTri
               transform: 'translateX(-50%)',
               width: '22%',
               cursor: 'pointer',
-              filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.55))',
+              filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.55)) drop-shadow(0 0 7px rgba(255,255,255,0.32))',
               boxShadow: gongActive
                 ? '0 0 12px 4px rgba(212,175,55,1), 0 0 28px 10px rgba(212,175,55,0.55)'
                 : 'none',
