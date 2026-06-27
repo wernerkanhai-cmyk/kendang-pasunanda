@@ -702,7 +702,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
                     style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#0f172a', border: '1px solid #334155', borderRadius: '4px', padding: '3px 7px', cursor: 'pointer' }}
                     title={name}
                   >
-                    <span className="kendang-font" style={{ fontSize: '1.1rem', color: trackId === 'anak' ? '#60a5fa' : '#d4af37', lineHeight: 1 }}>{glyphFor(soundId, notationPack)}</span>
+                    <span className="kendang-font" style={{ fontSize: '1.1rem', color: trackId === 'anak' ? 'var(--anak-color)' : 'var(--indung-color)', lineHeight: 1 }}>{glyphFor(soundId, notationPack)}</span>
                     <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{name}</span>
                   </button>
                 ))}

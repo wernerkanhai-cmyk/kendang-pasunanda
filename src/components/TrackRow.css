@@ -174,11 +174,11 @@
 
 /* Colors */
 .color-anak {
-  color: #60a5fa;
+  color: var(--anak-color);
 }
 
 .color-indung {
-  color: #d4af37;
+  color: var(--indung-color);
 }
 
 /* Positions anchored to the center line */
@@ -277,11 +277,11 @@
 }
 
 .rhythmic-beam.color-anak {
-  background-color: #60a5fa;
+  background-color: var(--anak-color);
 }
 
 .rhythmic-beam.color-indung {
-  background-color: #d4af37;
+  background-color: var(--indung-color);
 }
 
 /* Top Notes: Beams go ABOVE the text */
