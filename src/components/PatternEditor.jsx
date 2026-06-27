@@ -127,6 +127,20 @@ const PatternEditor = ({
     setSnippetSelection(new Set());
     setSnippetSelectKey(k => k + 1); // remount de laad-<select> zodat ook die dichtgaat
   }, [isActive, pattern.id]);
+
+  // Sluit het snippet-beheerpaneel zodra je buiten het paneel (of de beheer-knop)
+  // tikt — zelfde patroon als het compositie-overzicht. Een open sub-dialoog
+  // (snippet verplaatsen) laten we met rust.
+  useEffect(() => {
+    if (!isManagingSnippets) return;
+    const handleOutside = (e) => {
+      if (moveSnippetTarget) return;
+      if (e.target.closest?.('.snippet-manager-panel') || e.target.closest?.('.snippet-manager-toggle')) return;
+      setIsManagingSnippets(false);
+    };
+    window.addEventListener('pointerdown', handleOutside);
+    return () => window.removeEventListener('pointerdown', handleOutside);
+  }, [isManagingSnippets, moveSnippetTarget]);
   const baseSlotWidthRef = useRef(12);
   useEffect(() => {
     if (!timelineRef.current) return;
@@ -764,6 +778,7 @@ const PatternEditor = ({
            </select>
 
            <button
+             className="snippet-manager-toggle"
              onClick={(e) => { e.stopPropagation(); setIsManagingSnippets(!isManagingSnippets); }}
              style={{ background: isManagingSnippets ? 'rgba(96,165,250,0.22)' : 'transparent', color: '#60a5fa', border: '1px solid #60a5fa', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 0 6px rgba(34,211,238,0.55)' }}
              title={t('manageSnippetsTooltip')}
@@ -834,7 +849,7 @@ const PatternEditor = ({
                setSnippetSelection(new Set());
              };
              return (
-             <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '14px', padding: '0.9rem 1rem', zIndex: 100, minWidth: '320px', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
+             <div className="snippet-manager-panel" style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: 'linear-gradient(180deg, #2c2f37 0%, #191b21 100%)', border: '1px solid #2b3650', borderRadius: '14px', padding: '0.9rem 1rem', zIndex: 100, minWidth: '320px', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.9rem -1rem 0.7rem', padding: '0.5rem 1rem', background: 'linear-gradient(90deg, #1a1c22 0%, #20232b 16%, #3b3e46 33%, #1c1e24 50%, #3b3e46 67%, #20232b 84%, #1a1c22 100%)', borderRadius: '14px 14px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
                    <h4 style={{ margin: 0, color: '#f1f5f9', fontSize: '1rem', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>{t('snippetManagement')}</h4>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
