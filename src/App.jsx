@@ -2947,22 +2947,22 @@ function App() {
                   {user && (
                     <>
                       <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
-                      <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>Account</div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('accountLabel')}</div>
                       <div style={{ color: '#cbd5e1', fontSize: '0.75rem', marginBottom: '0.2rem', wordBreak: 'break-all' }}>{user.email}</div>
                       <div style={{ color: isOnline ? '#22c55e' : '#f87171', fontSize: '0.7rem', marginBottom: '0.3rem' }}>
-                        {isOnline ? '● Online' : '● Offline (cache modus)'}
+                        ● {isOnline ? t('online') : t('offlineCache')}
                       </div>
                       {!changePasswordOpen ? (
                         <button
                           onClick={() => setChangePasswordOpen(true)}
                           style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                        >Wachtwoord wijzigen</button>
+                        >{t('changePwBtn')}</button>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                           <input
                             type="password"
                             autoComplete="new-password"
-                            placeholder="Nieuw wachtwoord"
+                            placeholder={t('newPwPlaceholder')}
                             value={changePasswordValue}
                             onChange={(e) => setChangePasswordValue(e.target.value)}
                             style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '4px', padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}
@@ -2970,7 +2970,7 @@ function App() {
                           <input
                             type="password"
                             autoComplete="new-password"
-                            placeholder="Herhaal nieuw wachtwoord"
+                            placeholder={t('repeatPwPlaceholder')}
                             value={changePasswordValue2}
                             onChange={(e) => setChangePasswordValue2(e.target.value)}
                             style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '4px', padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}
@@ -2983,12 +2983,12 @@ function App() {
                                 try {
                                   const { error } = await setNewPassword(changePasswordValue);
                                   if (error) throw error;
-                                  showToast('Wachtwoord gewijzigd ✓');
+                                  showToast(t('pwChangedToast'));
                                   setChangePasswordOpen(false);
                                   setChangePasswordValue('');
                                   setChangePasswordValue2('');
                                 } catch (err) {
-                                  alert(err?.message ?? 'Wachtwoord wijzigen mislukt.');
+                                  alert(err?.message ?? t('pwChangeFailed'));
                                 } finally {
                                   setChangePasswordBusy(false);
                                 }
@@ -3000,24 +3000,24 @@ function App() {
                                 border: 'none', borderRadius: '4px', padding: '0.4rem', fontSize: '0.8rem',
                                 cursor: changePasswordValue.length >= 6 && changePasswordValue === changePasswordValue2 ? 'pointer' : 'default',
                               }}
-                            >{changePasswordBusy ? '…' : 'Opslaan'}</button>
+                            >{changePasswordBusy ? '…' : t('saveBtn')}</button>
                             <button
                               onClick={() => { setChangePasswordOpen(false); setChangePasswordValue(''); setChangePasswordValue2(''); }}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.4rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
-                            >Annuleer</button>
+                            >{t('cancelBtn')}</button>
                           </div>
                           {changePasswordValue.length > 0 && changePasswordValue.length < 6 && (
-                            <div style={{ color: '#f87171', fontSize: '0.7rem' }}>Minimaal 6 tekens</div>
+                            <div style={{ color: '#f87171', fontSize: '0.7rem' }}>{t('minSixChars')}</div>
                           )}
                           {changePasswordValue2.length > 0 && changePasswordValue !== changePasswordValue2 && (
-                            <div style={{ color: '#f87171', fontSize: '0.7rem' }}>Wachtwoorden komen niet overeen</div>
+                            <div style={{ color: '#f87171', fontSize: '0.7rem' }}>{t('pwMismatch')}</div>
                           )}
                         </div>
                       )}
                       <button
                         onClick={() => { signOut(); setShowToolsMenu(false); }}
                         style={{ background: '#0f172a', color: '#f87171', border: '1px solid #334155', borderRadius: '6px', padding: '0.5rem 0.8rem', textAlign: 'left', cursor: 'pointer', fontSize: '0.85rem' }}
-                      >Log uit</button>
+                      >{t('logoutBtn')}</button>
                     </>
                   )}
                 </div>
