@@ -118,6 +118,11 @@ function App() {
   };
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
+  // Tijdstip van de laatste audio-activiteit (play/pauze/terug-zichtbaar). Gebruikt
+  // om bij het starten van afspelen na een lange stilte de AudioContext te
+  // hermaken — anders sleept een opgelopen output-latency (BT-buffer/OS-power)
+  // door, ook als er nooit een visibilitychange was. Zie togglePlay.
+  const lastAudioActivityRef = useRef(Date.now());
 
   // Actieve packs (geladen tijdens init useEffect via packRegistry).
   const [notationPack, setNotationPack] = useState(null);
@@ -1383,6 +1388,9 @@ function App() {
           }
         } catch (_) {}
       }
+      // Context is nu vers (of nog gezond) — markeer als activiteit zodat de
+      // tijd-gebaseerde stale-check in togglePlay niet meteen nóg eens hermaakt.
+      lastAudioActivityRef.current = Date.now();
     };
     document.addEventListener('visibilitychange', onVisibility);
 
@@ -1731,6 +1739,21 @@ function App() {
     // Ensure AudioContext is running — desktop Chrome requires resume() in user-gesture handler
     const ctx = schedulerRef.current?.audioCtx;
     if (ctx?.state === 'suspended') await ctx.resume();
+
+    // Latency-fix: bij het STARTEN van afspelen na een lange stilte (>30s sinds de
+    // laatste activiteit — ook als de tab zichtbaar bleef en er dus geen
+    // visibilitychange was) hermaken we de AudioContext één keer. resetAudioContext()
+    // sluit de oude context (geeft de opgelopen high-latency output-stream vrij) en
+    // maakt een verse — dit reset de latency waar een refresh dat niet doet.
+    const startingPlayback = !isPlaying;
+    if (startingPlayback && ctx && Date.now() - lastAudioActivityRef.current > 30_000) {
+      try {
+        const freshCtx = await samplerRef.current?.resetAudioContext();
+        if (freshCtx && schedulerRef.current) schedulerRef.current.setAudioContext(freshCtx);
+        if (freshCtx?.state === 'suspended') await freshCtx.resume();
+      } catch (_) { /* val terug op de bestaande context */ }
+    }
+    lastAudioActivityRef.current = Date.now();
 
     // Als vox-modus actief is, wacht tot samples geladen zijn
     if (sampleSetRef.current === 'vox') {
