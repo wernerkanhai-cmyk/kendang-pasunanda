@@ -336,14 +336,26 @@ function App() {
   useEffect(() => { localStorage.setItem('kendangSongName', songName); }, [songName]);
   useEffect(() => { localStorage.setItem('kendangSongFolder', songFolder); }, [songFolder]);
 
-  // On mount: if there's a currentSongId and the user is online, silently
-  // check if the cloud version is newer and replace local data if so.
+  // Bij OPENEN (exact één keer per sessie): als er een currentSongId is en de user
+  // online is, haal de cloud-versie op en vervang de lokale data.
+  //
+  // BELANGRIJK: dit mag NIET opnieuw draaien tijdens het bewerken. De vorige versie
+  // had dependency [user]; Supabase geeft `user` een nieuwe referentie bij elke
+  // token-refresh (periodiek + bij terugkeer naar het tabblad), waardoor dit effect
+  // herhaaldelijk draaide en in-geheugen edits overschreef met de geopende cloud-
+  // versie ("sprong terug"). Daarom: één-keer-guard + nooit niet-opgeslagen werk
+  // overschrijven (isModified-check op resolve-moment).
+  const initialCloudSyncDoneRef = useRef(false);
   useEffect(() => {
+    if (initialCloudSyncDoneRef.current) return;
     if (!currentSongId || !user || !isOnline) return;
+    initialCloudSyncDoneRef.current = true;
     let alive = true;
     loadSongFromCloud(currentSongId)
       .then((cloud) => {
         if (!alive || !cloud) return;
+        // Veiligheid: heeft de gebruiker tijdens de fetch al gewijzigd? Niet overschrijven.
+        if (autoSaveStateRef.current?.isModified) return;
         // Sanitize: legacy glyph-data wordt hierin naar soundIds gemigreerd.
         const sanitized = Array.isArray(cloud.patterns)
           ? cloud.patterns.map(sanitizePattern)
@@ -364,7 +376,7 @@ function App() {
       .catch(() => { /* offline or deleted — keep local */ });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, currentSongId, isOnline]);
 
   const [showSongLibrary, setShowSongLibrary] = useState(false);
   const [newSongFolderMode, setNewSongFolderMode] = useState(false);
