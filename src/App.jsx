@@ -2703,8 +2703,8 @@ function App() {
             }}
           >
             {sampleSet === 'kendang'
-              ? <KendangIcon size={44} color="var(--accent)" style={{ filter: 'drop-shadow(0 0 5px rgba(var(--accent-rgb),0.6))', transition: 'filter 0.25s' }} />
-              : <VoiceIcon size={44} color="#a78bfa" style={{ filter: 'drop-shadow(0 0 5px rgba(167,139,250,0.7))', transition: 'filter 0.25s' }} />}
+              ? <KendangIcon size={22} color="var(--accent)" style={{ filter: 'drop-shadow(0 0 5px rgba(var(--accent-rgb),0.6))', transition: 'filter 0.25s' }} />
+              : <VoiceIcon size={33} color="#a78bfa" style={{ filter: 'drop-shadow(0 0 5px rgba(167,139,250,0.7))', transition: 'filter 0.25s' }} />}
           </button>
 
           {/* ── BPM — naast de microfoon/stem-schakelaar, op volle bar-hoogte ── */}
