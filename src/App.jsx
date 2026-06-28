@@ -50,19 +50,25 @@ const TrashIcon = ({ size = 14 }) => (
 );
 
 // ── Instrument-toggle iconen (kendang / stem) ──────────────────────────────
-// Eénkleurige line/fill-silhouetten zodat ze met de skin meekleuren (color-prop).
-// De gaten (trommelvel + spanlijnen / geluidsgolven) zijn écht transparant.
-const KendangIcon = ({ color = 'currentColor', size = 40, style }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill={color} aria-hidden="true" style={{ flexShrink: 0, ...style }}>
-    <path fillRule="evenodd" d="M27 28 C 44 18 56 18 73 28 C 80 32 80 68 73 72 C 56 82 44 82 27 72 C 20 68 20 32 27 28 Z M28.5 50 a 4.6 14.5 0 1 0 9.2 0 a 4.6 14.5 0 1 0 -9.2 0 Z M48.4 23 L51.6 23 L51.6 77 L48.4 77 Z M59.5 24.5 L62.7 26 L62.7 74 L59.5 75.5 Z" />
-  </svg>
+// Door de gebruiker aangeleverde artwork, monochroom gemaakt via een CSS-mask: de
+// vorm uit de SVG wordt gevuld met `color`, zodat het icoon met de skin meekleurt.
+// De SVG's (public/icons/*-mono.svg) hebben geen achtergrond en een strakke viewBox.
+const maskedIcon = (url) => ({ color = 'currentColor', size = 40, style }) => (
+  <span
+    aria-hidden="true"
+    style={{
+      display: 'inline-block', width: size, height: size, flexShrink: 0,
+      backgroundColor: color,
+      WebkitMaskImage: `url(${url})`, maskImage: `url(${url})`,
+      WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+      WebkitMaskPosition: 'center', maskPosition: 'center',
+      WebkitMaskSize: 'contain', maskSize: 'contain',
+      ...style,
+    }}
+  />
 );
-const VoiceIcon = ({ color = 'currentColor', size = 40, style }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill={color} aria-hidden="true" style={{ flexShrink: 0, ...style }}>
-    <path d="M40 14 C 30 14 23 21 22 31 C 21.3 38 22 44 25 49 L 25 60 C 19 62 16 67 16 74 L 16 86 L 60 86 L 60 74 C 60 70 58 67 54 65 L 54 58 C 58 56 61 53 62 49 C 66 49 67 47 65 44 L 60 42 C 59 30 53 22 44 19 C 43 16 42 14 40 14 Z" />
-    <g fill="none" stroke={color} strokeWidth="4.5" strokeLinecap="round"><path d="M70 44 C 76 50 76 56 70 62" /><path d="M77 38 C 87 48 87 58 77 68" /></g>
-  </svg>
-);
+const KendangIcon = maskedIcon('/icons/kendang-mono.svg');
+const VoiceIcon = maskedIcon('/icons/voice-mono.svg');
 
 // ── Tijdelijke latency-diagnose (alleen zichtbaar met ?diag=1 in de URL) ──────
 // Toont de echte audio-latency-cijfers live, zodat we kunnen meten i.p.v. gokken.
@@ -2742,8 +2748,8 @@ function App() {
             }}
           >
             {sampleSet === 'kendang'
-              ? <KendangIcon size={22} color="var(--accent)" style={{ filter: 'drop-shadow(0 0 5px rgba(var(--accent-rgb),0.6))', transition: 'filter 0.25s' }} />
-              : <VoiceIcon size={33} color="#a78bfa" style={{ filter: 'drop-shadow(0 0 5px rgba(167,139,250,0.7))', transition: 'filter 0.25s' }} />}
+              ? <KendangIcon size={42} color="var(--accent)" style={{ filter: 'drop-shadow(0 0 5px rgba(var(--accent-rgb),0.6))', transition: 'filter 0.25s' }} />
+              : <VoiceIcon size={34} color="#a78bfa" style={{ filter: 'drop-shadow(0 0 5px rgba(167,139,250,0.7))', transition: 'filter 0.25s' }} />}
           </button>
 
           {/* ── BPM — naast de microfoon/stem-schakelaar, op volle bar-hoogte ── */}
