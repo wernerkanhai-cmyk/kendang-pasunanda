@@ -2667,8 +2667,8 @@ function App() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
             }}
           >{isPlaying ? '⏸' : '▶'}</button>
-          {/* Track volume knobs A + I */}
-          {['anak', 'indung'].map(track => {
+          {/* Track volume knobs A + I — alleen in kendang-modus (kendang speelt niet in vox) */}
+          {sampleSet === 'kendang' && ['anak', 'indung'].map(track => {
             const color = track === 'anak' ? 'var(--knob-anak, var(--anak-color))' : 'var(--knob-indung, var(--indung-color))';
             const val = trackVolumes[track];
             const angle = -135 + (val / 2) * 270;
