@@ -30,3 +30,9 @@ i-depot-*.zip
 
 # Claude Code local settings (per-machine)
 .claude/settings.local.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+.playwright/
