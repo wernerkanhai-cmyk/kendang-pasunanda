@@ -358,15 +358,14 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
 
       {/* SVG Canvas */}
       {open && (
-        <div style={{ background: 'rgba(0,0,0,0.3)', height: TRACK_HEIGHT + 'px', position: 'relative', opacity: enabled ? 1 : 0.35, pointerEvents: enabled ? 'auto' : 'none' }}>
+        <div style={{ background: 'rgba(0,0,0,0.3)', height: TRACK_HEIGHT + 'px', position: 'relative', opacity: enabled ? 1 : 0.6 }}>
           <svg
             ref={svgRef}
             viewBox={`0 0 ${totalWidth} ${TRACK_HEIGHT}`}
             preserveAspectRatio="none"
             width="100%"
             height={TRACK_HEIGHT}
-            style={{ touchAction: 'none' }}
-            style={{ display: 'block', cursor: enabled ? 'crosshair' : 'default', touchAction: 'none' }}
+            style={{ display: 'block', cursor: 'crosshair', touchAction: 'none' }}
             onDoubleClick={handleDoubleClick}
           >
             {gridBpms.map(b => (

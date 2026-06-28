@@ -1773,7 +1773,18 @@ function App() {
   }, [tempoSignature, isPlaying]);
 
   const handleUpdateTempoTrack = (patternId, newTempoTrack) => {
-    setSong(prev => prev.map(p => p.id === patternId ? { ...p, tempoTrack: newTempoTrack } : p));
+    setSong(prev => prev.map(p => {
+      if (p.id !== patternId) return p;
+      // Regeltempo schakelt automatisch mee: eerste punt → AAN, alle punten weg → UIT.
+      // Zo speelt een getekende curve meteen (i.p.v. globaal tot je apart "ON" drukt).
+      // Een bestaande curve handmatig aan/uit zetten kan nog steeds via de ON/OFF-knop.
+      const hadNodes = (p.tempoTrack || []).length > 0;
+      const hasNodes = newTempoTrack.length > 0;
+      let tempoTrackEnabled = p.tempoTrackEnabled;
+      if (!hadNodes && hasNodes) tempoTrackEnabled = true;
+      else if (hadNodes && !hasNodes) tempoTrackEnabled = false;
+      return { ...p, tempoTrack: newTempoTrack, tempoTrackEnabled };
+    }));
   };
 
   const handleToggleTempoTrack = (patternId) => {
@@ -1786,8 +1797,14 @@ function App() {
 
   const handleToggleAllTempoEnabled = () => {
     setSong(prev => {
-      const anyEnabled = prev.some(p => p.tempoTrackEnabled !== false);
-      return prev.map(p => ({ ...p, tempoTrackEnabled: !anyEnabled }));
+      // Alleen regels mét tempo-punten meenemen — een lege regel "enabled" zetten doet
+      // niets (speelt toch globaal) en zorgt juist voor de global/regel-verwarring.
+      const withNodes = prev.filter(p => (p.tempoTrack || []).length > 0);
+      if (withNodes.length === 0) return prev;
+      const anyEnabled = withNodes.some(p => p.tempoTrackEnabled !== false);
+      return prev.map(p =>
+        (p.tempoTrack || []).length > 0 ? { ...p, tempoTrackEnabled: !anyEnabled } : p
+      );
     });
   };
 
@@ -2877,15 +2894,15 @@ function App() {
               className="hdr-icon-btn"
               onClick={handleToggleAllTempoEnabled}
               style={{
-                background: song.some(p => p.tempoTrackEnabled !== false) ? 'rgba(212,175,55,0.15)' : 'transparent',
-                color: song.some(p => p.tempoTrackEnabled !== false) ? '#d4af37' : '#888888',
-                border: `1px solid ${song.some(p => p.tempoTrackEnabled !== false) ? '#d4af37' : '#475569'}`,
+                background: song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? 'rgba(212,175,55,0.15)' : 'transparent',
+                color: song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? '#d4af37' : '#888888',
+                border: `1px solid ${song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? '#d4af37' : '#475569'}`,
                 borderRadius: '6px', padding: '0.4rem 0.6rem', cursor: 'pointer',
                 fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.03em',
-                boxShadow: song.some(p => p.tempoTrackEnabled !== false) ? '0 0 6px rgba(212,175,55,0.3)' : 'none',
+                boxShadow: song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? '0 0 6px rgba(212,175,55,0.3)' : 'none',
               }}
-              title={song.some(p => p.tempoTrackEnabled !== false) ? t('tempoAutomationOffTooltip') : t('tempoAutomationOnTooltip')}
-            >{song.some(p => p.tempoTrackEnabled !== false) ? '♩ TEMPO' : '♩ GLOBAL'}</button>
+              title={song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? t('tempoAutomationOffTooltip') : t('tempoAutomationOnTooltip')}
+            >{song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? '♩ TEMPO' : '♩ GLOBAL'}</button>
           )}
 
           {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
