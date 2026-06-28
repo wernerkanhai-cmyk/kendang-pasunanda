@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizePattern, deduplicateGongByBeat, slotToBeat } from './patternLogic';
+import { sanitizePattern, deduplicateGongByBeat, slotToBeat, migrateSlotValue, SYMBOL_REST } from './patternLogic';
 
 describe('slotToBeat', () => {
   it('rondt af op de beat-grens (elke 12 slots)', () => {
@@ -48,5 +48,32 @@ describe('sanitizePattern', () => {
     const p = sanitizePattern({ id: 'x', anak: [{ top: 'dong', bottom: '', accentTop: true, accentBottom: false }] });
     expect(p.anak[0].accentTop).toBe(true);
     expect(p.anak[0].accentBottom).toBe(false);
+  });
+
+  it('migreert legacy-glyphs in track-slots bij het laden van een oude song', () => {
+    const p = sanitizePattern({ id: 'x', anak: [{ top: 'N', bottom: 'C' }] });
+    expect(p.anak[0].top).toBe('tung');    // N → tung
+    expect(p.anak[0].bottom).toBe('dong'); // C → dong
+  });
+
+  it('is idempotent — tweemaal sanitiseren geeft exact hetzelfde', () => {
+    const once = sanitizePattern({ id: 'x', anak: [{ top: 'dong', bottom: '' }], gong: [0, 12] });
+    expect(sanitizePattern(once)).toEqual(once);
+  });
+});
+
+describe('migrateSlotValue (legacy glyph → soundId)', () => {
+  it('migreert legacy-glyphs naar soundIds', () => {
+    expect(migrateSlotValue('N')).toBe('tung');
+    expect(migrateSlotValue('C')).toBe('dong');
+    expect(migrateSlotValue('G')).toBe('pak');
+  });
+  it('laat een bestaand soundId ongemoeid en is idempotent', () => {
+    expect(migrateSlotValue('dong')).toBe('dong');
+    expect(migrateSlotValue(migrateSlotValue('N'))).toBe('tung');
+  });
+  it('behoudt lege waarde en het rust-symbool', () => {
+    expect(migrateSlotValue('')).toBe('');
+    expect(migrateSlotValue(SYMBOL_REST)).toBe(SYMBOL_REST);
   });
 });
