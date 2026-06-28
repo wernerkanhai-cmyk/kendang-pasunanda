@@ -1504,28 +1504,31 @@ function App() {
       const currentSong = songRef.current;
       if (!currentSong) return;
 
-      // Realtime BPM from tempo automation
-      const hasAutomation = currentSong.some(p => p.tempoTrack && p.tempoTrack.length > 0 && p.tempoTrackEnabled !== false);
-      if (hasAutomation) {
-        const currentBpmRef = bpmRef.current;
-        const rt = Math.round(buildTempoAt(currentSong, currentBpmRef)(globalSlot));
-        setRealtimeBpm(rt);
+      // Vind de regel die NU speelt.
+      let remaining = globalSlot;
+      let currentPattern = null;
+      for (const p of currentSong) {
+        if (remaining < p.anak.length) { currentPattern = p; break; }
+        remaining -= p.anak.length;
       }
 
-      let remaining = globalSlot;
-      for (const p of currentSong) {
-        if (remaining < p.anak.length) {
-          setActiveSlot(prev => (
-            prev && prev.patternId === p.id && prev.startIndex === remaining ? prev : {
-              patternId: p.id,
-              trackId: prev ? prev.trackId : 'anak',
-              startIndex: remaining,
-              endIndex: remaining,
-            }
-          ));
-          break;
-        }
-        remaining -= p.anak.length;
+      // Realtime BPM (goud) alleen tonen als de regel die nú speelt zélf actieve
+      // tempo-automation heeft (punten + enabled). Staat die regel OFF (of heeft 'm
+      // geen punten), dan speelt 'ie globaal → grijs/globaal, ook als een ándere
+      // regel wél automation heeft.
+      const lineActive = !!currentPattern && Array.isArray(currentPattern.tempoTrack)
+        && currentPattern.tempoTrack.length > 0 && currentPattern.tempoTrackEnabled !== false;
+      setRealtimeBpm(lineActive ? Math.round(buildTempoAt(currentSong, bpmRef.current)(globalSlot)) : null);
+
+      if (currentPattern) {
+        setActiveSlot(prev => (
+          prev && prev.patternId === currentPattern.id && prev.startIndex === remaining ? prev : {
+            patternId: currentPattern.id,
+            trackId: prev ? prev.trackId : 'anak',
+            startIndex: remaining,
+            endIndex: remaining,
+          }
+        ));
       }
     }, 16);
     return () => clearInterval(id);
