@@ -49,6 +49,21 @@ const TrashIcon = ({ size = 14 }) => (
   </svg>
 );
 
+// ── Instrument-toggle iconen (kendang / stem) ──────────────────────────────
+// Eénkleurige line/fill-silhouetten zodat ze met de skin meekleuren (color-prop).
+// De gaten (trommelvel + spanlijnen / geluidsgolven) zijn écht transparant.
+const KendangIcon = ({ color = 'currentColor', size = 40, style }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill={color} aria-hidden="true" style={{ flexShrink: 0, ...style }}>
+    <path fillRule="evenodd" d="M27 28 C 44 18 56 18 73 28 C 80 32 80 68 73 72 C 56 82 44 82 27 72 C 20 68 20 32 27 28 Z M28.5 50 a 4.6 14.5 0 1 0 9.2 0 a 4.6 14.5 0 1 0 -9.2 0 Z M48.4 23 L51.6 23 L51.6 77 L48.4 77 Z M59.5 24.5 L62.7 26 L62.7 74 L59.5 75.5 Z" />
+  </svg>
+);
+const VoiceIcon = ({ color = 'currentColor', size = 40, style }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill={color} aria-hidden="true" style={{ flexShrink: 0, ...style }}>
+    <path d="M40 14 C 30 14 23 21 22 31 C 21.3 38 22 44 25 49 L 25 60 C 19 62 16 67 16 74 L 16 86 L 60 86 L 60 74 C 60 70 58 67 54 65 L 54 58 C 58 56 61 53 62 49 C 66 49 67 47 65 44 L 60 42 C 59 30 53 22 44 19 C 43 16 42 14 40 14 Z" />
+    <g fill="none" stroke={color} strokeWidth="4.5" strokeLinecap="round"><path d="M70 44 C 76 50 76 56 70 62" /><path d="M77 38 C 87 48 87 58 77 68" /></g>
+  </svg>
+);
+
 function App() {
   const t = useT();
   const { theme, setTheme, skins } = useTheme();
@@ -2673,24 +2688,24 @@ function App() {
             );
           })()}
 
-          {/* Kendang / Vox ronde schakelaar */}
-          <div
+          {/* Kendang / Stem-schakelaar — toont het icoon van de actieve set, transparante achtergrond.
+              Iconen zijn SVG (KendangIcon/VoiceIcon) en kleuren met de skin mee. */}
+          <button
+            type="button"
             onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
             title={t('switchTooltip')(sampleSet === 'kendang' ? 'Kendang' : 'Vox')}
+            aria-label={t('switchTooltip')(sampleSet === 'kendang' ? 'Kendang' : 'Vox')}
             style={{
-              width: '68px', height: '68px', borderRadius: '50%', flexShrink: 0,
-              background: 'radial-gradient(circle at 38% 32%, #4a4e58, #1c2030)',
-              border: '4px solid #6b7280',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.7), inset 0 1px 4px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.4)',
-              cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', overflow: 'hidden',
+              width: '64px', height: '64px', flexShrink: 0, padding: 0,
+              background: 'transparent', border: 'none', borderRadius: '50%',
+              cursor: 'pointer', userSelect: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', opacity: sampleSet === 'kendang' ? 1 : 0.25, transition: 'opacity 0.3s', filter: sampleSet === 'kendang' ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' : 'none' }}>🥁</div>
-            <div style={{ width: '4px', height: '68%', background: '#2a2e3a', borderRadius: '2px', flexShrink: 0, position: 'relative', boxShadow: '1px 0 2px rgba(255,255,255,0.05), -1px 0 2px rgba(0,0,0,0.3)' }}>
-              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: '6px', height: '18px', borderRadius: '2px', background: sampleSet === 'kendang' ? 'var(--accent)' : '#a78bfa', boxShadow: sampleSet === 'kendang' ? '0 0 6px 2px rgba(var(--accent-rgb),0.7)' : '0 0 6px 2px rgba(167,139,250,0.7)', transition: 'background 0.3s, box-shadow 0.3s' }} />
-            </div>
-            <div style={{ flex: 1, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', opacity: sampleSet === 'vox' ? 1 : 0.25, transition: 'opacity 0.3s', filter: sampleSet === 'vox' ? 'drop-shadow(0 0 4px rgba(167,139,250,0.8))' : 'none' }}>🎤</div>
-          </div>
+            {sampleSet === 'kendang'
+              ? <KendangIcon size={44} color="var(--accent)" style={{ filter: 'drop-shadow(0 0 5px rgba(var(--accent-rgb),0.6))', transition: 'filter 0.25s' }} />
+              : <VoiceIcon size={44} color="#a78bfa" style={{ filter: 'drop-shadow(0 0 5px rgba(167,139,250,0.7))', transition: 'filter 0.25s' }} />}
+          </button>
 
           {/* ── BPM — naast de microfoon/stem-schakelaar, op volle bar-hoogte ── */}
           <div style={{ height: '68px', flexShrink: 0, border: 'none', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 0.6rem', gap: '6px', boxSizing: 'border-box', background: 'transparent' }}>
