@@ -2940,7 +2940,7 @@ function App() {
                   <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('languageLabel')}</div>
                   <div style={{ display: 'flex', gap: '0.4rem' }}>
                     {LANGUAGES.map(lang => (
-                      <button key={lang.code} onClick={() => setLanguage(lang.code)} style={{ flex: 1, background: language === lang.code ? '#3b82f6' : '#0f172a', color: language === lang.code ? '#fff' : '#94a3b8', border: '1px solid #334155', borderRadius: '5px', padding: '0.3rem 0.4rem', fontSize: '0.75rem', cursor: 'pointer' }}>{lang.label}</button>
+                      <button key={lang.code} onClick={() => setLanguage(lang.code)} style={{ flex: 1, background: language === lang.code ? 'var(--accent)' : 'transparent', color: language === lang.code ? '#fff' : 'var(--accent)', border: '1px solid var(--accent)', borderRadius: '6px', padding: '0.35rem 0.4rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', boxShadow: language === lang.code ? '0 0 8px rgba(var(--accent-rgb), 0.5)' : 'none', transition: 'background 0.15s, color 0.15s' }}>{lang.label}</button>
                     ))}
                   </div>
 
