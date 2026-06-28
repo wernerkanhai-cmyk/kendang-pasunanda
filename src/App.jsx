@@ -2703,7 +2703,7 @@ function App() {
             }}
           >
             {sampleSet === 'kendang'
-              ? <KendangIcon size={50} color={theme === 'classic' ? '#ffffff' : 'var(--accent)'} style={{ filter: theme === 'classic' ? 'drop-shadow(0 0 5px rgba(255,255,255,0.45))' : 'drop-shadow(0 0 5px rgba(var(--accent-rgb),0.6))', transition: 'filter 0.25s' }} />
+              ? <KendangIcon size={50} color={theme === 'classic' ? '#ffffff' : 'var(--accent)'} style={{ transform: 'scaleX(-1)', filter: theme === 'classic' ? 'drop-shadow(0 0 5px rgba(255,255,255,0.45))' : 'drop-shadow(0 0 5px rgba(var(--accent-rgb),0.6))', transition: 'filter 0.25s' }} />
               : <VoiceIcon size={41} color="#a78bfa" style={{ filter: 'drop-shadow(0 0 5px rgba(167,139,250,0.7))', transition: 'filter 0.25s' }} />}
           </button>
 
