@@ -79,6 +79,17 @@ const VoiceIcon = maskedIcon('/icons/voice-mono.svg');
 const IS_WEBKIT = typeof navigator !== 'undefined' && /Apple/.test(navigator.vendor || '');
 const WEBKIT_LATENCY_CORRECTION_MS = 16;
 
+// Heeft de song echte noten? (een leeg patroon heeft alleen '' of '.'-rusten.)
+// Gebruikt om een nieuwe, nog niet opgeslagen song pas automatisch in de cloud aan
+// te maken zodra er daadwerkelijk inhoud is — geen lege doodles in de bibliotheek.
+const slotHasNote = (v) => v != null && v !== '' && v !== '.';
+const songHasContent = (sng) =>
+  Array.isArray(sng) && sng.some((p) =>
+    ['anak', 'indung'].some((tr) =>
+      Array.isArray(p?.[tr]) && p[tr].some((s) => s && (slotHasNote(s.top) || slotHasNote(s.bottom)))
+    )
+  );
+
 function App() {
   const t = useT();
   const { theme, setTheme, skins } = useTheme();
@@ -713,10 +724,10 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced auto-save: 5s after the last edit
+  // Debounced auto-save: 2s after the last edit
   useEffect(() => {
     if (!user || !currentSongId || !isOnline || !isModifiedSinceSave) return;
-    const id = setTimeout(flushAutoSave, 5000);
+    const id = setTimeout(flushAutoSave, 2000);
     return () => clearTimeout(id);
   }, [song, currentSongId, isOnline, user, isModifiedSinceSave, flushAutoSave]);
 
@@ -733,6 +744,31 @@ function App() {
       window.removeEventListener('beforeunload', onPageHide);
     };
   }, [flushAutoSave]);
+
+  // Bescherm NIEUWE songs: een nog niet opgeslagen song (geen currentSongId) met echte
+  // noten wordt 2s na de laatste wijziging één keer automatisch in de cloud aangemaakt.
+  // Daarna neemt de gewone autosave het over. Niet in practice mode / offline / uitgelogd;
+  // lege doodles worden niet aangemaakt. De in-flight-guard voorkomt dubbele aanmaak.
+  const autoCreatingRef = useRef(false);
+  useEffect(() => {
+    if (currentSongId || !user || !isOnline || isLocked) return;
+    if (autoCreatingRef.current || !songHasContent(song)) return;
+    const id = setTimeout(() => {
+      const s = autoSaveStateRef.current;
+      // Dubbelcheck op flush-moment: niets aanmaken als er inmiddels al een id is.
+      if (autoCreatingRef.current || s.currentSongId || s.isLocked || !s.user) return;
+      if (!songHasContent(s.song)) return;
+      autoCreatingRef.current = true;
+      const folder = (s.songFolder || '').trim() || 'Algemeen';
+      const name = makeUniqueSongName((s.songName || '').trim() || 'Song 1', folder);
+      _persist({ id: null, name, folder, bpm: s.bpm, patterns: JSON.parse(JSON.stringify(s.song)) })
+        .then((fresh) => { if (fresh) { setCurrentSongId(fresh.id); setSongName(name); } })
+        .catch((err) => console.warn('Auto-create nieuwe song mislukt (lokaal bewaard):', err))
+        .finally(() => { autoCreatingRef.current = false; });
+    }, 2000);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song, currentSongId, user, isOnline, isLocked]);
 
   // Rename a saved song. Reuses _persist so cloud + localStorage stay aligned.
   const handleRenameSong = async (song, newName) => {
