@@ -10,7 +10,7 @@ const entry = (level, context, message, detail) => {
   const rec = { ts: new Date().toISOString(), level, context, message, detail: detail ?? null };
   log.push(rec);
   if (log.length > MAX_ENTRIES) log.shift();
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     const fn = level === 'error' ? console.error : console.warn;
     fn(`[${context}] ${message}`, detail ?? '');
   }

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, Fragment } from 'react';
 import ReactDOM from 'react-dom';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
-import { generateEmptySlots, writeSymbolToPattern, getHandForSound, toggleAccentInRange, SYMBOL_REST } from '../engine/patternLogic';
+import { writeSymbolToPattern, getHandForSound, toggleAccentInRange, SYMBOL_REST } from '../engine/patternLogic';
 import { useT } from '../i18n';
 
 const PatternEditor = ({
@@ -23,14 +23,10 @@ const PatternEditor = ({
   redoStack, 
   bpm,
   inheritedBpm,
-  realtimeBpm = null,
-  handleBpmChange,
   onDrumTrigger,
   isRecording,
   isPlaying,
   togglePlay,
-  rewind,
-  stepBack,
   stepBackCount,
   gridResolution,
   magneticInput,
@@ -44,7 +40,6 @@ const PatternEditor = ({
   savedSnippets,
   handleSaveSnippet,
   handleInsertSnippet,
-  handleDeleteSnippet,
   handleRenameSnippet,
   handleMoveSnippetToFolder,
   handleRenameSnippetFolder,
@@ -56,8 +51,6 @@ const PatternEditor = ({
   onRemoveSnippetTemplate,
   handleExportSnippets,
   handleImportSnippets,
-  insertMeasure,
-  deleteMeasure,
   deleteMeasuresFromEnd,
   measureOffset = 0,
   loopRange = null,
@@ -76,8 +69,6 @@ const PatternEditor = ({
   onDuplicate,
   onDelete,
   canDelete = true,
-  trackVolumes = { anak: 1.0, indung: 1.0 },
-  onTrackVolumeChange,
   isLocked = false,
   isLooped = false,
   onToggleSectionLoop,
@@ -107,7 +98,6 @@ const PatternEditor = ({
   const [handleDrag, setHandleDrag] = useState(null); // { side: 'start'|'end', start: slot, end: slot }
   const timelineRef = useRef(null);
   const tracksContainerRef = useRef(null);
-  const playheadDragRef = useRef(false);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
   const [editingName, setEditingName] = useState(false);
@@ -159,7 +149,7 @@ const PatternEditor = ({
     });
     ro.observe(timelineRef.current);
     return () => ro.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [totalSlots]);
 
   // Overflow alleen toestaan als de content daadwerkelijk breder is dan de container.
@@ -643,7 +633,7 @@ const PatternEditor = ({
             setEditingName(true);
             setTimeout(() => e.target.scrollIntoView({ block: 'nearest', behavior: 'instant' }), 50);
           }}
-          onBlur={(e) => {
+          onBlur={() => {
             // Check if the focus is moving to an annotation input — if so, keep editing open.
             setTimeout(() => {
               const active = document.activeElement;
@@ -843,7 +833,7 @@ const PatternEditor = ({
                const ids = Array.from(snippetSelection);
                if (!window.confirm(t('confirmBulkDeleteSnippets')(ids.length))) return;
                for (const id of ids) {
-                 // eslint-disable-next-line no-await-in-loop
+                  
                  try { await handleDeleteSnippetSilently?.(id); } catch (_) { /* ignore */ }
                }
                setSnippetSelection(new Set());
@@ -886,6 +876,7 @@ const PatternEditor = ({
                 {(() => {
                   const tplFolderName = '__SNIPPET_TEMPLATES__';
                   const isCollapsed = collapsedSnippetFolders.has(tplFolderName);
+                  // eslint-disable-next-line no-constant-condition -- factory-templates altijd tonen, ook als de lijst leeg is
                   return factorySnippets.length > 0 || true ? ( // always show, even when empty
                     <div style={{ marginBottom: '0.6rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #d4af37', paddingBottom: '0.2rem' }}>
@@ -1315,7 +1306,7 @@ const PatternEditor = ({
                         onClick={(e) => e.stopPropagation()}
                         onDoubleClick={(e) => e.stopPropagation()}
                         onFocus={(e) => { e.stopPropagation(); setEditingName(true); }}
-                        onBlur={(e) => {
+                        onBlur={() => {
                           setTimeout(() => {
                             const active = document.activeElement;
                             if (active && (active.dataset?.annotationField || active.classList?.contains('pattern-name-input'))) return;

@@ -5,7 +5,7 @@ const BPM_MIN = 20;
 const BPM_MAX = 140;
 
 /** Small sub-component so the repeat timer refs survive across renders. */
-function TempoFineButton({ delta, zoomedNode, setZoomedNode, tempoTrackRef, onUpdate, patternId }) {
+function TempoFineButton({ delta, setZoomedNode, tempoTrackRef, onUpdate, patternId }) {
   const repeatRef = useRef(null);
   const speedRef = useRef(null);
 
@@ -224,7 +224,7 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
       }
     };
 
-    const onEnd = (ev) => {
+    const onEnd = () => {
       const wasMoved = dragRef.current?.moved;
       const slot = dragRef.current?.origSlot;
       dragRef.current = null;
@@ -294,17 +294,6 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
     const newTrack = tempoTrack.filter(n => n.slot !== slot);
     onUpdate(pattern.id, newTrack);
     if (zoomedNode?.slot === slot) setZoomedNode(null);
-  };
-
-  const applyStatic = () => {
-    const b = tempoTrack[0]?.bpm ?? defaultBpm;
-    onUpdate(pattern.id, [{ slot: 0, bpm: b }]);
-  };
-
-  const applyGradual = () => {
-    const fromBpm = tempoTrack[0]?.bpm ?? defaultBpm;
-    const toBpm = Math.min(BPM_MAX, fromBpm + 20);
-    onUpdate(pattern.id, [{ slot: 0, bpm: fromBpm }, { slot: totalSlots - 1, bpm: toBpm }]);
   };
 
   const clearTrack = () => { onUpdate(pattern.id, []); setZoomedNode(null); };

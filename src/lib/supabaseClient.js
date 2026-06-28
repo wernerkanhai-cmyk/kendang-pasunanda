@@ -5,7 +5,7 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!url || !anonKey) {
   // Fail fast in dev so we don't ship a broken bundle.
-  // eslint-disable-next-line no-console
+   
   console.error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in environment.');
 }
 

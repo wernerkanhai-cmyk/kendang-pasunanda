@@ -9,11 +9,11 @@ export function registerServiceWorker() {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(
       (reg) => {
-        // eslint-disable-next-line no-console
+         
         console.log('[sw] registered with scope', reg.scope);
       },
       (err) => {
-        // eslint-disable-next-line no-console
+         
         console.warn('[sw] registration failed', err);
       }
     );

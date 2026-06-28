@@ -46,7 +46,7 @@ self.addEventListener('install', (event) => {
       Promise.all(
         PRECACHE_URLS.map((url) =>
           cache.add(url).catch((err) => {
-            // eslint-disable-next-line no-console
+             
             console.warn('[sw] precache miss:', url, err.message);
           })
         )
@@ -125,16 +125,13 @@ async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
-  try {
-    const response = await fetch(request);
-    if (response && response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (err) {
-    // Offline and not in cache → propagate the failure so SamplePlayer logs it.
-    throw err;
+  // Offline én niet in cache → de fetch faalt vanzelf (de rejectie propageert,
+  // SamplePlayer logt het). Geen try/catch nodig die alleen rethrowt.
+  const response = await fetch(request);
+  if (response && response.ok) {
+    cache.put(request, response.clone());
   }
+  return response;
 }
 
 async function networkFirst(request, cacheName) {

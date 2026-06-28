@@ -38,7 +38,7 @@ export function useSongs() {
         if (!alive) return;
         setSongs(rows);
         // Mirror to IndexedDB so a later offline boot still works.
-        try { await cacheList('songs', user.id, rows); } catch (e) { /* ignore */ }
+        try { await cacheList('songs', user.id, rows); } catch { /* ignore */ }
       })
       .catch(async (err) => {
         if (!alive) return;

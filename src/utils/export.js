@@ -126,51 +126,6 @@ function calculateBeams(slots) {
   return results;
 }
 
-// Returns triplet arc descriptors: { start, hand, type }
-// Synced with TrackRow.jsx handTriplets logic
-function calculateTripletArcs(slots) {
-  const SYMBOL_REST = '.';
-  const results = [];
-
-  // 16T (6-slot half-beat groups)
-  for (let groupStart = 0; groupStart < slots.length; groupStart += 6) {
-    for (const hand of ['top', 'bottom']) {
-      const notes = [];
-      for (let i = 0; i < 6; i++) {
-        const s = slots[groupStart + i];
-        if (!s) continue;
-        const v = s[hand];
-        if (v !== '' && v !== SYMBOL_REST) notes.push(i);
-      }
-      if (notes.length < 2) continue; // need at least 2 notes for a 16T triplet
-      if (!notes.every(n => TRIPLET_16T_OFFS.has(n))) continue;
-      if (!notes.some(n => n === 2 || n === 4)) continue;
-      results.push({ start: groupStart, hand, type: '16T' });
-    }
-  }
-
-  // 8T (12-slot beat groups), skip if both halves already 16T
-  for (let beatStart = 0; beatStart < slots.length; beatStart += 12) {
-    for (const hand of ['top', 'bottom']) {
-      const notes = [];
-      for (let i = 0; i < 12; i++) {
-        const s = slots[beatStart + i];
-        if (!s) continue;
-        const v = s[hand];
-        if (v !== '' && v !== SYMBOL_REST) notes.push(i);
-      }
-      if (notes.length === 0) continue;
-      if (!notes.every(n => TRIPLET_OFFSETS.has(n))) continue;
-      if (!notes.some(n => n === 4 || n === 8)) continue;
-      const both16T = results.some(r => r.type === '16T' && r.start === beatStart && r.hand === hand)
-                   && results.some(r => r.type === '16T' && r.start === beatStart + 6 && r.hand === hand);
-      if (both16T) continue;
-      results.push({ start: beatStart, hand, type: '8T' });
-    }
-  }
-  return results;
-}
-
 // Draw one 4-bar row for a single pattern (or a 4-bar chunk of a longer pattern)
 function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, rowX, rowY, measureOffset, cfg = DEFAULT_PDF_SETTINGS, annotations = {}, notationPack = null) {
   const trackY_anak   = rowY + NAME_H;

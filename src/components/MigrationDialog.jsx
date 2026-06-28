@@ -43,7 +43,7 @@ export default function MigrationDialog() {
       setOpen(true);
     } catch (e) {
       // Corrupt blob — nothing to migrate
-      // eslint-disable-next-line no-console
+       
       console.warn('Could not read legacy songs:', e);
     }
   }, [user]);

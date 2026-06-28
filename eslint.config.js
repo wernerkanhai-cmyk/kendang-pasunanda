@@ -23,7 +23,21 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Herken de codebase-conventie: `_` = bewust genegeerd (args + catch-binding).
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+      // Lege catch-blokken zijn een bewuste "negeer de fout"-keuze.
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      // Advies-/HMR-regels (geen correctheidsfouten) → waarschuwing i.p.v. error.
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-refresh/only-export-components': 'warn',
     },
+  },
+  {
+    // Node-context bestanden (configs, scripts, e2e-tests) — Node-globals i.p.v. browser,
+    // zodat process/__dirname e.d. bekend zijn.
+    files: ['**/*.config.{js,mjs}', 'stress-test.mjs', 'e2e/**/*.{js,mjs}'],
+    languageOptions: { globals: globals.node },
   },
 ])

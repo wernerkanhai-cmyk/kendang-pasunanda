@@ -240,10 +240,6 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
 
   const gongBeats = useMemo(() => deduplicateGongByBeat(gong), [gong]);
 
-  // Triplet detection is handled entirely by handTriplets below (per-hand, per-track).
-  // This combined-hands version is kept as an empty stub to avoid breaking any future refs.
-  const triplets = [];
-
   // Per-hand triplet detection for 8T, 16T, and 4T.
   //
   // 8T  (8th-note triplets):    3 notes per beat (12 slots), offsets {0, 4, 8}
@@ -583,9 +579,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
 
           const isActive = activeRange && index >= activeRange.start && index < activeRange.end;
           const isLoopRange = loopRange && index >= loopRange.start && index < loopRange.end;
-          const isTripletStart = triplets.includes(index);
-          const handTripletsHere = handTriplets.filter(t => t.start === index);
-          
+
           const isRestTop = slot.top === SYMBOL_REST;
           const posClassTop = getVerticalPositionClass(slot.top, 'top');
 

@@ -122,7 +122,7 @@ function App() {
   // Actieve packs (geladen tijdens init useEffect via packRegistry).
   const [notationPack, setNotationPack] = useState(null);
   const [instrumentPack, setInstrumentPack] = useState(null);
-  const [voicePack, setVoicePack] = useState(null);
+  const [, setVoicePack] = useState(null);
 
   // Ref voor scheduler-callbacks die buiten React's render cycle draaien.
   const instrumentPackRef = useRef(null);
@@ -352,7 +352,7 @@ function App() {
   useEffect(() => {
     localStorage.setItem('kendangLibrarySort', librarySort);
   }, [librarySort]);
-  const [pendingDelete, setPendingDelete] = useState(null); // { type: 'song'|'folder', key } — highlights the active delete button
+  const [, setPendingDelete] = useState(null); // { type: 'song'|'folder', key } — highlights the active delete button
   const [overwritePrompt, setOverwritePrompt] = useState(null); // { name, folder, existing, patterns, bpm } — keuze bij dubbele songnaam
   const [snippetOverwritePrompt, setSnippetOverwritePrompt] = useState(null); // { name, folder, existing, data } — keuze bij dubbele snippetnaam
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -534,7 +534,7 @@ function App() {
       try {
         result = await cloudSave(payload);
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error('Cloud save failed, falling back to localStorage:', err);
         alert(t('cloudSaveFailed'));
       }
@@ -755,33 +755,6 @@ function App() {
     setSongFolder(toLoad.folder || 'Algemeen');
     setShowSongLibrary(false);
     setExportSelection(new Set());
-  };
-
-  const handleDeleteSong = async (id) => {
-    const target = savedSongs.find(s => s.id === id);
-    const name = target?.name || t('thisSong');
-    setPendingDelete({ type: 'song', key: id });
-    // Yield to the browser so the red highlight paints before the blocking confirm.
-    await new Promise(r => setTimeout(r, 50));
-    const ok = window.confirm(t('confirmDeleteSong')(name));
-    setPendingDelete(null);
-    if (!ok) return;
-    if (user) {
-      try {
-        await cloudRemove(id);
-        if (currentSongId === id) setCurrentSongId(null);
-        showToast(t('deletedToast')(name));
-        return;
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('Cloud delete failed, falling back to localStorage:', err);
-        alert(t('cloudDeleteFailed'));
-        return;
-      }
-    }
-    setLocalSavedSongs(prev => prev.filter(s => s.id !== id));
-    if (currentSongId === id) setCurrentSongId(null);
-    showToast(t('deletedToast')(name));
   };
 
   const handleDeleteFolder = async (folderName) => {
@@ -1480,7 +1453,7 @@ function App() {
       }
     }, 16);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [isPlaying]);
 
   // Auto-scroll: zet de actieve sectie bovenaan zodra het afspelen er naartoe gaat
@@ -1706,7 +1679,7 @@ function App() {
     if (schedulerRef.current) {
       schedulerRef.current.setTempoCallback((slot) => tempoAtFnRef.current(slot));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [song, bpm]);
 
   // Tempo-signatuur: verandert alleen als tempo-automation aan/uit gaat of punten wijzigen,
@@ -2195,7 +2168,7 @@ function App() {
         await cloudSnippetSave(payload);
         return;
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error('Cloud snippet save failed:', err);
         alert(t('snippetCloudSaveFailed'));
       }
@@ -2256,7 +2229,7 @@ function App() {
         showToast(t('snippetDeletedToast')(name));
         return;
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.error('Cloud snippet delete failed:', err);
         alert(t('snippetCloudDeleteFailed'));
         return;
