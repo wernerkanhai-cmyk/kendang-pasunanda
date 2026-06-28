@@ -1411,22 +1411,27 @@ function App() {
     const onPageShow = () => resetPlayback();
     window.addEventListener('pageshow', onPageShow);
 
-    // iOS PWA suspend/resume — when the app becomes visible again, kill any stale
-    // scheduler and recover the AudioContext.
+    // Tab-wissel (naar een ander venster/app en terug) mag de playback NIET stoppen.
     //
-    // BELANGRIJK: een LOPENDE context laten we met rust. Hem hermaken (close + nieuw)
-    // bleek juist geen geluid op te leveren — en het is het enige dat de context ooit
-    // 'closed' maakt. We resumen alleen een gesuspendeerde context en hermaken enkel
-    // als de context écht weg/gesloten is (zou normaal nooit gebeuren). De na-idle
-    // latency lossen we hiermee niet op; dat onderzoeken we los via ?diag.
+    // - Verborgen: browsers throttelen setTimeout (~1×/sec), waardoor de scheduler met
+    //   z'n 50ms-vooruitblik de audio niet meer kan voeden → geluid valt stil. Daarom
+    //   plannen we dan veel verder vooruit (1,5s), zodat de loop dóórspeelt.
+    // - Zichtbaar: lage latency terugzetten, context resumen indien nodig, en NIET
+    //   resetPlayback() aanroepen — de loop loopt gewoon door (de scheduler heeft een
+    //   eigen drift-resync). Alleen als de context écht weg/gesloten is herstellen we 'm.
     const onVisibility = async () => {
-      if (document.visibilityState === 'hidden') return;
-      resetPlayback();
+      const sched = schedulerRef.current;
+      if (document.visibilityState === 'hidden') {
+        if (sched) sched.scheduleAheadTime = 1.5;
+        return;
+      }
+      if (sched) sched.scheduleAheadTime = 0.05;
       const ctx = samplerRef.current?.audioCtx;
       try {
         if (!ctx || ctx.state === 'closed') {
+          resetPlayback();
           const newCtx = await samplerRef.current.resetAudioContext();
-          if (schedulerRef.current && newCtx) schedulerRef.current.setAudioContext(newCtx);
+          if (sched && newCtx) sched.setAudioContext(newCtx);
         } else if (ctx.state === 'suspended') {
           await ctx.resume();
         }
