@@ -70,50 +70,6 @@ const maskedIcon = (url) => ({ color = 'currentColor', size = 40, style }) => (
 const KendangIcon = maskedIcon('/icons/kendang-mono.svg');
 const VoiceIcon = maskedIcon('/icons/voice-mono.svg');
 
-// ── Tijdelijke latency-diagnose (alleen zichtbaar met ?diag=1 in de URL) ──────
-// Toont de echte audio-latency-cijfers live, zodat we kunnen meten i.p.v. gokken.
-// outputLatency = de hardware/OS-buffer; loopt die op na idle → dáár zit de latency.
-const LatencyDiag = ({ samplerRef }) => {
-  const [info, setInfo] = useState(null);
-  const maxRef = useRef(0);
-  useEffect(() => {
-    const read = () => {
-      const ctx = samplerRef.current?.audioCtx;
-      if (!ctx) { setInfo({ none: true }); return; }
-      const out = (ctx.outputLatency || 0) * 1000;
-      if (out > maxRef.current) maxRef.current = out;
-      setInfo({
-        state: ctx.state,
-        sr: Math.round(ctx.sampleRate / 100) / 10,
-        base: (ctx.baseLatency || 0) * 1000,
-        out,
-        max: maxRef.current,
-      });
-    };
-    read();
-    const id = setInterval(read, 500);
-    return () => clearInterval(id);
-  }, [samplerRef]);
-  const box = {
-    position: 'fixed', left: 8, bottom: 8, zIndex: 99999,
-    font: '11px/1.45 ui-monospace, Menlo, monospace', color: '#d1fae5',
-    background: 'rgba(0,0,0,0.82)', border: '1px solid #10b981', borderRadius: 8,
-    padding: '7px 9px', whiteSpace: 'pre', pointerEvents: 'auto', cursor: 'pointer',
-    boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
-  };
-  if (!info) return null;
-  if (info.none) return <div style={box}>audio-diag: geen AudioContext</div>;
-  const f = (n) => n.toFixed(1);
-  return (
-    <div style={box} title="tik om max te resetten" onClick={() => { maxRef.current = 0; }}>
-      {`AUDIO-DIAG  (${info.state}, ${info.sr}kHz)\n`}
-      {`outputLatency : ${f(info.out)} ms\n`}
-      {`  max gezien  : ${f(info.max)} ms\n`}
-      {`baseLatency   : ${f(info.base)} ms`}
-    </div>
-  );
-};
-
 // Safari/WebKit onderrapporteert AudioContext.outputLatency. Gemeten op interne
 // Mac-speakers (zelfde hardware): Chrome ~32ms, Safari ~15,8ms → ~16ms te laag.
 // Daardoor compenseert de cursor te weinig en voelt het geluid te laat. Op WebKit
@@ -2513,7 +2469,6 @@ function App() {
 
   return (
     <div className="app-container">
-      {new URLSearchParams(window.location.search).has('diag') && <LatencyDiag samplerRef={samplerRef} />}
       <header className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="branding">
