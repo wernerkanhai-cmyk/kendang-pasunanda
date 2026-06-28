@@ -108,6 +108,15 @@ const LatencyDiag = ({ samplerRef }) => {
   );
 };
 
+// Safari/WebKit onderrapporteert AudioContext.outputLatency. Gemeten op interne
+// Mac-speakers (zelfde hardware): Chrome ~32ms, Safari ~15,8ms → ~16ms te laag.
+// Daardoor compenseert de cursor te weinig en voelt het geluid te laat. Op WebKit
+// tellen we er een vaste correctie bij op zodat cursor en geluid samenvallen —
+// automatisch, zonder dat de gebruiker iets hoeft in te stellen. (navigator.vendor
+// is 'Apple Computer, Inc.' op Safari én iOS WKWebView, 'Google Inc.' op Chrome.)
+const IS_WEBKIT = typeof navigator !== 'undefined' && /Apple/.test(navigator.vendor || '');
+const WEBKIT_LATENCY_CORRECTION_MS = 16;
+
 function App() {
   const t = useT();
   const { theme, setTheme, skins } = useTheme();
@@ -1457,9 +1466,12 @@ function App() {
     // Sample output-latency ÉÉN keer bij start. Live per frame lezen liet de cursor
     // verspringen t.o.v. al ingeplande audio bij OS-herrapportage. baseLatency wordt
     // bewust weggelaten: de canonieke "wanneer hoorbaar"-tijd is geplande tijd +
-    // outputLatency. (Safari kan negatief rapporteren → Math.abs.)
+    // outputLatency. (Safari kan negatief rapporteren → Math.abs.) Plus een vaste
+    // WebKit-correctie omdat Safari outputLatency structureel te laag rapporteert.
     const ctx0 = schedulerRef.current?.audioCtx;
-    latencyOffsetMsRef.current = ctx0 ? Math.abs(ctx0.outputLatency || 0) * 1000 : 0;
+    latencyOffsetMsRef.current =
+      (ctx0 ? Math.abs(ctx0.outputLatency || 0) * 1000 : 0) +
+      (IS_WEBKIT ? WEBKIT_LATENCY_CORRECTION_MS : 0);
     const id = setInterval(() => {
       const sched = schedulerRef.current;
       if (!sched?.isPlaying || !sched.audioCtx) return;
