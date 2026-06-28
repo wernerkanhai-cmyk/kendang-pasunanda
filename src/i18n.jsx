@@ -6,7 +6,7 @@ export const LANGUAGES = [
   { code: 'id', label: 'Indonesia' },
 ];
 
-const T = {
+export const T = {
   en: {
     // Tools menu
     toolsMenu: 'Tools',
