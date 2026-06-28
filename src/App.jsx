@@ -1432,7 +1432,8 @@ function App() {
           resetPlayback();
           const newCtx = await samplerRef.current.resetAudioContext();
           if (sched && newCtx) sched.setAudioContext(newCtx);
-        } else if (ctx.state === 'suspended') {
+        } else if (ctx.state !== 'running') {
+          // 'suspended' (Chrome/Safari) of 'interrupted' (alleen WebKit/Safari) → hervatten
           await ctx.resume();
         }
       } catch (_) {}
@@ -1792,7 +1793,8 @@ function App() {
       } catch (_) { /* val terug op de bestaande context */ }
     }
     const ctx2 = schedulerRef.current?.audioCtx;
-    if (ctx2?.state === 'suspended') await ctx2.resume();
+    // 'suspended' (Chrome/Safari) of 'interrupted' (alleen WebKit/Safari) → hervatten in dit gesture
+    if (ctx2 && ctx2.state !== 'running' && ctx2.state !== 'closed') await ctx2.resume();
 
     // Als vox-modus actief is, wacht tot samples geladen zijn
     if (sampleSetRef.current === 'vox') {
