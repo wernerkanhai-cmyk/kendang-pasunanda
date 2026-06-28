@@ -185,6 +185,12 @@ export const sanitizePattern = (pattern) => {
       out[key] = value;
     }
   }
+  // Garandeer de twee kern-tracks als arrays. Defensief: een corrupt of
+  // onvolledig pattern (ontbrekende/niet-array anak of indung) blijft hierdoor
+  // bootbaar i.p.v. later in de sequencer te crashen.
+  for (const trackId of ['anak', 'indung']) {
+    if (!Array.isArray(out[trackId])) out[trackId] = generateEmptySlots(targetLen);
+  }
   return out;
 };
 

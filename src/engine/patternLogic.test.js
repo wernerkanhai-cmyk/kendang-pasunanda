@@ -60,6 +60,13 @@ describe('sanitizePattern', () => {
     const once = sanitizePattern({ id: 'x', anak: [{ top: 'dong', bottom: '' }], gong: [0, 12] });
     expect(sanitizePattern(once)).toEqual(once);
   });
+
+  it('garandeert altijd anak én indung als uitgelijnde arrays (corrupt/onvolledig)', () => {
+    const p = sanitizePattern({ id: 'x' }); // geen tracks meegegeven
+    expect(Array.isArray(p.anak)).toBe(true);
+    expect(Array.isArray(p.indung)).toBe(true);
+    expect(p.anak.length).toBe(p.indung.length);
+  });
 });
 
 describe('migrateSlotValue (legacy glyph → soundId)', () => {

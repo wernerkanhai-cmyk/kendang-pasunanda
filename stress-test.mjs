@@ -12,7 +12,6 @@ import {
   generateEmptySlots,
   sanitizePattern,
   writeSymbolToPattern,
-  getHandForSymbol,
   slotToBeat,
   deduplicateGongByBeat,
 } from './src/engine/patternLogic.js';
@@ -79,8 +78,11 @@ for (let i = 0; i < 100; i++) {
 
   assert(`boot[${i}] anak is array`,   Array.isArray(result?.anak));
   assert(`boot[${i}] indung is array`, Array.isArray(result?.indung));
-  assert(`boot[${i}] anak length = ${SLOTS}`,   result?.anak?.length   === SLOTS, `got ${result?.anak?.length}`);
-  assert(`boot[${i}] indung length = ${SLOTS}`, result?.indung?.length === SLOTS, `got ${result?.indung?.length}`);
+  // sanitizePattern schaalt naar hele maten (de langste track bepaalt het aantal),
+  // dus de lengte hoeft niet exact 192 te zijn — wel een veelvoud van 48 én beide
+  // tracks even lang (uitgelijnd). Dat is de echte invariant.
+  assert(`boot[${i}] anak length is hele maten`, result?.anak?.length > 0 && result.anak.length % BAR_SLOTS === 0, `got ${result?.anak?.length}`);
+  assert(`boot[${i}] tracks even lang (anak == indung)`, result?.anak?.length === result?.indung?.length, `anak ${result?.anak?.length} vs indung ${result?.indung?.length}`);
 
   // Every slot must be { top: string, bottom: string }
   const badSlots = result.anak.filter(s => typeof s?.top !== 'string' || typeof s?.bottom !== 'string');
