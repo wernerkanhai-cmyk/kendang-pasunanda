@@ -64,6 +64,50 @@ const VoiceIcon = ({ color = 'currentColor', size = 40, style }) => (
   </svg>
 );
 
+// ── Tijdelijke latency-diagnose (alleen zichtbaar met ?diag=1 in de URL) ──────
+// Toont de echte audio-latency-cijfers live, zodat we kunnen meten i.p.v. gokken.
+// outputLatency = de hardware/OS-buffer; loopt die op na idle → dáár zit de latency.
+const LatencyDiag = ({ samplerRef }) => {
+  const [info, setInfo] = useState(null);
+  const maxRef = useRef(0);
+  useEffect(() => {
+    const read = () => {
+      const ctx = samplerRef.current?.audioCtx;
+      if (!ctx) { setInfo({ none: true }); return; }
+      const out = (ctx.outputLatency || 0) * 1000;
+      if (out > maxRef.current) maxRef.current = out;
+      setInfo({
+        state: ctx.state,
+        sr: Math.round(ctx.sampleRate / 100) / 10,
+        base: (ctx.baseLatency || 0) * 1000,
+        out,
+        max: maxRef.current,
+      });
+    };
+    read();
+    const id = setInterval(read, 500);
+    return () => clearInterval(id);
+  }, [samplerRef]);
+  const box = {
+    position: 'fixed', left: 8, bottom: 8, zIndex: 99999,
+    font: '11px/1.45 ui-monospace, Menlo, monospace', color: '#d1fae5',
+    background: 'rgba(0,0,0,0.82)', border: '1px solid #10b981', borderRadius: 8,
+    padding: '7px 9px', whiteSpace: 'pre', pointerEvents: 'auto', cursor: 'pointer',
+    boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
+  };
+  if (!info) return null;
+  if (info.none) return <div style={box}>audio-diag: geen AudioContext</div>;
+  const f = (n) => n.toFixed(1);
+  return (
+    <div style={box} title="tik om max te resetten" onClick={() => { maxRef.current = 0; }}>
+      {`AUDIO-DIAG  (${info.state}, ${info.sr}kHz)\n`}
+      {`outputLatency : ${f(info.out)} ms\n`}
+      {`  max gezien  : ${f(info.max)} ms\n`}
+      {`baseLatency   : ${f(info.base)} ms`}
+    </div>
+  );
+};
+
 function App() {
   const t = useT();
   const { theme, setTheme, skins } = useTheme();
@@ -133,11 +177,6 @@ function App() {
   };
   const schedulerRef = useRef(null);
   const samplerRef = useRef(null);
-  // Tijdstip van de laatste audio-activiteit (play/pauze/terug-zichtbaar). Gebruikt
-  // om bij het starten van afspelen na een lange stilte de AudioContext te
-  // hermaken — anders sleept een opgelopen output-latency (BT-buffer/OS-power)
-  // door, ook als er nooit een visibilitychange was. Zie togglePlay.
-  const lastAudioActivityRef = useRef(Date.now());
 
   // Actieve packs (geladen tijdens init useEffect via packRegistry).
   const [notationPack, setNotationPack] = useState(null);
@@ -1403,9 +1442,6 @@ function App() {
           }
         } catch (_) {}
       }
-      // Context is nu vers (of nog gezond) — markeer als activiteit zodat de
-      // tijd-gebaseerde stale-check in togglePlay niet meteen nóg eens hermaakt.
-      lastAudioActivityRef.current = Date.now();
     };
     document.addEventListener('visibilitychange', onVisibility);
 
@@ -1754,21 +1790,6 @@ function App() {
     // Ensure AudioContext is running — desktop Chrome requires resume() in user-gesture handler
     const ctx = schedulerRef.current?.audioCtx;
     if (ctx?.state === 'suspended') await ctx.resume();
-
-    // Latency-fix: bij het STARTEN van afspelen na een lange stilte (>30s sinds de
-    // laatste activiteit — ook als de tab zichtbaar bleef en er dus geen
-    // visibilitychange was) hermaken we de AudioContext één keer. resetAudioContext()
-    // sluit de oude context (geeft de opgelopen high-latency output-stream vrij) en
-    // maakt een verse — dit reset de latency waar een refresh dat niet doet.
-    const startingPlayback = !isPlaying;
-    if (startingPlayback && ctx && Date.now() - lastAudioActivityRef.current > 30_000) {
-      try {
-        const freshCtx = await samplerRef.current?.resetAudioContext();
-        if (freshCtx && schedulerRef.current) schedulerRef.current.setAudioContext(freshCtx);
-        if (freshCtx?.state === 'suspended') await freshCtx.resume();
-      } catch (_) { /* val terug op de bestaande context */ }
-    }
-    lastAudioActivityRef.current = Date.now();
 
     // Als vox-modus actief is, wacht tot samples geladen zijn
     if (sampleSetRef.current === 'vox') {
@@ -2469,6 +2490,7 @@ function App() {
 
   return (
     <div className="app-container">
+      {new URLSearchParams(window.location.search).has('diag') && <LatencyDiag samplerRef={samplerRef} />}
       <header className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div className="branding">
