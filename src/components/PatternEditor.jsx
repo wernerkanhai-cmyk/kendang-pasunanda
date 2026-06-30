@@ -255,8 +255,18 @@ const PatternEditor = ({
     updatePattern({ ...pattern, anak: newAnak, indung: newIndung });
   };
 
-  const handleNoteMove = ({ fromTrackId, fromSlot, fromHand, toTrackId, toSlot, toHand, symbol }) => {
+  const handleNoteMove = ({ fromTrackId, fromSlot, fromHand, toTrackId, toSlot: rawToSlot, toHand, symbol }) => {
     if (isLocked) return;
+    // Magneet: laat een versleept symbool op de tijdgrid (gridResolution) vallen,
+    // zodat je met de grid op bijv. 1/8 niet alsnog op een 1/16-positie belandt.
+    // Clamp zodat afronden naar boven niet voorbij het laatste grid-slot gaat.
+    const destLen = (toTrackId === 'anak' ? pattern.anak : pattern.indung).length;
+    const toSlot = magneticInput
+      ? Math.min(
+          Math.round(rawToSlot / gridResolution) * gridResolution,
+          Math.floor((destLen - 1) / gridResolution) * gridResolution,
+        )
+      : rawToSlot;
     const newAnak = [...pattern.anak];
     const newIndung = [...pattern.indung];
     const getTrack = (id) => id === 'anak' ? newAnak : newIndung;
