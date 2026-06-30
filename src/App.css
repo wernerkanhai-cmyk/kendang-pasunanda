@@ -123,6 +123,11 @@
 
 .pattern-header {
   display: flex;
+  /* Wrap zodat de snippet-knoppenbalk op smalle schermen (portret) naar een
+     tweede regel zakt i.p.v. buiten beeld te lopen. Op brede schermen past
+     alles op één regel en verandert er niets. */
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
@@ -273,6 +278,10 @@
     overflow-x: visible;   /* wrap regelt de zichtbaarheid; geen scroll nodig */
   }
   .global-controls { order: 2; }
+
+  /* Minder horizontale padding zodat de (wrappende) snippet-knoppenbalk
+     ook op smalle toestellen comfortabel op de tweede regel past. */
+  .pattern-header { padding: 0.7rem 0.9rem; }
 }
 
 
