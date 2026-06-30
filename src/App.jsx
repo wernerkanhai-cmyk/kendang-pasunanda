@@ -296,8 +296,14 @@ function App() {
     document.getElementById(`timeline-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [stepBackCount]);
 
-  // When switching between edit and practice mode, scroll the playhead into view
+  // When switching between edit and practice mode, scroll the playhead into view.
+  // NIET bij de eerste mount: bij opstart (bv. in performance-modus) zou
+  // scrollIntoView het document omhoog scrollen en de header (met play-knop)
+  // boven de viewport duwen — pas zichtbaar na een oriëntatiewissel. Alleen
+  // scrollen bij een échte wissel van isLocked.
+  const modeSwitchDidMount = useRef(false);
   useEffect(() => {
+    if (!modeSwitchDidMount.current) { modeSwitchDidMount.current = true; return; }
     const id = setTimeout(() => {
       document.getElementById(`timeline-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
