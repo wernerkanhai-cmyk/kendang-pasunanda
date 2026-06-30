@@ -456,19 +456,10 @@ function App() {
   const [showPdfSettings, setShowPdfSettings] = useState(false);
   const [songSearchQuery, setSongSearchQuery] = useState('');
   const [showSongMap, setShowSongMap] = useState(false);
-  const [songMapTop, setSongMapTop] = useState(0);
 
-  const handleOpenSongMap = () => {
-    const activeBlock = document.getElementById(`block-${activePatternId}`);
-    if (activeBlock) {
-      const rect = activeBlock.getBoundingClientRect();
-      // Clamp so the panel always stays on screen
-      setSongMapTop(Math.max(0, Math.min(rect.top, window.innerHeight - 200)));
-    } else {
-      setSongMapTop(0);
-    }
-    setShowSongMap(v => !v); // toggle instead of always open
-  };
+  // Toggle de compositie-drawer. Vaste positie (volledige hoogte, links); de
+  // drawer blijft open tot de gebruiker 'm sluit (geen auto-close meer).
+  const handleOpenSongMap = () => setShowSongMap(v => !v);
 
   // Song pattern drag-to-reorder
   const [dragPatId, setDragPatId] = useState(null);
@@ -3683,7 +3674,6 @@ function App() {
             song={song}
             activePatternId={activePatternId}
             open={showSongMap}
-            topOffset={songMapTop}
             onClose={() => setShowSongMap(false)}
             onActivate={(id) => {
               setActivePatternId(id);
