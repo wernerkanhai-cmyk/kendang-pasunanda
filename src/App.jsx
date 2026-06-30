@@ -587,15 +587,17 @@ function App() {
   // saveAsCopy: duplicate the current state into a new row, appending '(kopie)'
   //   to the title so it's findable in the library.
 
-  const _persist = async (payload) => {
+  const _persist = async (payload, { silent = false } = {}) => {
     let result;
+    let cloudOk = false;
     if (user) {
       try {
         result = await cloudSave(payload);
+        cloudOk = !!result;
       } catch (err) {
-         
-        console.error('Cloud save failed, falling back to localStorage:', err);
-        alert(t('cloudSaveFailed'));
+        // Autosave is stil (geen alert-spam); handmatig opslaan meldt de fout wel.
+        console.error('Cloud save failed:', err);
+        if (!silent) alert(t('cloudSaveFailed'));
       }
     }
     if (!result) {
@@ -614,8 +616,12 @@ function App() {
       }
       result = entry;
     }
-    // Snapshot the patterns we just persisted so the unsaved-changes indicator resets.
-    lastSavedSnapshotRef.current = JSON.stringify(payload.patterns);
+    // Reset de "niet-opgeslagen"-stip ALLEEN als het werk ook echt duurzaam is
+    // opgeslagen: cloud-save geslaagd, of (uitgelogd) localStorage als hoofdopslag.
+    // Zo blijft de stip eerlijk staan als een cloud-save (bv. offline) mislukt.
+    if (cloudOk || !user) {
+      lastSavedSnapshotRef.current = JSON.stringify(payload.patterns);
+    }
     return result;
   };
 
@@ -704,7 +710,7 @@ function App() {
 
   // ── Auto-save ────────────────────────────────────────────────────────────
   // When a cloud song is loaded and the user makes changes:
-  //   1. Debounce 5 seconds after the last edit and silently save.
+  //   1. Debounce 2 seconds after the last edit and silently save.
   //   2. Also flush the latest state when the tab is hidden or the page is
   //      about to unload, so a refresh or app-switch never loses work.
   // Auto-save is silent (no toast spam). If it fails the unsaved-changes dot
@@ -726,13 +732,18 @@ function App() {
       folder: (s.songFolder || '').trim() || 'Algemeen',
       bpm: s.bpm,
       patterns: JSON.parse(JSON.stringify(s.song)),
-    }).catch(err => console.warn('Auto-save failed (will retry):', err));
+    }, { silent: true }).catch(err => console.warn('Auto-save failed (will retry):', err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced auto-save: 2s after the last edit
+  // Debounced auto-save: 2s na de laatste wijziging.
+  // We blokkeren NIET hard op navigator.onLine (dat is op iOS/PWA onbetrouwbaar
+  // en kan ten onrechte 'false' zijn, waardoor de autosave nooit draait en de
+  // 'niet-opgeslagen'-stip blijft staan). We proberen gewoon een cloud-save; die
+  // slaagt zodra je echt verbonden bent. isOnline blijft wél in de deps zodat het
+  // effect bij herverbinden opnieuw draait en de save alsnog lukt.
   useEffect(() => {
-    if (!user || !currentSongId || !isOnline || !isModifiedSinceSave) return;
+    if (!user || !currentSongId || !isModifiedSinceSave) return;
     const id = setTimeout(flushAutoSave, 2000);
     return () => clearTimeout(id);
   }, [song, currentSongId, isOnline, user, isModifiedSinceSave, flushAutoSave]);
