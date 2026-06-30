@@ -239,6 +239,12 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
   // A standard bar is 48 slots. A beat is 12 slots. A 16th note step is 3 slots.
 
   const gongBeats = useMemo(() => deduplicateGongByBeat(gong), [gong]);
+  // Set van beat-start-slots met een gong, zodat we de gong-box ín de
+  // bijbehorende cel kunnen renderen (zie slots.map). Zo valt de linkerrand
+  // altijd exact op de werkelijke celgrens — ongeacht sub-pixel-afronding van
+  // de flex-cellen (die in portret, met kleine slotWidth, anders een hele tel
+  // wegliep t.o.v. een absoluut gepositioneerde overlay).
+  const gongBeatSet = useMemo(() => new Set(gongBeats), [gongBeats]);
 
   // Per-hand triplet detection for 8T, 16T, and 4T.
   //
@@ -531,38 +537,9 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
           );
         })}
 
-        {/* Gong block overlays — 1 beat (12 slots) breed, uitgelijnd op beatgrens, 1px naar links */}
-        {gongBeats.map(beatStart => {
-          const gongColor = trackId === 'anak' ? 'var(--anak-color)' : 'var(--indung-color)';
-          return (
-            <div
-              key={`gong-${beatStart}`}
-              style={{
-                position: 'absolute',
-                top: 0,
-                height: '100%',
-                left: beatStart * slotWidth - 1,
-                width: 12 * slotWidth,
-                border: `1px solid ${gongColor}`,
-                pointerEvents: 'none',
-                zIndex: 5,
-                boxSizing: 'border-box',
-                cursor: 'default',
-              }}
-            >
-              {/* Horizontale middenlijn op de nullijn */}
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: 0,
-                right: 0,
-                height: 2,
-                background: gongColor,
-                transform: 'translateY(-50%)',
-              }} />
-            </div>
-          );
-        })}
+        {/* Gong-blokken (1 beat = 12 slots breed) worden ín de beat-startcel
+            gerenderd, zie slots.map hieronder — dat houdt de linkerrand exact op
+            de celgrens, ongeacht sub-pixel-afronding (portret-fix). */}
 
         {slots.map((slot, index) => {
           const isBarStart = index % 48 === 0;
@@ -628,6 +605,23 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
             >
+              {/* Gong-blok: 1 beat (12 slots) breed, verankerd aan déze cel zodat
+                  de linkerrand exact op de beatgrens valt (sub-pixel-safe). */}
+              {gongBeatSet.has(index) && (
+                <div style={{
+                  position: 'absolute', top: 0, left: -1, height: '100%',
+                  width: 12 * slotWidth,
+                  border: `1px solid ${trackId === 'anak' ? 'var(--anak-color)' : 'var(--indung-color)'}`,
+                  pointerEvents: 'none', zIndex: 5, boxSizing: 'border-box',
+                }}>
+                  {/* Horizontale middenlijn op de nullijn */}
+                  <div style={{
+                    position: 'absolute', top: '50%', left: 0, right: 0, height: 2,
+                    background: trackId === 'anak' ? 'var(--anak-color)' : 'var(--indung-color)',
+                    transform: 'translateY(-50%)',
+                  }} />
+                </div>
+              )}
               {/* Data symbols (notes and data rests) — soundId → glyph via NotationPack */}
               {slot.top !== '' && !collapsedRests.has(`${index}-top`) && (
                 <span
