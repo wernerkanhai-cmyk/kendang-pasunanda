@@ -71,51 +71,8 @@ body {
   flex-direction: column;
 }
 
-/* ── Portrait-mode rotation prompt (iPhone / iPad) ──────────────────────
-   TIJDELIJK UIT: portret-slot uitgezet om de app in portrait te testen.
-   Terugzetten = onderstaand blok weer activeren (commentaar weghalen). */
-/*
-@media (orientation: portrait) and (max-width: 1024px) {
-  #rotate-prompt {
-    display: flex !important;
-  }
-  #root {
-    display: none !important;
-  }
-}
-*/
-
-#rotate-prompt {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: #0f172a;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  text-align: center;
-  padding: 2rem;
-}
-
-#rotate-prompt .rotate-icon {
-  font-size: 4rem;
-  animation: rotate-hint 1.8s ease-in-out infinite;
-}
-
-#rotate-prompt p {
-  font-size: 1.1rem;
-  color: #94a3b8;
-  max-width: 260px;
-  line-height: 1.6;
-}
-
-@keyframes rotate-hint {
-  0%, 100% { transform: rotate(0deg); }
-  40%       { transform: rotate(90deg); }
-  60%       { transform: rotate(90deg); }
-}
+/* Portret-slot verwijderd: de app is nu zowel in portrait als landscape
+   bruikbaar (zie de responsive header-regels in App.css). */
 
 #root {
   display: flex;
