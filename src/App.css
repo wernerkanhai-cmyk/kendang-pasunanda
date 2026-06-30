@@ -198,4 +198,57 @@
   animation: indungPulse 0.35s ease-out;
 }
 
+/* Sync-blok binnen het ⋯-menu: standaard verborgen, alleen op de telefoon zichtbaar.
+   Buiten de media query zodat het op desktop/tablet nooit opduikt. */
+.hdr-sync-menu { display: none; }
+
+/* ── Compacte header op de telefoon (landscape) ───────────────────────────
+   De app draait op de telefoon alleen in landscape (portret toont de rotate-
+   prompt in index.css). In landscape is de schermhoogte ≤ ~430px; tablets zijn
+   hoger (≥ 768px), dus max-height:480px isoleert telefoons. Voorheen propte de
+   volledige header niet op één rij en viel de rechterkolom (mode-switch, tools)
+   buiten beeld. Hieronder: branding verborgen, transport-knoppen kleiner, sync-
+   slider naar het ⋯-menu. !important overschrijft de inline-styles in App.jsx. */
+@media (orientation: landscape) and (max-height: 480px) {
+  .app-header {
+    padding: 0.4rem 0.6rem;
+    gap: 0.4rem;
+  }
+
+  /* Branding-tekst vergt de meeste breedte en is puur decoratief → verbergen,
+     zo komt er ruimte vrij voor de Song-knop én de mode-switch rechts. */
+  .app-header .branding { display: none; }
+
+  /* Midden mag krimpen/scrollen i.p.v. de zijkolommen weg te duwen. min-width:0
+     haalt de min-content-bodem weg zodat de grid nooit overloopt; overflow-x
+     biedt een veilige terugval als de transport-knoppen tóch te breed zouden zijn. */
+  .header-center {
+    gap: 0.3rem;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .header-center::-webkit-scrollbar { display: none; }
+
+  /* Transport-knoppen compacter (en lagere header → meer ruimte voor de noten). */
+  .hdr-play {
+    height: 48px !important;
+    min-width: 44px !important;
+    font-size: 1.25rem !important;
+  }
+  .hdr-knob svg { width: 40px !important; height: 40px !important; }
+  .hdr-knob span { font-size: 0.5rem !important; }
+  .hdr-switch { width: 48px !important; height: 48px !important; }
+  .hdr-switch span { width: 38px !important; height: 38px !important; }
+  .hdr-bpm { height: 48px !important; padding: 0 0.3rem !important; }
+
+  /* Rechterkolom strakker; mode-switch + tools blijven altijd in beeld. */
+  .global-controls { gap: 0.35rem !important; }
+
+  /* Sync-slider verhuist uit de header naar het ⋯-menu. */
+  .hdr-sync { display: none !important; }
+  .hdr-sync-menu { display: flex !important; }
+}
+
 

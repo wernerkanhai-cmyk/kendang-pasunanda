@@ -2661,7 +2661,7 @@ function App() {
         <div className="header-center">
           {/* Play/pauze — links van de anak-knop, op volle header-hoogte */}
           <button
-            className="hdr-icon-btn"
+            className="hdr-icon-btn hdr-play"
             onClick={() => togglePlay()}
             title={t('playPause')}
             style={{
@@ -2685,7 +2685,7 @@ function App() {
             const startAngle = -135, endAngle = angle;
             const largeArc = endAngle - startAngle > 180 ? 1 : 0;
             return (
-              <div key={track} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+              <div key={track} className="hdr-knob" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
                 <svg width="54" height="54" viewBox="0 0 36 36"
                   style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color})` }}
                   title={t('volumeTooltip')(track === 'anak' ? 'Anak' : 'Indung', Math.round(val * 100))}
@@ -2719,7 +2719,7 @@ function App() {
             const startAngle = -135, endAngle = angle;
             const largeArc = endAngle - startAngle > 180 ? 1 : 0;
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+              <div className="hdr-knob" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
                 <svg width="54" height="54" viewBox="0 0 36 36"
                   style={{ cursor: 'ns-resize', touchAction: 'none', filter: `drop-shadow(0 0 5px ${color}80)` }}
                   title={t('volumeTooltip')('Vox', Math.round(val * 100))}
@@ -2746,6 +2746,7 @@ function App() {
               Iconen zijn SVG (KendangIcon/VoiceIcon) en kleuren met de skin mee. */}
           <button
             type="button"
+            className="hdr-switch"
             onClick={() => setSampleSet(s => s === 'kendang' ? 'vox' : 'kendang')}
             title={t('switchTooltip')(sampleSet === 'kendang' ? 'Kendang' : 'Vox')}
             aria-label={t('switchTooltip')(sampleSet === 'kendang' ? 'Kendang' : 'Vox')}
@@ -2762,7 +2763,7 @@ function App() {
           </button>
 
           {/* ── BPM — naast de microfoon/stem-schakelaar, op volle bar-hoogte ── */}
-          <div style={{ height: '68px', flexShrink: 0, border: 'none', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 0.6rem', gap: '6px', boxSizing: 'border-box', background: 'transparent' }}>
+          <div className="hdr-bpm" style={{ height: '68px', flexShrink: 0, border: 'none', borderRadius: '10px', display: 'flex', alignItems: 'center', padding: '0 0.6rem', gap: '6px', boxSizing: 'border-box', background: 'transparent' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button onClick={() => handleBpmChange(1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▲</button>
               <button onClick={() => handleBpmChange(-1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, fontSize: '0.85rem', lineHeight: 1 }}>▼</button>
@@ -2944,6 +2945,28 @@ function App() {
 
                   <div style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
 
+                  {/* Cursor-sync — op de telefoon zit de sync-slider hier i.p.v. in
+                      de krappe header (class hdr-sync-menu: alleen op telefoon zichtbaar). */}
+                  <div className="hdr-sync-menu" style={{ flexDirection: 'column', gap: '0.4rem' }}>
+                    <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('cursorSyncOffsetTitle')}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <input
+                        type="range" min="-3000" max="500" step="25" value={cursorOffsetMs}
+                        onChange={e => setCursorOffsetMs(parseInt(e.target.value, 10))}
+                        style={{ flex: 1, minWidth: 0, accentColor: '#f59e0b' }}
+                        title={`${t('cursorSyncOffsetTitle')}: ${cursorOffsetMs} ms`}
+                      />
+                      <span style={{ color: '#f59e0b', fontSize: '0.75rem', whiteSpace: 'nowrap', minWidth: '5ch', textAlign: 'right' }}>{cursorOffsetMs} ms</span>
+                      <button
+                        onClick={() => setCursorOffsetMs(0)}
+                        disabled={cursorOffsetMs === 0}
+                        title={t('resetSyncOffset')}
+                        style={{ background: 'transparent', border: 'none', color: cursorOffsetMs === 0 ? '#1e3a5f' : '#64748b', cursor: cursorOffsetMs === 0 ? 'default' : 'pointer', fontSize: '0.95rem', padding: 0, lineHeight: 1, flexShrink: 0 }}
+                      >↺</button>
+                    </div>
+                  </div>
+                  <div className="hdr-sync-menu" style={{ height: '1px', background: '#334155', margin: '0.3rem 0' }} />
+
                   {/* PDF */}
                   <div style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{t('pdfSection')}</div>
                   <button
@@ -3090,8 +3113,9 @@ function App() {
             )}
           </div>
 
-          {/* Cursor sync offset — altijd zichtbaar in header */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+          {/* Cursor sync offset — in de header op desktop/tablet; op de telefoon
+              verhuist deze naar het ⋯-menu (class hdr-sync wordt daar verborgen). */}
+          <div className="hdr-sync" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span style={{ color: '#f59e0b', fontSize: '0.6rem', whiteSpace: 'nowrap' }}>⏱ {cursorOffsetMs} ms</span>
               <button
