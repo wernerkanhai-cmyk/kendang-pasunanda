@@ -71,7 +71,10 @@ body {
   flex-direction: column;
 }
 
-/* ── Portrait-mode rotation prompt (iPhone / iPad) ────────────────────── */
+/* ── Portrait-mode rotation prompt (iPhone / iPad) ──────────────────────
+   TIJDELIJK UIT: portret-slot uitgezet om de app in portrait te testen.
+   Terugzetten = onderstaand blok weer activeren (commentaar weghalen). */
+/*
 @media (orientation: portrait) and (max-width: 1024px) {
   #rotate-prompt {
     display: flex !important;
@@ -80,6 +83,7 @@ body {
     display: none !important;
   }
 }
+*/
 
 #rotate-prompt {
   display: none;
