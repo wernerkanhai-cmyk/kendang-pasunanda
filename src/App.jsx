@@ -3798,7 +3798,9 @@ function App() {
             });
           })()}
 
-          {/* Append new block at the bottom — sticky zodat altijd bereikbaar */}
+          {/* Append new block at the bottom — sticky zodat altijd bereikbaar.
+              Niet in performance (locked) modus: daar kun je niet bewerken. */}
+          {!isLocked && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0 0', padding: '0.4rem 1rem', position: 'sticky', bottom: 0, background: 'var(--bg-primary, #0f172a)', borderTop: '1px solid var(--border-subtle)', zIndex: 10 }}>
             <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
             <button
@@ -3808,6 +3810,7 @@ function App() {
             >{t('addBlock')}</button>
             <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
           </div>
+          )}
         </div>
         </main>
       </div>
