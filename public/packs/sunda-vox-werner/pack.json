@@ -22,7 +22,9 @@
       "pak":     "Pak",
       "peung":   "Peung"
     },
-    "missing": []
+    "missing": [
+      { "track": "indung", "sound": "pling" }
+    ]
   },
   "combos": [
     {
