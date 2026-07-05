@@ -10,11 +10,22 @@ const SongMap = ({ song, activePatternId, open, onClose, onActivate, onMoveUp, o
   // (iPad) de lijst niet per ongeluk — een tik telt pas bij neer-én-los zonder
   // beweging, een scroll-gebaar dus niet.
   return ReactDOM.createPortal(
-    <div
-      className="songmap-panel"
-      style={{
-        position: 'fixed',
-        top: 0, left: 0, bottom: 0,
+    <>
+      {/* Klik-buiten-laag: een tik náást de drawer sluit 'm. Op onClick i.p.v.
+          onPointerDown, zodat scrollen/slepen (op touch) niets sluit — pas een
+          echte tik (neer + los zonder beweging) telt als sluiten. */}
+      {open && (
+        <div
+          onClick={onClose}
+          style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,0.3)', cursor: 'pointer' }}
+        />
+      )}
+
+      <div
+        className="songmap-panel"
+        style={{
+          position: 'fixed',
+          top: 0, left: 0, bottom: 0,
         width: '230px',
         zIndex: 401,
         background: 'var(--panel-bg)',
@@ -113,7 +124,8 @@ const SongMap = ({ song, activePatternId, open, onClose, onActivate, onMoveUp, o
           );
         })}
       </div>
-    </div>,
+      </div>
+    </>,
     document.body
   );
 };
