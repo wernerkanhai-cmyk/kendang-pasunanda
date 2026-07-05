@@ -7,7 +7,7 @@
   "compatibleInstruments": ["sunda-kendang"],
   "samples": {
     "variants": 4,
-    "urlTemplate": "audio/KENDANG VOX/{TRACK}/VOX_{TRACK}_{SoundFile}_{n}.wav",
+    "urlTemplate": "audio/KENDANG VOX/{TRACK}/VOX_{TRACK}_{SoundFile}_{n}.wav?v=2",
     "soundFileNames": {
       "tung":    "Tung",
       "dong":    "Dong",
@@ -30,8 +30,8 @@
       "sounds": ["dong", "pak"],
       "fileName": "Bang",
       "urlTemplates": {
-        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
-        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav?v=2",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav?v=2"
       }
     },
     {
@@ -39,8 +39,8 @@
       "sounds": ["dong", "pang"],
       "fileName": "Blang",
       "urlTemplates": {
-        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
-        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav?v=2",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav?v=2"
       }
     },
     {
@@ -48,8 +48,8 @@
       "sounds": ["det", "plak"],
       "fileName": "Blap",
       "urlTemplates": {
-        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
-        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav?v=2",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav?v=2"
       }
     },
     {
@@ -57,8 +57,8 @@
       "sounds": ["pang", "tung"],
       "fileName": "Plang",
       "urlTemplates": {
-        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
-        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav?v=2",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav?v=2"
       }
     },
     {
@@ -66,8 +66,8 @@
       "sounds": ["peung", "tung"],
       "fileName": "Tleung",
       "urlTemplates": {
-        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav",
-        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav"
+        "anak":   "audio/KENDANG VOX/ANAK/COMBO/VOX_ANAK_COMBO_{ComboFile}{n}.wav?v=2",
+        "indung": "audio/KENDANG VOX/INDUNG/COMBO/VOX_INDUNG_{ComboFile}{n}.wav?v=2"
       }
     }
   ]

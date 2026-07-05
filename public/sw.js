@@ -11,7 +11,7 @@
  *     and reads always reflect server truth when online).
  */
 
-const VERSION = 'kp-v2';
+const VERSION = 'kp-v3';
 const STATIC_CACHE = `kendang-shell-${VERSION}`;
 const RUNTIME_STATIC = `kendang-static-${VERSION}`;
 const AUDIO_CACHE = 'kendang-audio'; // version-less so audio survives across deploys
