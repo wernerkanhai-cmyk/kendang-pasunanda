@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, Fragment } from 'react';
+import { useEffect, useLayoutEffect, useState, useRef, Fragment } from 'react';
 import ReactDOM from 'react-dom';
 import TrackRow from './TrackRow';
 import TempoTrack from './TempoTrack';
@@ -98,6 +98,12 @@ const PatternEditor = ({
   const [handleDrag, setHandleDrag] = useState(null); // { side: 'start'|'end', start: slot, end: slot }
   const timelineRef = useRef(null);
   const tracksContainerRef = useRef(null);
+  // Gemeten pixel-positie (offsetLeft) van elke cel. De cursor ankert hieraan
+  // i.p.v. aan de berekende float slot*slotWidth, want WebKit rondt de flex-cellen
+  // per stuk af; bij kleine slotWidth (portret) liep de cursor daardoor zichtbaar
+  // achter op het geluid. State (niet ref) zodat lezen tijdens render mag; wordt
+  // alleen herzet bij een layout-wijziging (zeldzaam). Zie de useLayoutEffect.
+  const [cellLefts, setCellLefts] = useState(null);
   const pendingSaveRange = useRef(null);
   const selectedRange = useRef(null);
   const [editingName, setEditingName] = useState(false);
@@ -597,6 +603,23 @@ const PatternEditor = ({
   const SOLO_BTN_W = 24; // 20px button + 4px margin
   const playheadSlot = (activeSlot?.patternId === pattern.id && activeSlot?.startIndex !== undefined)
     ? activeSlot.startIndex : null;
+
+  // Meet de werkelijke pixel-positie (offsetLeft) van elke cel, zodat de cursor
+  // exact op de klinkende noot valt i.p.v. op de afgeronde float. Hermeten bij
+  // elke breedte-/lengte-wijziging — o.a. bij het draaien van het toestel, dat de
+  // sub-pixel-drift tussen cursor en cellen anders zichtbaar maakte in portret.
+  useLayoutEffect(() => {
+    const container = tracksContainerRef.current;
+    if (!container) { setCellLefts(null); return; }
+    const cells = container.querySelectorAll('.slot-cell[data-slot-index]');
+    if (!cells.length) { setCellLefts(null); return; }
+    const lefts = [];
+    cells.forEach((c) => {
+      const i = Number(c.dataset.slotIndex);
+      if (lefts[i] === undefined) lefts[i] = c.offsetLeft; // eerste (bovenste) rij volstaat
+    });
+    setCellLefts(lefts);
+  }, [slotWidth, totalSlots]);
 
   const handlePlayheadPointerDown = (e) => {
     e.preventDefault();
@@ -1500,7 +1523,9 @@ const PatternEditor = ({
             position: 'absolute',
             top: 0,
             bottom: 0,
-            left: SOLO_BTN_W + playheadSlot * slotWidth,
+            // Anker op de gemeten celpositie (sub-pixel-safe); val terug op de
+            // berekende float als de meting er (nog) niet is.
+            left: SOLO_BTN_W + (cellLefts?.[playheadSlot] ?? playheadSlot * slotWidth),
             width: isLocked ? 4 : 2,
             background: isLocked ? 'rgba(212,175,55,0.9)' : 'rgba(59,130,246,0.85)',
             zIndex: 30,
