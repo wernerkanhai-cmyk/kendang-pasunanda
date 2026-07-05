@@ -386,7 +386,13 @@ export class SamplePlayer {
     const variants = this._variantsFor('vox');
     const variant  = Math.floor(Math.random() * variants) + 1;
     const key = `vox_combo_${track}_${combo}_${variant}`;
-    this._trigger(key, when, trackGain, 1.0, this.voxBuffers);
+    // Combo's krijgen dezelfde default per-klank-gain als losse klanken. Zonder
+    // dit speelden combo's op 1.0 terwijl losse klanken op PER_SOUND_DEFAULT.gain
+    // (3.0) spelen → ~9,5 dB zachter. De oude combo-opnames compenseerden dat door
+    // heter opgenomen te zijn; de nieuwe staan op hetzelfde bestandsniveau als de
+    // losse klanken, dus deze gelijktrekking herstelt de balans (geen clipping:
+    // hoogste combo-peak −11,4 dBFS × 3 = −1,9 dBFS).
+    this._trigger(key, when, trackGain * PER_SOUND_DEFAULT.gain, 1.0, this.voxBuffers);
   }
 
   /** Speel de auxiliary "gong" af (uit de InstrumentPack). */
