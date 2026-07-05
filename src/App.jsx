@@ -2629,6 +2629,8 @@ function App() {
                     <div style={{ height: '1px', background: '#2b3650', margin: '0.2rem 0' }} />
                     <button
                       onClick={async () => {
+                        // Bevestiging: deze knop wordt soms per ongeluk geraakt.
+                        if (!window.confirm(t('confirmPublishTemplate')(songName || 'Naamloos'))) return;
                         try {
                           await publishTemplate({
                             name: songName || 'Naamloos',
