@@ -276,16 +276,49 @@ function App() {
   const [inputEnabled, setInputEnabled] = useState(true); // Invoer op tijdlijn aan/uit
 
 
-  // Persist current working song so it survives page reloads and deploys
+  // If activePatternId points to a pattern that no longer exists in the song,
+  // reset to the first pattern so the transport bar stays visible. Blijft
+  // synchroon — de transportbalk mag geen frame wegvallen.
   useEffect(() => {
-    localStorage.setItem('kendangCurrentSong', JSON.stringify(song));
-    // If activePatternId points to a pattern that no longer exists in the song,
-    // reset to the first pattern so the transport bar stays visible.
     if (song.length > 0 && !song.some(p => p.id === activePatternId)) {
       setActivePatternId(song[0].id);
       setActiveSlot({ patternId: song[0].id, trackId: 'anak', startIndex: 0, endIndex: 0 });
     }
   }, [song]);
+
+  // Persist current working song so it survives page reloads and deploys.
+  // Gedebounced: dit serialiseerde de héle compositie bij elke bewerking, wat
+  // op een lange song merkbaar tikt tijdens het typen. 400ms na de laatste
+  // wijziging is ruim binnen wat je bij een herlaad terugverwacht.
+  const persistSongRef = useRef(song);
+  persistSongRef.current = song;
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        localStorage.setItem('kendangCurrentSong', JSON.stringify(song));
+      } catch { /* quota vol of private mode — niets zinnigs te doen */ }
+    }, 400);
+    return () => clearTimeout(id);
+  }, [song]);
+
+  // Vangnet voor het debounce-venster: sluit je af of ga je naar de achtergrond
+  // binnen die 400ms, dan schrijven we alsnog meteen weg. Op iOS is beforeunload
+  // onbetrouwbaar, vandaar pagehide + visibilitychange.
+  useEffect(() => {
+    const flush = () => {
+      try {
+        localStorage.setItem('kendangCurrentSong', JSON.stringify(persistSongRef.current));
+      } catch { /* zie boven */ }
+    };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+      flush();
+    };
+  }, []);
   useEffect(() => {
     if (activePatternId) localStorage.setItem('kendangCurrentPatternId', activePatternId);
   }, [activePatternId]);

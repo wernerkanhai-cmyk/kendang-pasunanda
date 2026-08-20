@@ -30,6 +30,12 @@ const getVerticalPositionClass = (value, hand) => {
   return 'pos-line';
 };
 
+// Triolen-offsets binnen een groep. Constant, dus op module-niveau: in de
+// component stonden ze in de render-body en werden ze bij elke render van elke
+// track-rij opnieuw gealloceerd.
+const TRIPLET_8T  = new Set([0, 4, 8]);
+const TRIPLET_16T = new Set([0, 2, 4]);
+
 const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange = null, onSlotClick, slotWidth = 12, onNoteMove, gridResolution = 6, gong = [], onInsertSymbol, onClearSlot, isLocked = false, selectMode = false, onRangeSelect }) => {
   const t = useT();
   const [dragOverSlot, setDragOverSlot] = useState(null);
@@ -253,8 +259,6 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
   //
   // Rule: ALL notes for this hand in the group must be at triplet positions,
   //       AND at least one note is NOT at the first position (avoids false positives).
-  const TRIPLET_8T  = new Set([0, 4, 8]);
-  const TRIPLET_16T = new Set([0, 2, 4]);
   const handTriplets = useMemo(() => {
     const found = [];
     const detect = (groupSize, offsets, type, nonFirstOffsets) => {
@@ -486,7 +490,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
     const topBeams = calculateBeamsForHand('top');
     const bottomBeams = calculateBeamsForHand('bottom');
     return [...topBeams, ...bottomBeams];
-  }, [slots, collapsedRests, impliedRests]);
+  }, [slots, collapsedRests, impliedRests, handTriplets]);
 
   return (
     <div className={`track-row theme-${theme}`}>

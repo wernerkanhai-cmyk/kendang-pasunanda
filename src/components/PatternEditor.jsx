@@ -191,7 +191,7 @@ const PatternEditor = ({
             timelineRef.current.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
         }
     }
-  }, [activeSlot, isPlaying, isActive]);
+  }, [activeSlot, isPlaying, isActive, slotWidth]);
 
   // Scroll playhead into view after stepBack
   useEffect(() => {
@@ -338,45 +338,65 @@ const PatternEditor = ({
     updatePattern(updated);
   };
 
+  // Alles wat de sneltoetsen aanroepen staat in een ref die na elke render wordt
+  // ververst. Reden: togglePlay, handleUndo, handleRedo en onDrumTrigger zijn
+  // props die App.jsx bij iedere render opnieuw aanmaakt, en ze sluiten staat af
+  // die niet in de dependency-lijst van deze effect stond — undoStack, redoStack,
+  // inputEnabled, isRecording, autoQuantize, gridResolution en song. Herbond de
+  // effect net niet, dan draaide een sneltoets op verouderde waarden (bv. een
+  // tweede Ctrl+Z die dezelfde stap nog eens terugdraaide). Via de ref pakt de
+  // listener altijd de nieuwste versie, en binden we nog maar één keer in plaats
+  // van bij elke wijziging van zes dependencies.
+  const shortcutsRef = useRef(null);
+  useLayoutEffect(() => {
+    shortcutsRef.current = {
+      isActive, activeSlot, notationPack,
+      togglePlay, handleUndo, handleRedo, onDrumTrigger,
+      getActiveRange, handleClear, handleToggleAccent,
+    };
+  });
+
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const s = shortcutsRef.current;
+      if (!s) return;
       // Only handle if this specific pattern editor is the currently active one
-      if (!isActive) return;
+      if (!s.isActive) return;
       if (document.activeElement.tagName === 'INPUT') return; // Don't steal backspace from naming input
 
       if (e.key === ' ') {
         e.preventDefault();
-        togglePlay();
+        s.togglePlay();
         return;
       }
 
       if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === 'z') {
         e.preventDefault();
-        handleUndo?.();
+        s.handleUndo?.();
         return;
       }
 
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'z') {
         e.preventDefault();
-        handleRedo?.();
+        s.handleRedo?.();
         return;
       }
 
       if (e.key === 'Backspace' || e.key === 'Delete') {
-        const range = getActiveRange();
+        const range = s.getActiveRange();
         if (range) {
            e.preventDefault();
-           handleClear();
+           s.handleClear();
         }
         return;
       }
 
       // '>' (Shift+.) toggles accent on every note in the active selection
       if (e.key === '>') {
-        const range = getActiveRange();
+        const range = s.getActiveRange();
         if (range) {
           e.preventDefault();
-          handleToggleAccent();
+          s.handleToggleAccent();
         }
         return;
       }
@@ -387,21 +407,21 @@ const PatternEditor = ({
       // De rest is universeel '.'.
       const keyToSound = {};
       keyToSound['.'] = '.';
-      const map = notationPack?.soundToGlyph || {};
+      const map = s.notationPack?.soundToGlyph || {};
       for (const [sound, glyph] of Object.entries(map)) {
         keyToSound[glyph] = sound;
         if (/^[A-Z]$/.test(glyph)) keyToSound[glyph.toLowerCase()] = sound;
       }
       const sound = keyToSound[e.key];
-      if (sound && onDrumTrigger) {
+      if (sound && s.onDrumTrigger) {
         e.preventDefault();
-        onDrumTrigger(sound, activeSlot?.trackId || 'anak');
+        s.onDrumTrigger(sound, s.activeSlot?.trackId || 'anak');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isActive, activeSlot, pattern, isPlaying, isLocked, notationPack]); // isLocked ensures handleClear sees latest lock state
+  }, []); // bindt één keer; verse handlers komen uit shortcutsRef
 
   const handleCopy = () => {
     const range = getActiveRange() || selectedRange.current;
