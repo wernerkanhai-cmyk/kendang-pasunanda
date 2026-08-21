@@ -1,9 +1,15 @@
 -- ═══════════════════════════════════════════════════════════════════════
 -- KENDANG PASUNANDA — handmatige back-up
 --
--- Waarom: de gratis Supabase-tier maakt GEEN automatische back-ups. Gaat er
--- iets mis met de database, dan is alles weg. Tot de overstap naar Pro (die
--- wel dagelijkse back-ups doet) is dit het vangnet.
+-- Waarom: dit project draait op Supabase Pro, dat automatische dagelijkse
+-- back-ups maakt met een beperkte bewaartermijn (standaard zeven dagen;
+-- controleer de actuele termijn onder Database > Backups). Die dekken het
+-- normale geval al af.
+--
+-- Dit script is de extra laag daarbovenop, voor wat de automatische back-ups
+-- NIET dekken: iets dat je pas na de bewaartermijn ontdekt, en problemen met
+-- het account of de organisatie zelf. Een kopie buiten Supabase kost je een
+-- minuut en is dan het verschil. Geen haast, wel goed om af en toe te doen.
 --
 -- Gebruik: plak in Supabase > SQL Editor > Run, dan Export > Download CSV.
 -- Bewaar dat bestand ergens buiten Supabase (Dropbox, externe schijf).
