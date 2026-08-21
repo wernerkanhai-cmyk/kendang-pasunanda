@@ -27,10 +27,7 @@ select jsonb_pretty(jsonb_build_object(
                         'snippets','templates','snippet_templates')
   ),
 
-  -- Welke eigenaar-/koppelkolom heeft elke tabel? patterns, song_lines en
-  -- measures hebben geen user_id: hun policy moet via een subquery terug
-  -- naar songs wijzen. Ontbreekt die, dan is de muziekinhoud te lezen
-  -- ook als de songs-rij zelf afgeschermd is.
+  -- Directe eigenaar-kolommen (user_id / author_id).
   'eigenaar_kolommen', (
     select jsonb_agg(jsonb_build_object('tabel', table_name, 'kolom', column_name)
              order by table_name, column_name)
@@ -38,7 +35,33 @@ select jsonb_pretty(jsonb_build_object(
     where table_schema = 'public'
       and table_name in ('songs','patterns','song_lines','measures',
                          'snippets','templates','snippet_templates')
-      and column_name in ('user_id','author_id','song_id','pattern_id','song_line_id')
+      and column_name in ('user_id','author_id')
+  ),
+
+  -- Hoe hangen de geneste tabellen aan hun eigenaar? patterns, song_lines en
+  -- measures hebben geen user_id, dus hun policy moet via deze koppelingen
+  -- terug naar songs wijzen. Ontbreekt zo'n policy, dan is de muziekinhoud
+  -- leesbaar ook als de songs-rij zelf afgeschermd is.
+  --
+  -- Uitgelezen uit de echte foreign keys in plaats van uit een lijst met
+  -- geraden kolomnamen: measures koppelt via `line_id`, niet `song_line_id`,
+  -- en dat miste een eerdere versie van dit script daardoor.
+  'koppelingen', (
+    select jsonb_agg(jsonb_build_object(
+             'tabel',         src.relname,
+             'kolom',         att.attname,
+             'verwijst_naar', tgt.relname
+           ) order by src.relname, att.attname)
+    from pg_constraint con
+    join pg_class     src on src.oid = con.conrelid
+    join pg_class     tgt on tgt.oid = con.confrelid
+    join pg_namespace ns  on ns.oid  = src.relnamespace
+    join unnest(con.conkey) as ck(attnum) on true
+    join pg_attribute att on att.attrelid = con.conrelid and att.attnum = ck.attnum
+    where con.contype = 'f'
+      and ns.nspname = 'public'
+      and src.relname in ('songs','patterns','song_lines','measures',
+                          'snippets','templates','snippet_templates')
   ),
 
   -- De policies zelf. 'true' in using betekent "iedereen mag alles zien".
