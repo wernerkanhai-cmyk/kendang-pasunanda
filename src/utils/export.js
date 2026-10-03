@@ -20,21 +20,41 @@ const MARGIN_Y = 80;
 const USABLE_W = CW - 2 * MARGIN_X; // 1634 px
 const USABLE_H = CH - 2 * MARGIN_Y; // 2320 px
 
+// ─── Tekstgrootte in punten ───────────────────────────────────────────────────
+// Alle maten in dit bestand staan in canvas-pixels, maar de canvas is ~212 dpi
+// (1754 px over de 210 mm van een A4). Eén punt is daar 2,95 px, dus "twee punten
+// groter" is bijna zes pixels — een stuk meer dan het klinkt. Draai aan
+// FONT_BUMP_PT als de tekst op papier nog niet goed leest; de lettergroottes, de
+// hoogte van de notenbalk en de positie van de bovenbeams rekenen er allemaal
+// mee, zodat de verhoudingen kloppen blijven.
+//
+// Staat bewust vóór de Row layout: TRACK_H rekent met FONT_BUMP_PX.
+const PX_PER_PT    = (CW / (210 / 25.4)) / 72; // ≈ 2,95 canvas-px per punt
+const FONT_BUMP_PT = 2;                        // 03-10-2026: +2 pt voor leesbaarheid op papier
+const FONT_BUMP_PX = Math.round(FONT_BUMP_PT * PX_PER_PT); // ≈ 6 px bij +2 pt
+const bumped = (px) => px + FONT_BUMP_PX;
+
 // ─── Row layout ────────────────────────────────────────────────────────────────
 const ROWS_PER_PAGE  = 4;
 const TITLE_BLOCK_H  = 120; // reserved height for song title on first page
 const ROW_SLOT_H     = Math.floor(USABLE_H / ROWS_PER_PAGE); // 408 px per row slot
 
 const NAME_H        = 28;  // pattern-name label height
-const TRACK_H       = 115; // height of each track band (anak or indung)
+// De balk moet meegroeien met het font, anders loopt de omhoog geschoven beam
+// tegen de bovenrand (en het gong-kader) aan. Twee keer de bump: de middellijn
+// zit in het midden, dus er is boven én onder evenveel extra ruimte nodig.
+// Ruimte zat: een rij krijgt ROW_SLOT_H (~580 px) toebedeeld en de inhoud blijft
+// daar ruim onder.
+const TRACK_H       = 115 + 2 * FONT_BUMP_PX; // height of each track band (anak or indung)
 const SEPARATOR_H   = 32;  // gap between anak and indung bands
 // Gap between bottom of music area and next row name:  ROW_SLOT_H - NAME_H - (TRACK_H*2+SEPARATOR_H) = 60 px
 
 // ─── Typography ────────────────────────────────────────────────────────────────
-const SYM_SIZE      = 22; // regular symbol font size (px)
-const REST_SIZE     = 26; // rest / empty-dot font size (px)
-const MAAT_NUM_SIZE = 16;
-const NAME_SIZE     = 17;
+const SYM_SIZE      = bumped(22); // notatie-glyphs en rustpunten   7,5 -> 9,5 pt
+const MAAT_NUM_SIZE = bumped(16); // maatnummers                    5,4 -> 7,5 pt
+const NAME_SIZE     = bumped(17); // regelnaam                      5,8 -> 7,8 pt
+const TITLE_SIZE    = bumped(42); // songtitel op pagina 1         14,3 -> 16,3 pt
+const PAGENUM_SIZE  = bumped(22); // paginanummer                   7,5 -> 9,5 pt
 
 // ─── Lijndikte & tekstgewicht voor print ──────────────────────────────────────
 // De canvas is 1754 px breed voor een A4 van 210 mm, dus 1 px ≈ 0,12 mm op
@@ -235,9 +255,12 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       const annoKey = measureOffset + bar; // global measure index
       const annoText = annotations[annoKey] || annotations[bar];
       if (annoText) {
+        // Meet de breedte van het cijfer nog in het cijfer-font; daarna pas
+        // omschakelen. Andersom leverde een te kleine breedte op, waardoor de
+        // annotatie tegen het maatnummer aan kwam te staan.
+        const numWidth = ctx.measureText(String(bar + 1 + measureOffset)).width;
         ctx.fillStyle = '#64748b';
         ctx.font = `italic ${Math.round(MAAT_NUM_SIZE * 0.75)}px Inter, sans-serif`;
-        const numWidth = ctx.measureText(String(bar + 1 + measureOffset)).width;
         drawText(ctx, annoText, x + 8 + numWidth, trackY_anak - 3, TEXT_WEIGHT.label);
       }
     }
@@ -465,8 +488,14 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
 // ─── Default PDF layout settings (overridable via settings param) ──────────────
 export const DEFAULT_PDF_SETTINGS = {
-  beamTop1:    -46,  // beam level 1 above null line
-  beamTop2:    -40,  // beam level 2 above null line
+  // Alleen de bovenste beams schuiven mee met de fontgroei, en dat is niet
+  // willekeurig: top-hand-symbolen staan op baseline 'bottom' met hun ONDERkant
+  // vast aan de middellijn, dus een groter font groeit omhoog — de beam tegemoet.
+  // Bottom-hand-symbolen staan op baseline 'top' met hun BOVENkant vast, dus die
+  // groeien van hun beam wég; die offsets moeten juist ongemoeid blijven. Schoof
+  // ik ze toch mee, dan sneed de beam dwars door de glyph heen.
+  beamTop1:    -46 - FONT_BUMP_PX,  // beam level 1 above null line
+  beamTop2:    -40 - FONT_BUMP_PX,  // beam level 2 above null line
   beamBottom1:  12,  // beam level 1 below null line
   beamBottom2:  18,  // beam level 2 below null line
   // Per-track symbol offsets (px from null line) — mirrored from TrackRow.css
@@ -556,7 +585,7 @@ export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) 
     const titleOffset = isFirstPage && songTitle ? TITLE_BLOCK_H : 0;
     if (isFirstPage && songTitle) {
       ctx.fillStyle = '#1e293b';
-      ctx.font = `bold 42px Inter, sans-serif`;
+      ctx.font = `bold ${TITLE_SIZE}px Inter, sans-serif`;
       ctx.textBaseline = 'alphabetic';
       ctx.textAlign = 'center';
       ctx.fillText(songTitle, CW / 2, MARGIN_Y + 56);
@@ -584,7 +613,7 @@ export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) 
 
     // Page number, bottom center
     ctx.fillStyle = '#94a3b8';
-    ctx.font = `22px Inter, sans-serif`;
+    ctx.font = `${PAGENUM_SIZE}px Inter, sans-serif`;
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'center';
     drawText(ctx, `${pageNum} / ${totalPages}`, CW / 2, CH - 28, TEXT_WEIGHT.label);
