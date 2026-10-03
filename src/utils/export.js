@@ -53,6 +53,14 @@ const STROKE = {
   gongLine: 3,   // gong-middellijn    was 2   px (0,24 mm) -> 0,36 mm
 };
 
+// Hoe ver een beam doorloopt voorbij de slotgrens van zijn laatste noot, in
+// slotbreedtes. Een noot staat in het midden van zijn slot, dus bij 1,0 eindigde
+// de beam een halve slot ná het symbool — dat deed hem te lang ogen. Op 0,75
+// (03-10-2026) hangt het laatste symbool strakker onder het uiteinde. Bij 0,5
+// zou de beam precies op het midden van het symbool eindigen, wat te kaal werd
+// bevonden.
+const BEAM_TAIL = 0.75;
+
 // Extra omtrek op tekst, in px. Verdikt de letters zónder ze groter te maken of
 // te verschuiven — de glyph-metriek blijft identiek, dus de uitlijning van
 // symbolen, maatnummers en annotaties verandert niet. Nodig omdat het
@@ -130,10 +138,12 @@ function calculateBeams(slots) {
       const is8T = activeIndices.every(n => TRIPLET_OFFSETS.has(n)) && activeIndices.some(n => n === 4 || n === 8);
       const is16T = has16T(beatStart, position);
       if (is8T || is16T) {
-        // Beam spans the full triplet grid (0–8 for 8T, 0–4 for 16T),
-        // including rest positions — they are part of the group.
-        const tripletEnd = is8T ? 9 : 4;
-        results.push({ startIdx: beatStart, span: tripletEnd + 1, level: 1, position });
+        // Beam loopt tot de LAATSTE trioolpositie (8 bij 8T, 4 bij 16T),
+        // rustposities binnen de groep meegerekend. Stond hier eerder
+        // tripletEnd + 1 met tripletEnd = 9, waardoor een 8T-beam tot slot 11
+        // doorliep terwijl de laatste noot op 8 staat — ruim twee slots te ver.
+        const tripletEnd = is8T ? 8 : 4;
+        results.push({ startIdx: beatStart, span: tripletEnd, level: 1, position });
         continue;
       }
 
@@ -270,7 +280,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     for (const beam of beams) {
       const beamNudge = (beam.startIdx % 12 === 0) ? SLOT_W * 0.5 : 0;
       const bx = rowX + beam.startIdx * SLOT_W + beamNudge;
-      const bw = (beam.span + 1) * SLOT_W - beamNudge;
+      const bw = (beam.span + BEAM_TAIL) * SLOT_W - beamNudge;
       const by = nullY + (beam.position === 'top'
         ? (beam.level === 1 ? cfg.beamTop1    : cfg.beamTop2) - topBeamShift
         : (beam.level === 1 ? cfg.beamBottom1 : cfg.beamBottom2));
@@ -314,7 +324,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       hasBeam.add(key);
       const nudge = (beam.startIdx % 12 === 0) ? SLOT_W * 0.5 : 0;
       const left  = beam.startIdx * SLOT_W + nudge;
-      const right = (beam.startIdx + beam.span + 1) * SLOT_W;
+      const right = (beam.startIdx + beam.span + BEAM_TAIL) * SLOT_W;
       const prev  = beamSpanX[key];
       beamSpanX[key] = prev
         ? { left: Math.min(prev.left, left), right: Math.max(prev.right, right) }
