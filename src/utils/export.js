@@ -303,9 +303,22 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     // A beam means the hand has a visible rhythmic structure (even if only 1 real note
     // plus a rest-dot) — so the other hand's lone symbol should align with it, not center.
     const hasBeam = new Set();
+    // Horizontale uitstrekking van de beam(s) per tel en hand, berekend met
+    // exact dezelfde formule als waarmee ze verderop getekend worden — anders
+    // ligt "het midden" net naast de streep die je ziet. Meerdere beams in één
+    // tel (niveau 1 en 2) worden samengenomen tot één buitenmaat.
+    const beamSpanX = {}; // key: `${beatStart}-${position}` → { left, right }
     for (const beam of beams) {
       const beatStart = Math.floor(beam.startIdx / 12) * 12;
-      hasBeam.add(`${beatStart}-${beam.position}`);
+      const key = `${beatStart}-${beam.position}`;
+      hasBeam.add(key);
+      const nudge = (beam.startIdx % 12 === 0) ? SLOT_W * 0.5 : 0;
+      const left  = beam.startIdx * SLOT_W + nudge;
+      const right = (beam.startIdx + beam.span + 1) * SLOT_W;
+      const prev  = beamSpanX[key];
+      beamSpanX[key] = prev
+        ? { left: Math.min(prev.left, left), right: Math.max(prev.right, right) }
+        : { left, right };
     }
     // Second pass: don't center a lone symbol if:
     //   - its OWN hand has a beam (rest+note pattern → note should stay at its slot)
@@ -387,11 +400,21 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
           ctx.globalAlpha  = 1.0;
 
           if (!beatHasNoteForHand) {
-            // Quarter-rest: center in the beat, unless the other hand has a beam —
-            // in that case align with the beam start (slot 0 + nudge).
+            // Deze hand heeft geen enkele slag in de tel en krijgt dus één
+            // kwartrust-stip. Staat daar aan de andere kant van de basislijn een
+            // beam tegenover, dan hoort die ene stip in het MIDDEN van die beam
+            // te staan — hij verbeeldt immers de hele tel, niet het beginpunt
+            // ervan. Stond hij eerder tegen de beamstart aan, waardoor hij
+            // scheef oogde onder een beam die verderop lag.
+            //
+            // Zonder beam aan de overkant blijft hij in het midden van de tel.
             const other = hand === 'top' ? 'bottom' : 'top';
             const otherHasBeam = hasBeam.has(`${beatStart}-${other}`) || noteCount[`${beatStart}-${other}`] >= 2;
-            if (otherHasBeam) {
+            const span = beamSpanX[`${beatStart}-${other}`];
+            if (otherHasBeam && span) {
+              drawText(ctx, '.', rowX + (span.left + span.right) / 2, dotY[hand], TEXT_WEIGHT.symbol);
+            } else if (otherHasBeam) {
+              // Twee of meer slagen maar geen beam: val terug op het oude gedrag.
               drawText(ctx, '.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
             } else {
               drawText(ctx, '.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
