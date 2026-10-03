@@ -382,14 +382,27 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
             s[hand] !== '' && s[hand] !== SYMBOL_REST
           );
           if (!beatHasNoteForHand) continue;
+          // Rule 2: dot at pos 6 when pos 9 has a note (plek 3→4 lead-in)
+          const dotAtSix = slot6 && slot9 &&
+            (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
+             slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST;
+
+          // Staat er maar één slag in de tel, dan hoort daar hooguit één
+          // rust-stip bij. Valt die slag op positie 9, dan vuren beide regels:
+          // een stip onder de enkele balk (8e) én een onder de dubbele (16e).
+          // De eerste is dan overbodig. Bij twee of meer slagen blijven ze
+          // allebei staan, want dan hoort elke stip bij een eigen noot.
+          // Zelfde regel als in utils/export.js — scherm en PDF horen gelijk.
+          const soloSlag = beatSlots.filter(sl =>
+            sl[hand] !== '' && sl[hand] !== SYMBOL_REST
+          ).length === 1;
+
           // Rule 1: dot at beat-start when pos 0 is empty for this hand
-          if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
+          if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)
+              && !(soloSlag && dotAtSix)) {
             result.add(`${beatStart}-${hand}`);
           }
-          // Rule 2: dot at pos 6 when pos 9 has a note (plek 3→4 lead-in)
-          if (slot6 && slot9 &&
-              (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
-               slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST) {
+          if (dotAtSix) {
             result.add(`${beatStart + 6}-${hand}`);
           }
         }
