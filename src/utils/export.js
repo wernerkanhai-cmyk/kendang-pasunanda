@@ -81,7 +81,13 @@ const STROKE = {
 //
 // Geldt voor symbool, rustpunt én beamstart tegelijk — die drie horen op dezelfde
 // x te beginnen, dus ze schuiven samen op.
-const BAR_START_NUDGE = 2;
+//
+// Bewust alléén de eerste noot, niet de hele eerste tel. Het slotraster ligt vast
+// over de regelbreedte, dus ruimte na de maatstreep moet ergens vandaan komen.
+// Verschuif je de hele tel, dan verhuist de krapte naar de overgang tel 1 -> tel 2;
+// zo blijft ze binnen die ene tel, waar het eerste interval iets korter wordt. Dat
+// is op 03-10-2026 bewust zo gekozen boven het alternatief.
+const BAR_START_NUDGE = 5;
 
 // Extra omtrek op tekst, in px. Verdikt de letters zónder ze groter te maken of
 // te verschuiven — de glyph-metriek blijft identiek, dus de uitlijning van
