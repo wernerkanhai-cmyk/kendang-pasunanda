@@ -73,6 +73,16 @@ const STROKE = {
   gongLine: 3,   // gong-middellijn    was 2   px (0,24 mm) -> 0,36 mm
 };
 
+// Extra lucht direct na een maatstreep, in px. Een symbool op slot 0 van een maat
+// staat op rowX + SLOT_W (≈ 8,5 px) en wordt gecentreerd getekend, dus de linker
+// glyphrand landt rond rowX + 1,5 — precies waar de 3 px dikke maatstreep ophoudt.
+// Ze raken elkaar daardoor. Alleen bij een onderverdeelde tel: valt er één klank
+// op de hele tel, dan staat die toch al in het midden van de tel.
+//
+// Geldt voor symbool, rustpunt én beamstart tegelijk — die drie horen op dezelfde
+// x te beginnen, dus ze schuiven samen op.
+const BAR_START_NUDGE = 2;
+
 // Extra omtrek op tekst, in px. Verdikt de letters zónder ze groter te maken of
 // te verschuiven — de glyph-metriek blijft identiek, dus de uitlijning van
 // symbolen, maatnummers en annotaties verandert niet. Nodig omdat het
@@ -291,9 +301,12 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     const beams = calculateBeams(slots);
     ctx.lineWidth = STROKE.beam;
     for (const beam of beams) {
+      // De beam begint bij zijn eerste noot, dus hij krijgt dezelfde verschuiving
+      // als dat symbool — anders steekt hij links buiten de noot uit.
       const beamNudge = (beam.startIdx % 12 === 0) ? SLOT_W * 0.5 : 0;
-      const bx = rowX + beam.startIdx * SLOT_W + beamNudge;
-      const bw = (beam.span + 1) * SLOT_W - beamNudge;
+      const beamBarGap = (beam.startIdx % SLOTS_PER_BAR === 0) ? BAR_START_NUDGE : 0;
+      const bx = rowX + beam.startIdx * SLOT_W + beamNudge + beamBarGap;
+      const bw = (beam.span + 1) * SLOT_W - beamNudge - beamBarGap;
       const by = nullY + (beam.position === 'top'
         ? (beam.level === 1 ? cfg.beamTop1    : cfg.beamTop2) - topBeamShift
         : (beam.level === 1 ? cfg.beamBottom1 : cfg.beamBottom2));
@@ -371,7 +384,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
                       : localSlot === 3 ? SLOT_W * 0.33
                       : localSlot === 6 ? SLOT_W * 0.17
                       : 0;
-          x = rowX + i * SLOT_W + SLOT_W / 2 + nudge;
+          const barGap = (i % SLOTS_PER_BAR === 0) ? BAR_START_NUDGE : 0;
+          x = rowX + i * SLOT_W + SLOT_W / 2 + nudge + barGap;
         }
 
         ctx.globalAlpha  = 1.0;
@@ -382,6 +396,12 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       ctx.globalAlpha = 1.0;
     }
     ctx.textAlign = 'left'; // reset for other drawing
+
+    // x van een rustpunt op slot 0 van een tel — zelfde formule als het symbool
+    // daar, inclusief de extra lucht als die tel op een maatstreep valt.
+    const beatStartDotX = (beatStart) =>
+      rowX + beatStart * SLOT_W + SLOT_W
+      + ((beatStart % SLOTS_PER_BAR === 0) ? BAR_START_NUDGE : 0);
 
     // ── Rest dots: quarter rests + implied rests (same rules as screen) ───────
     ctx.font      = `${SYM_SIZE}px Kendang, monospace`;
@@ -415,7 +435,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
             const other = hand === 'top' ? 'bottom' : 'top';
             const otherHasBeam = hasBeam.has(`${beatStart}-${other}`) || noteCount[`${beatStart}-${other}`] >= 2;
             if (otherHasBeam) {
-              drawText(ctx, '.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
+              drawText(ctx, '.', beatStartDotX(beatStart), dotY[hand], TEXT_WEIGHT.symbol);
             } else {
               drawText(ctx, '.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
             }
@@ -430,7 +450,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
                 // Align with the other hand's centered symbol
                 drawText(ctx, '.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
               } else {
-                drawText(ctx, '.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
+                drawText(ctx, '.', beatStartDotX(beatStart), dotY[hand], TEXT_WEIGHT.symbol);
               }
             }
             if (slot6 && slot9 &&
