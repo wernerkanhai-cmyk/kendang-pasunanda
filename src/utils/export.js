@@ -153,7 +153,7 @@ function calculateBeams(slots) {
       // Extend beam back to beat start when pos 0 has a data rest
       const beatStartVal = position === 'top' ? slots[beatStart]?.top : slots[beatStart]?.bottom;
       const hasBeatStartRest = beatStartVal === SYMBOL_REST;
-      const l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
+      let l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
 
       // Extend l1 1 slot if 2nd half has only one note; align with rightmost l2 endpoint.
       const secondHalfNotes = activeIndices.filter(i => i >= 6);
@@ -164,16 +164,45 @@ function calculateBeams(slots) {
         const l2RightSlot = maxBlock * 6 + 4;
         if (l2RightSlot > l1End) l1End = Math.min(l2RightSlot, 11);
       }
+      // Een beam hoort niet voorbij zijn eigen laatste noot door te lopen. De
+      // twee regels hierboven rekken hem op tot de blokgrens: l1End krijgt
+      // lastNote + 1 zodra de tweede helft één noot heeft, en l2RightSlot gaat
+      // uit van een vol 16e-blok. Staat er dan maar één noot op plek 4 van de
+      // tel, dan eindigde de beam ruim een slot voorbij die noot.
+      // Alleen afklemmen wanneer er 16en in het spel zijn: dát is het geval
+      // waarin de balk tot de blokgrens werd opgerekt. Een losse 8e houdt zijn
+      // stompje naar rechts — klem je dat ook af, dan valt de balk samen met de
+      // noot en verdwijnt hij volledig.
+      if (sixteenthsForL1.length > 0) {
+        l1End = Math.min(l1End, lastNote);
+
+        // Is de noot óók het beginpunt, dan zou afklemmen de balk alsnog laten
+        // verdwijnen. Laat hem dan naar LINKS lopen vanaf het begin van zijn
+        // 16e-blok — over de rust-stip die daar toch al staat — in plaats van
+        // naar rechts voorbij de noot uit te steken.
+        if (l1End <= l1Start) {
+          l1Start = Math.floor(lastNote / 6) * 6;
+          l1End   = lastNote;
+        }
+      }
+
       const l1Span = l1End - l1Start;
       if (l1Span > 0) {
         results.push({ startIdx: beatStart + l1Start, span: l1Span, level: 1, position });
       }
 
-      // Level 2: only the 8th-block(s) actually containing a 16th note, span=4
+      // Level 2: only the 8th-block(s) actually containing a 16th note. De span
+      // was vast 4 (het hele blok); nu loopt hij tot de laatste noot ín dat blok,
+      // zodat ook deze balk bij zijn noot ophoudt.
       if (sixteenthsForL1.length > 0 && l1Span > 0) {
         const blocks = new Set(sixteenthsForL1.map(i => Math.floor(i / 6)));
         blocks.forEach(blockIdx => {
-          results.push({ startIdx: beatStart + blockIdx * 6, span: 4, level: 2, position });
+          const blockStart  = blockIdx * 6;
+          const lastInBlock = Math.max(...activeIndices.filter(i => Math.floor(i / 6) === blockIdx));
+          const span = Math.min(blockStart + 4, lastInBlock) - blockStart;
+          if (span > 0) {
+            results.push({ startIdx: beatStart + blockStart, span, level: 2, position });
+          }
         });
       }
     }
