@@ -36,6 +36,51 @@ const REST_SIZE     = 26; // rest / empty-dot font size (px)
 const MAAT_NUM_SIZE = 16;
 const NAME_SIZE     = 17;
 
+// ─── Lijndikte & tekstgewicht voor print ──────────────────────────────────────
+// De canvas is 1754 px breed voor een A4 van 210 mm, dus 1 px ≈ 0,12 mm op
+// papier. Drukwerkvuistregel: onder ~0,25 mm wordt een lijn onbetrouwbaar — hij
+// oogt grijs en kan deels wegvallen op een kantoorprinter. De oorspronkelijke
+// waarden zaten daar grotendeels onder (beams op 1 px = 0,12 mm), vandaar dat
+// het op scherm goed oogde maar op papier te dun uitviel.
+//
+// Wil je het globaal zwaarder of lichter: pas deze vijf getallen aan, dat is de
+// enige plek waar lijndikte wordt bepaald.
+const STROKE = {
+  staff:    2.5, // null-/middellijn   was 1.5 px (0,18 mm) -> 0,30 mm
+  bar:      3,   // maatstrepen        was 2   px (0,24 mm) -> 0,36 mm
+  beam:     2.5, // beams              was 1   px (0,12 mm) -> 0,30 mm
+  gongBox:  4,   // gong-kader         was 3   px (0,36 mm) -> 0,48 mm
+  gongLine: 3,   // gong-middellijn    was 2   px (0,24 mm) -> 0,36 mm
+};
+
+// Extra omtrek op tekst, in px. Verdikt de letters zónder ze groter te maken of
+// te verschuiven — de glyph-metriek blijft identiek, dus de uitlijning van
+// symbolen, maatnummers en annotaties verandert niet. Nodig omdat het
+// notatie-font (NeoDamina) maar één gewicht heeft en dus geen echte bold kent;
+// voor de Inter-teksten houdt het de behandeling consistent.
+const TEXT_WEIGHT = {
+  symbol: 0.7, // notatie-glyphs en rustpunten
+  label:  0.4, // maatnummers, annotaties, regelnaam, paginanummer
+};
+
+// Tekent tekst en trekt hem daarna over met een dunne omtrek in dezelfde kleur.
+// Alleen de drie betrokken context-eigenschappen worden hersteld; een volledige
+// save()/restore() is hier te duur, dit draait per glyph in een lus.
+function drawText(ctx, text, x, y, bolden = 0) {
+  ctx.fillText(text, x, y);
+  if (bolden <= 0) return;
+  const prevStroke = ctx.strokeStyle;
+  const prevWidth  = ctx.lineWidth;
+  const prevJoin   = ctx.lineJoin;
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.lineWidth   = bolden;
+  ctx.lineJoin    = 'round';
+  ctx.strokeText(text, x, y);
+  ctx.strokeStyle = prevStroke;
+  ctx.lineWidth   = prevWidth;
+  ctx.lineJoin    = prevJoin;
+}
+
 // ─── Music constants ───────────────────────────────────────────────────────────
 const BARS_PER_ROW    = 4;
 const SLOTS_PER_BAR   = 48;
@@ -138,7 +183,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
     ctx.fillStyle = '#1e293b';
     ctx.font = `bold ${NAME_SIZE}px Inter, sans-serif`;
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText(patternName, rowX, rowY + 1);
+    drawText(ctx, patternName, rowX, rowY + 1, TEXT_WEIGHT.label);
   }
 
   // ── 2. Track backgrounds ─────────────────────────────────────────────────────
@@ -149,7 +194,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   // 4px white gap between anak and indung (no separator line)
 
   // ── 3. Null / staff lines (anak=black, indung=red) ───────────────────────────
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = STROKE.staff;
 
   ctx.strokeStyle = 'rgba(0,0,0,0.3)';
   ctx.beginPath();
@@ -164,7 +209,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   ctx.stroke();
 
   // ── 4. Bar lines + measure numbers ───────────────────────────────────────────
-  ctx.lineWidth = 2;
+  ctx.lineWidth = STROKE.bar;
   for (let bar = 0; bar <= BARS_PER_ROW; bar++) {
     const x = rowX + bar * SLOTS_PER_BAR * SLOT_W;
 
@@ -184,7 +229,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
       ctx.fillStyle = '#475569';
       ctx.font = `${MAAT_NUM_SIZE}px Inter, sans-serif`;
       ctx.textBaseline = 'bottom';
-      ctx.fillText(String(bar + 1 + measureOffset), x + 5, trackY_anak - 3);
+      drawText(ctx, String(bar + 1 + measureOffset), x + 5, trackY_anak - 3, TEXT_WEIGHT.label);
 
       // Annotation text next to measure number
       const annoKey = measureOffset + bar; // global measure index
@@ -193,7 +238,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
         ctx.fillStyle = '#64748b';
         ctx.font = `italic ${Math.round(MAAT_NUM_SIZE * 0.75)}px Inter, sans-serif`;
         const numWidth = ctx.measureText(String(bar + 1 + measureOffset)).width;
-        ctx.fillText(annoText, x + 8 + numWidth, trackY_anak - 3);
+        drawText(ctx, annoText, x + 8 + numWidth, trackY_anak - 3, TEXT_WEIGHT.label);
       }
     }
   }
@@ -221,7 +266,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
     // ── Beams ────────────────────────────────────────────────────────────────
     const beams = calculateBeams(slots);
-    ctx.lineWidth = 1;
+    ctx.lineWidth = STROKE.beam;
     for (const beam of beams) {
       const beamNudge = (beam.startIdx % 12 === 0) ? SLOT_W * 0.5 : 0;
       const bx = rowX + beam.startIdx * SLOT_W + beamNudge;
@@ -309,7 +354,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
         ctx.globalAlpha  = 1.0;
         ctx.textBaseline = hand === 'top' ? 'bottom' : 'top';
         // sym is een soundId; vertaal naar het glyph van de actieve NotationPack.
-        ctx.fillText(glyphFor(sym, notationPack), x, hand === 'top' ? nullY - symTop : nullY + symBot);
+        drawText(ctx, glyphFor(sym, notationPack), x, hand === 'top' ? nullY - symTop : nullY + symBot, TEXT_WEIGHT.symbol);
       }
       ctx.globalAlpha = 1.0;
     }
@@ -347,9 +392,9 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
             const other = hand === 'top' ? 'bottom' : 'top';
             const otherHasBeam = hasBeam.has(`${beatStart}-${other}`) || noteCount[`${beatStart}-${other}`] >= 2;
             if (otherHasBeam) {
-              ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand]);
+              drawText(ctx, '.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
             } else {
-              ctx.fillText('.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand]);
+              drawText(ctx, '.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
             }
           } else {
             if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
@@ -360,9 +405,9 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
               const thisHandBeam = hasBeam.has(`${beatStart}-${hand}`);
               if (!thisHandBeam && otherLone) {
                 // Align with the other hand's centered symbol
-                ctx.fillText('.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand]);
+                drawText(ctx, '.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
               } else {
-                ctx.fillText('.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand]);
+                drawText(ctx, '.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
               }
             }
             if (slot6 && slot9 &&
@@ -370,7 +415,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
                  slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST) {
               // Place the implied-rest dot at the start of the 2nd 8th-block
               // so there is clear space before the note on slot 9.
-              ctx.fillText('.', rowX + (beatStart + 6) * SLOT_W, dotY[hand]);
+              drawText(ctx, '.', rowX + (beatStart + 6) * SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
             }
           }
         }
@@ -396,10 +441,10 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
     // Anak box
     ctx.strokeStyle = 'rgba(0,0,0,0.8)';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = STROKE.gongBox;
     ctx.strokeRect(gx, trackY_anak, gw, TRACK_H);
     ctx.strokeStyle = 'rgba(0,0,0,0.75)';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = STROKE.gongLine;
     ctx.beginPath();
     ctx.moveTo(gx, nullY_anak);
     ctx.lineTo(gx + gw, nullY_anak);
@@ -407,10 +452,10 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
     // Indung box
     ctx.strokeStyle = 'rgba(204,0,0,0.8)';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = STROKE.gongBox;
     ctx.strokeRect(gx, trackY_indung, gw, TRACK_H);
     ctx.strokeStyle = 'rgba(204,0,0,0.75)';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = STROKE.gongLine;
     ctx.beginPath();
     ctx.moveTo(gx, nullY_indung);
     ctx.lineTo(gx + gw, nullY_indung);
@@ -542,7 +587,7 @@ export const exportSequencerToPDF = async (song, songTitle = '', settings = {}) 
     ctx.font = `22px Inter, sans-serif`;
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'center';
-    ctx.fillText(`${pageNum} / ${totalPages}`, CW / 2, CH - 28);
+    drawText(ctx, `${pageNum} / ${totalPages}`, CW / 2, CH - 28, TEXT_WEIGHT.label);
     ctx.textAlign = 'left';
 
     const imgData = canvas.toDataURL('image/png');
