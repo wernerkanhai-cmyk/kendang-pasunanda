@@ -397,7 +397,21 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
               drawText(ctx, '.', rowX + beatStart * SLOT_W + 6 * SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
             }
           } else {
-            if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)) {
+            // Stip op positie 6: de 16e-rust vlak vóór een noot op positie 9.
+            const dotAtSix = slot6 && slot9 &&
+              (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
+               slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST;
+
+            // Staat er maar één slag in de tel, dan hoort daar hooguit één
+            // rust-stip bij. Valt die slag op positie 9, dan vuren beide regels:
+            // een stip onder de enkele balk (8e) én een onder de dubbele (16e).
+            // De eerste is dan overbodig — de stip het dichtst bij de noot zegt
+            // al wat er gebeurt. Bij twee of meer slagen blijven ze allebei
+            // staan, want dan hoort elke stip bij een eigen noot.
+            const soloSlag = noteCount[`${beatStart}-${hand}`] === 1;
+
+            if (slot0 && (slot0[hand] === '' || slot0[hand] === SYMBOL_REST)
+                && !(soloSlag && dotAtSix)) {
               // 8th-rest dot at slot 0: if this hand has a beam, use the nudged
               // position; if the other hand has a centered lone symbol, center too.
               const other = hand === 'top' ? 'bottom' : 'top';
@@ -410,9 +424,7 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
                 drawText(ctx, '.', rowX + beatStart * SLOT_W + SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
               }
             }
-            if (slot6 && slot9 &&
-                (slot6[hand] === '' || slot6[hand] === SYMBOL_REST) &&
-                 slot9[hand] !== '' && slot9[hand] !== SYMBOL_REST) {
+            if (dotAtSix) {
               // Place the implied-rest dot at the start of the 2nd 8th-block
               // so there is clear space before the note on slot 9.
               drawText(ctx, '.', rowX + (beatStart + 6) * SLOT_W, dotY[hand], TEXT_WEIGHT.symbol);
