@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "stress-test": "node stress-test.mjs"
+    "stress-test": "node stress-test.mjs",
+    "pdf:shot": "node tools/pdfshot.mjs",
+    "pdf:diff": "python3 tools/pdfdiff.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.102.0",
