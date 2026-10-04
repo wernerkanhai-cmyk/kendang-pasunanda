@@ -74,7 +74,9 @@ const STROKE = {
 const BEAM_TAIL = 0.75;
 
 // Telmarkering: om-en-om een lichte achtergrond per tel, zodat je zonder lezen
-// ziet op welke tel je zit. Tel 1 en 3 krijgen een tint, 2 en 4 blijven wit.
+// ziet op welke tel je zit. Tel 2 en 4 krijgen een tint, 1 en 3 blijven wit —
+// op die even tellen vallen in deze traditie de accenten en de gong, dus de
+// arcering versterkt waar de klemtoon ligt in plaats van ernaast te liggen.
 //
 // Bewust erg licht. Donkerder gaat concurreren met de dunne notatielijnen, en
 // sommige printers rasteren een lichte tint als zichtbare stippen in plaats van
@@ -261,7 +263,8 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   if (cfg.beatShading) {
     const beatW = 12 * SLOT_W;
     for (let beat = 0; beat * 12 < SLOTS_PER_ROW; beat++) {
-      if (beat % 2 !== 0) continue; // tel 2 en 4 blijven wit
+      // beat is nul-geïndexeerd: beat 1 en 3 zijn tel 2 en 4.
+      if (beat % 2 === 0) continue; // tel 1 en 3 blijven wit
       const bx = rowX + beat * beatW;
       ctx.fillStyle = BEAT_TINT_ANAK;
       ctx.fillRect(bx, trackY_anak, beatW, TRACK_H);
