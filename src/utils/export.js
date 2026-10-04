@@ -73,6 +73,17 @@ const STROKE = {
 // bevonden.
 const BEAM_TAIL = 0.75;
 
+// Telmarkering: om-en-om een lichte achtergrond per tel, zodat je zonder lezen
+// ziet op welke tel je zit. Tel 1 en 3 krijgen een tint, 2 en 4 blijven wit.
+//
+// Bewust erg licht. Donkerder gaat concurreren met de dunne notatielijnen, en
+// sommige printers rasteren een lichte tint als zichtbare stippen in plaats van
+// vlak grijs — dan wordt het onrustiger in plaats van rustiger.
+const BEAT_TINT_ANAK   = 'rgba(0,0,0,0.055)';     // licht grijs
+const BEAT_TINT_INDUNG = 'rgba(204,0,0,0.07)';    // licht rood; iets meer dekking dan het
+                                                  // grijs, want rood op wit verlaagt de
+                                                  // helderheid minder — zo wegen ze visueel gelijk
+
 // Extra omtrek op tekst, in px. Verdikt de letters zónder ze groter te maken of
 // te verschuiven — de glyph-metriek blijft identiek, dus de uitlijning van
 // symbolen, maatnummers en annotaties verandert niet. Nodig omdat het
@@ -241,6 +252,23 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(rowX, trackY_anak,   USABLE_W, TRACK_H);
   ctx.fillRect(rowX, trackY_indung, USABLE_W, TRACK_H);
+
+  // ── 2b. Telmarkering (optioneel) ─────────────────────────────────────────────
+  // Om-en-om een tint per tel van 12 slots. Een maat telt vier tellen, dus de
+  // afwisseling blijft vanzelf in fase over de maatstrepen heen. Hier getekend —
+  // ná de witte vlakken, vóór de lijnen — zodat notatie, beams en lijnen er
+  // bovenop komen en niets verbleekt.
+  if (cfg.beatShading) {
+    const beatW = 12 * SLOT_W;
+    for (let beat = 0; beat * 12 < SLOTS_PER_ROW; beat++) {
+      if (beat % 2 !== 0) continue; // tel 2 en 4 blijven wit
+      const bx = rowX + beat * beatW;
+      ctx.fillStyle = BEAT_TINT_ANAK;
+      ctx.fillRect(bx, trackY_anak, beatW, TRACK_H);
+      ctx.fillStyle = BEAT_TINT_INDUNG;
+      ctx.fillRect(bx, trackY_indung, beatW, TRACK_H);
+    }
+  }
 
   // 4px white gap between anak and indung (no separator line)
 
@@ -571,6 +599,9 @@ export const DEFAULT_PDF_SETTINGS = {
   symBelow:      schaal(5),
   dotTopOffset:    schaal(-18),
   dotBottomOffset: schaal(-5),
+  // Telmarkering staat standaard uit: wie al afdrukken maakt krijgt niet
+  // ongevraagd een gestreepte pagina. Aan te zetten in het PDF-instellingenpaneel.
+  beatShading: false,
 };
 
 // ─── Main export function ──────────────────────────────────────────────────────

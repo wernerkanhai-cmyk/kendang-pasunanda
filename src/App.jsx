@@ -3023,6 +3023,25 @@ function App() {
 
                   {showPdfSettings && (
                     <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', padding: '0.7rem', fontSize: '0.8rem', color: '#e2e8f0' }}>
+                      {/* Telmarkering: aan/uit in plaats van een getal, dus een eigen
+                          regel boven de nummerieke velden. */}
+                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.6rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={pdfSettings.beatShading === true}
+                          onChange={e => {
+                            const next = { ...pdfSettings, beatShading: e.target.checked };
+                            setPdfSettings(next);
+                            localStorage.setItem('pdfSettings', JSON.stringify(next));
+                          }}
+                          style={{ marginTop: '2px', flexShrink: 0 }}
+                        />
+                        <span style={{ flex: 1 }}>
+                          {t('beatShading')}
+                          <span style={{ display: 'block', color: '#64748b', fontSize: '0.7rem', lineHeight: 1.3, marginTop: '1px' }}>{t('beatShadingHint')}</span>
+                        </span>
+                      </label>
+                      <div style={{ height: '1px', background: '#334155', margin: '0 0 0.6rem' }} />
                       {[
                         { key: 'beamTop1',        labelKey: 'beamTop1' },
                         { key: 'beamTop2',        labelKey: 'beamTop2' },
