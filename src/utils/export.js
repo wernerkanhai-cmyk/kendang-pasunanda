@@ -15,26 +15,38 @@ const WINDOWS_BOTTOM_SYMBOL_SHIFT = (typeof navigator !== 'undefined'
 // A4 portrait at ~210 dpi gives a crisp result while keeping file size sane.
 const CW = 1754; // canvas width  (px) — A4 short side at 210 dpi
 const CH = 2480; // canvas height (px) — A4 long side at 210 dpi
-const MARGIN_X = 60;
+const MARGIN_X = 48; // 5,75 mm — blijft boven de ~5 mm die printers niet bedrukken
 const MARGIN_Y = 80;
 const USABLE_W = CW - 2 * MARGIN_X; // 1634 px
 const USABLE_H = CH - 2 * MARGIN_Y; // 2320 px
+
+// ─── Schaal van de notatie ────────────────────────────────────────────────────
+// Eén knop voor hoe groot de notatie op papier staat. Horizontaal valt er niets
+// te halen: de marges zijn al 7,2 mm en de vier maten vullen 195,6 mm van een
+// A4 van 210 mm. Verticaal is er juist de helft van elk regelvak ongebruikt, dus
+// daar zit alle rek. Schaalt de bandhoogtes, de lettergroottes én de posities van
+// beams en symbolen mee, zodat de verhoudingen kloppen blijven.
+//
+// Niet meegeschaald: de lijndiktes in STROKE. Die zijn geijkt op wat een printer
+// betrouwbaar neerzet (~0,25 mm ondergrens), niet op de grootte van de notatie.
+const NOTATIE_SCHAAL = 1.35;
+const schaal = (px) => Math.round(px * NOTATIE_SCHAAL);
 
 // ─── Row layout ────────────────────────────────────────────────────────────────
 const ROWS_PER_PAGE  = 4;
 const TITLE_BLOCK_H  = 120; // reserved height for song title on first page
 const ROW_SLOT_H     = Math.floor(USABLE_H / ROWS_PER_PAGE); // 408 px per row slot
 
-const NAME_H        = 28;  // pattern-name label height
-const TRACK_H       = 115; // height of each track band (anak or indung)
-const SEPARATOR_H   = 32;  // gap between anak and indung bands
+const NAME_H        = schaal(28);  // pattern-name label height
+const TRACK_H       = schaal(115); // height of each track band (anak or indung)
+const SEPARATOR_H   = schaal(32);  // gap between anak and indung bands
 // Gap between bottom of music area and next row name:  ROW_SLOT_H - NAME_H - (TRACK_H*2+SEPARATOR_H) = 60 px
 
 // ─── Typography ────────────────────────────────────────────────────────────────
-const SYM_SIZE      = 22; // regular symbol font size (px)
+const SYM_SIZE      = schaal(22); // regular symbol font size (px)
 const REST_SIZE     = 26; // rest / empty-dot font size (px)
-const MAAT_NUM_SIZE = 16;
-const NAME_SIZE     = 17;
+const MAAT_NUM_SIZE = schaal(16);
+const NAME_SIZE     = schaal(17);
 
 // ─── Lijndikte & tekstgewicht voor print ──────────────────────────────────────
 // De canvas is 1754 px breed voor een A4 van 210 mm, dus 1 px ≈ 0,12 mm op
@@ -503,8 +515,10 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
   // Per-track symbol offsets — mirrored from TrackRow.css
   // anak:   top=12px above nullY,  bottom uses default
   // indung: top=16px above nullY,  bottom=9px below nullY
-  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak   + WINDOWS_BOTTOM_SYMBOL_SHIFT, 5);
-  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung + WINDOWS_BOTTOM_SYMBOL_SHIFT, 7);
+  // De laatste parameter is de extra beam-verschuiving per track; die hoort bij
+  // de beam-offsets en schaalt dus mee.
+  drawTrack(slots_anak,   nullY_anak,   '#000000', cfg.symAboveAnak,   cfg.symBelowAnak   + WINDOWS_BOTTOM_SYMBOL_SHIFT, schaal(5));
+  drawTrack(slots_indung, nullY_indung, '#cc0000', cfg.symAboveIndung, cfg.symBelowIndung + WINDOWS_BOTTOM_SYMBOL_SHIFT, schaal(7));
 
   // ── 6. Gong boxes (transparent rect + center line, anak=black, indung=red) ───
   const deduplicatedGong = deduplicateGongByBeat(gong || []);
@@ -539,20 +553,24 @@ function drawRow(ctx, slots_anak, slots_indung, gong, patternName, showName, row
 
 // ─── Default PDF layout settings (overridable via settings param) ──────────────
 export const DEFAULT_PDF_SETTINGS = {
-  beamTop1:    -46,  // beam level 1 above null line
-  beamTop2:    -40,  // beam level 2 above null line
-  beamBottom1:  12,  // beam level 1 below null line
-  beamBottom2:  18,  // beam level 2 below null line
+  // Alle afstanden hieronder zijn px vanaf de middellijn en schalen mee met
+  // NOTATIE_SCHAAL. Dat moet: de symbolen zijn aan die lijn verankerd en groeien
+  // er dus vanaf. Bleven de beams staan, dan zouden de grotere glyphs ertegenaan
+  // lopen — precies wat er misging toen de letters eerder groter werden.
+  beamTop1:    schaal(-46),  // beam level 1 above null line
+  beamTop2:    schaal(-40),  // beam level 2 above null line
+  beamBottom1: schaal(12),   // beam level 1 below null line
+  beamBottom2: schaal(18),   // beam level 2 below null line
   // Per-track symbol offsets (px from null line) — mirrored from TrackRow.css
-  symAboveAnak:   12,  // anak top symbols (.theme-anak .pos-above: margin-bottom: 12px)
-  symBelowAnak:    5,  // anak bottom symbols (default)
-  symAboveIndung: 11,  // indung top symbols — shifted 5px down vs CSS for visual alignment
-  symBelowIndung:  9,  // indung bottom symbols (.theme-indung .pos-below: margin-top: 9px)
+  symAboveAnak:   schaal(12),  // anak top symbols (.theme-anak .pos-above: margin-bottom: 12px)
+  symBelowAnak:   schaal(5),   // anak bottom symbols (default)
+  symAboveIndung: schaal(11),  // indung top symbols — shifted 5px down vs CSS for visual alignment
+  symBelowIndung: schaal(9),   // indung bottom symbols (.theme-indung .pos-below: margin-top: 9px)
   // Legacy keys kept for backwards compat with any stored settings
-  symAbove:      6,
-  symBelow:      5,
-  dotTopOffset:    -18,
-  dotBottomOffset:  -5,
+  symAbove:      schaal(6),
+  symBelow:      schaal(5),
+  dotTopOffset:    schaal(-18),
+  dotBottomOffset: schaal(-5),
 };
 
 // ─── Main export function ──────────────────────────────────────────────────────

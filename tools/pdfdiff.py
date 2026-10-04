@@ -30,15 +30,24 @@ p = argparse.ArgumentParser()
 p.add_argument("voor"); p.add_argument("na"); p.add_argument("uit")
 p.add_argument("--box", help="links,boven,rechts,onder in canvas-pixels")
 p.add_argument("--schaal", type=int, default=6)
-p.add_argument("--labels", default="VOOR,NA")
+p.add_argument("--labels", default="VOOR|NA",
+               help="twee labels gescheiden door | (niet door een komma: die komt "
+                    "in getallen als '1,35' voor)")
 a = p.parse_args()
 
 box = tuple(int(v) for v in a.box.split(",")) if a.box else None
-labels = a.labels.split(",")
+
+# Te weinig labels mag nooit stilletjes een afbeelding laten vallen — zip() zou
+# dan afkappen op de kortste lijst en je kreeg een halve vergelijking terug
+# zonder waarschuwing.
+labels = a.labels.split("|")
+paden = (a.voor, a.na)
+if len(labels) < len(paden):
+    labels += [f"#{i + 1}" for i in range(len(labels), len(paden))]
 LAB = 28
 
 beelden = []
-for pad, label in zip((a.voor, a.na), labels):
+for pad, label in zip(paden, labels):
     im = Image.open(pad).convert("RGB")
     if box:
         im = im.crop(box)
