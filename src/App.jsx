@@ -487,6 +487,10 @@ function App() {
     } catch { return { ...DEFAULT_PDF_SETTINGS }; }
   });
   const [showPdfSettings, setShowPdfSettings] = useState(false);
+  // De fijnafstelling (beam- en symboolposities) zit achter een eigen uitklapper
+  // en staat standaard dicht: je raakt die getallen zelden aan, en ingeklapt
+  // blijft het PDF-paneel klein.
+  const [showPdfLayout, setShowPdfLayout] = useState(false);
   const [songSearchQuery, setSongSearchQuery] = useState('');
   const [showSongMap, setShowSongMap] = useState(false);
 
@@ -3042,7 +3046,22 @@ function App() {
                         </span>
                       </label>
                       <div style={{ height: '1px', background: '#334155', margin: '0 0 0.6rem' }} />
-                      {[
+
+                      {/* Uitklapper voor de fijnafstelling. Het driehoekje draait
+                          een kwartslag als het open staat. */}
+                      <button
+                        onClick={() => setShowPdfLayout(v => !v)}
+                        aria-expanded={showPdfLayout}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', background: 'none', border: 'none', padding: '0 0 0.4rem', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left' }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"
+                             style={{ flexShrink: 0, transform: showPdfLayout ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                          <path d="M2 1 L8 5 L2 9 Z" fill="currentColor" />
+                        </svg>
+                        {t('pdfLayout')}
+                      </button>
+
+                      {showPdfLayout && [
                         { key: 'beamTop1',        labelKey: 'beamTop1' },
                         { key: 'beamTop2',        labelKey: 'beamTop2' },
                         { key: 'beamBottom1',     labelKey: 'beamBottom1' },
