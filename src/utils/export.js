@@ -17,7 +17,7 @@ const CW = 1754; // canvas width  (px) — A4 short side at 210 dpi
 const CH = 2480; // canvas height (px) — A4 long side at 210 dpi
 const MARGIN_X = 48; // 5,75 mm — blijft boven de ~5 mm die printers niet bedrukken
 const MARGIN_Y = 80;
-const USABLE_W = CW - 2 * MARGIN_X; // 1634 px
+const USABLE_W = CW - 2 * MARGIN_X; // 1658 px
 const USABLE_H = CH - 2 * MARGIN_Y; // 2320 px
 
 // ─── Schaal van de notatie ────────────────────────────────────────────────────
@@ -35,12 +35,13 @@ const schaal = (px) => Math.round(px * NOTATIE_SCHAAL);
 // ─── Row layout ────────────────────────────────────────────────────────────────
 const ROWS_PER_PAGE  = 4;
 const TITLE_BLOCK_H  = 120; // reserved height for song title on first page
-const ROW_SLOT_H     = Math.floor(USABLE_H / ROWS_PER_PAGE); // 408 px per row slot
+const ROW_SLOT_H     = Math.floor(USABLE_H / ROWS_PER_PAGE); // 580 px per row slot
 
 const NAME_H        = schaal(28);  // pattern-name label height
 const TRACK_H       = schaal(115); // height of each track band (anak or indung)
 const SEPARATOR_H   = schaal(32);  // gap between anak and indung bands
-// Gap between bottom of music area and next row name:  ROW_SLOT_H - NAME_H - (TRACK_H*2+SEPARATOR_H) = 60 px
+// Ruimte tussen de onderkant van een regel en de naam van de volgende:
+// ROW_SLOT_H - NAME_H - (TRACK_H*2 + SEPARATOR_H) = ~189 px bij NOTATIE_SCHAAL 1,35
 
 // ─── Typography ────────────────────────────────────────────────────────────────
 const SYM_SIZE      = schaal(22); // regular symbol font size (px)
@@ -118,7 +119,7 @@ function drawText(ctx, text, x, y, bolden = 0) {
 const BARS_PER_ROW    = 4;
 const SLOTS_PER_BAR   = 48;
 const SLOTS_PER_ROW   = BARS_PER_ROW * SLOTS_PER_BAR; // 192
-const SLOT_W          = USABLE_W / SLOTS_PER_ROW;      // ~12.1 px
+const SLOT_W          = USABLE_W / SLOTS_PER_ROW;      // ~8,6 px
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -597,11 +598,6 @@ export const DEFAULT_PDF_SETTINGS = {
   symBelowAnak:   schaal(5),   // anak bottom symbols (default)
   symAboveIndung: schaal(11),  // indung top symbols — shifted 5px down vs CSS for visual alignment
   symBelowIndung: schaal(9),   // indung bottom symbols (.theme-indung .pos-below: margin-top: 9px)
-  // Legacy keys kept for backwards compat with any stored settings
-  symAbove:      schaal(6),
-  symBelow:      schaal(5),
-  dotTopOffset:    schaal(-18),
-  dotBottomOffset: schaal(-5),
   // Telmarkering staat standaard uit: wie al afdrukken maakt krijgt niet
   // ongevraagd een gestreepte pagina. Aan te zetten in het PDF-instellingenpaneel.
   beatShading: false,

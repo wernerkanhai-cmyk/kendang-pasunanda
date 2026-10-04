@@ -3066,10 +3066,6 @@ function App() {
                         { key: 'beamTop2',        labelKey: 'beamTop2' },
                         { key: 'beamBottom1',     labelKey: 'beamBottom1' },
                         { key: 'beamBottom2',     labelKey: 'beamBottom2' },
-                        { key: 'symAbove',        labelKey: 'symAbove' },
-                        { key: 'symBelow',        labelKey: 'symBelow' },
-                        { key: 'dotTopOffset',    labelKey: 'dotTopOffset' },
-                        { key: 'dotBottomOffset', labelKey: 'dotBottomOffset' },
                       ].map(({ key, labelKey }) => {
                         const label = t(labelKey);
                         return (
