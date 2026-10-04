@@ -25,6 +25,18 @@ import path from 'node:path';
 const BASE = process.env.PDFSHOT_BASE || 'http://localhost:5174';
 const OUT  = process.argv[2];
 
+// Extra export-instellingen als JSON, bijvoorbeeld om een optie aan te zetten:
+//   PDFSHOT_SETTINGS='{"beatShading":true}' node tools/pdfshot.mjs out.png
+let EXTRA = {};
+if (process.env.PDFSHOT_SETTINGS) {
+  try {
+    EXTRA = JSON.parse(process.env.PDFSHOT_SETTINGS);
+  } catch (err) {
+    console.error(`PDFSHOT_SETTINGS is geen geldige JSON: ${err.message}`);
+    process.exit(1);
+  }
+}
+
 if (!OUT) {
   console.error('Gebruik: node tools/pdfshot.mjs <uitvoer.png>');
   process.exit(1);
@@ -48,7 +60,7 @@ const page = await browser.newPage();
 page.on('console', (m) => { if (m.type() === 'error') console.error('  [browser]', m.text()); });
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 
-const b64 = await page.evaluate(async (pack) => {
+const b64 = await page.evaluate(async ({ pack, extra }) => {
   // 1. Notatiefont injecteren. De app doet dit normaal via de PackRegistry;
   //    zonder deze stap rendert het canvas blokjes in plaats van glyphs.
   const ff = new FontFace(pack.font.family, `url("/${pack.font.url}")`);
@@ -104,13 +116,13 @@ const b64 = await page.evaluate(async (pack) => {
   }];
 
   const mod = await import('/src/utils/export.js');
-  await mod.exportSequencerToPDF(song, 'Proefpagina', { notationPack: pack });
+  await mod.exportSequencerToPDF(song, 'Proefpagina', { notationPack: pack, ...extra });
 
   HTMLAnchorElement.prototype.click = origClick;
   HTMLCanvasElement.prototype.toDataURL = origToDataURL;
   if (!pagePng) throw new Error('geen canvas afgevangen — is exportSequencerToPDF gewijzigd?');
   return pagePng.split(',')[1];
-}, PACK);
+}, { pack: PACK, extra: EXTRA });
 
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, Buffer.from(b64, 'base64'));
