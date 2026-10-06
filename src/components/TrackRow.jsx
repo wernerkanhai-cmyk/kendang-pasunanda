@@ -30,6 +30,12 @@ const getVerticalPositionClass = (value, hand) => {
   return 'pos-line';
 };
 
+// Hoe ver een beam doorloopt voorbij de slotgrens van zijn laatste noot, in
+// slotbreedtes. Een noot staat midden in zijn slot, dus bij 1,0 eindigde de balk
+// een halve slot ná het symbool — dat deed hem te lang ogen. Houd dit gelijk aan
+// BEAM_TAIL in src/utils/export.js: scherm en print horen dezelfde balk te tonen.
+const BEAM_TAIL = 0.75;
+
 // Triolen-offsets binnen een groep. Constant, dus op module-niveau: in de
 // component stonden ze in de render-body en werden ze bij elke render van elke
 // track-rij opnieuw gealloceerd.
@@ -453,7 +459,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
            // Beam spans the full triplet grid (0–8 for 8T, 0–4 for 16T),
            // including rest positions — they are part of the group.
            const tripletEnd = is8T ? 8 : 4;
-           handResults.push({ startIdx: beatStart, span: tripletEnd + 1, level: 1, position });
+           handResults.push({ startIdx: beatStart, span: tripletEnd, level: 1, position });
            continue;
          }
 
@@ -465,7 +471,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
          // rest shows its rhythmic value (and single notes at offset 6 still get a beam).
          const beatStartVal = position === 'top' ? slots[beatStart].top : slots[beatStart].bottom;
          const hasBeatStartRest = beatStartVal === SYMBOL_REST || impliedRests.has(`${beatStart}-${position}`);
-         const l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
+         let l1Start = (hasBeatStartRest && firstNote > 0) ? 0 : firstNote;
          // Extend l1 1 slot further if the second 8th-block has only one note,
          // and align l1 with the rightmost level-2 beam endpoint so single + double end together.
          const secondHalfNotes = activeIndices.filter(i => i >= 6);
@@ -475,6 +481,19 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
            const maxBlock = Math.max(...sixteenthsForL1.map(i => Math.floor(i / 6)));
            const l2RightSlot = maxBlock * 6 + 4; // matches level-2 span=4
            if (l2RightSlot > l1End) l1End = Math.min(l2RightSlot, 11);
+         }
+         // Een balk hoort niet voorbij zijn eigen laatste noot door te lopen. De
+         // twee regels hierboven rekken hem op tot de blokgrens. Alleen afklemmen
+         // wanneer er 16en in het spel zijn: een losse 8e heeft die `lastNote + 1`
+         // juist nodig voor zijn stompje. Valt de noot samen met het beginpunt,
+         // dan loopt de balk naar links vanaf de 16e-blokgrens in plaats van naar
+         // rechts voorbij de noot. Gelijk aan calculateBeams in utils/export.js.
+         if (sixteenthsForL1.length > 0) {
+           l1End = Math.min(l1End, lastNote);
+           if (l1End <= l1Start) {
+             l1Start = Math.floor(lastNote / 6) * 6;
+             l1End   = lastNote;
+           }
          }
          const l1Span  = l1End - l1Start;
          if (l1Span > 0) {
@@ -493,7 +512,12 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
          if (sixteenths.length > 0 && l1Span > 0) {
            const blocks = new Set(sixteenths.map(i => Math.floor(i / 6)));
            blocks.forEach(blockIdx => {
-             handResults.push({ startIdx: beatStart + blockIdx * 6, span: 4, level: 2, position });
+             const blockStart  = blockIdx * 6;
+             const lastInBlock = Math.max(...activeIndices.filter(i => Math.floor(i / 6) === blockIdx));
+             const span = Math.min(blockStart + 4, lastInBlock) - blockStart;
+             if (span > 0) {
+               handResults.push({ startIdx: beatStart + blockStart, span, level: 2, position });
+             }
            });
          }
        }
@@ -543,7 +567,7 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
         {/* Render the calculated horizontal rhythmic beams */}
         {beams.map((beam, i) => {
           const leftPos = beam.startIdx * slotWidth;
-          const width = (beam.span + 1) * slotWidth;
+          const width = (beam.span + BEAM_TAIL) * slotWidth;
           
           return (
             <div 
