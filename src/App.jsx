@@ -39,8 +39,8 @@ const ChevronIcon = ({ collapsed, color = 'currentColor', size = 9 }) => (
 
 
 // Inline trash icon — uses currentColor so the parent button's `color` actually applies.
-const TrashIcon = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+const TrashIcon = ({ size = 14, style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={style}>
     <polyline points="3 6 5 6 21 6" />
     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
     <path d="M10 11v6" />
@@ -898,29 +898,6 @@ function App() {
     setExportSelection(new Set());
   };
 
-  const handleDeleteFolder = async (folderName) => {
-    const inFolder = savedSongs.filter(s => (s.folder || 'Algemeen') === folderName);
-    if (inFolder.length === 0) return;
-    setPendingDelete({ type: 'folder', key: folderName });
-    await new Promise(r => setTimeout(r, 50));
-    const msg = t('confirmDeleteFolder')(folderName, inFolder.length);
-    const ok = window.confirm(msg);
-    setPendingDelete(null);
-    if (!ok) return;
-    if (user) {
-      for (const s of inFolder) {
-        try { await cloudRemove(s.id); }
-        catch (err) { console.error('Folder delete failed for', s.name, err); }
-      }
-    } else {
-      setLocalSavedSongs(prev => prev.filter(s => (s.folder || 'Algemeen') !== folderName));
-    }
-    if (inFolder.some(s => s.id === currentSongId)) setCurrentSongId(null);
-    setCollapsedFolders(prev => {
-      const next = new Set(prev); next.delete(folderName); return next;
-    });
-    showToast(t('folderDeletedToast')(folderName, inFolder.length));
-  };
 
   const handleRenameFolder = async (oldName, newName) => {
     const trimmed = newName.trim();
@@ -3375,22 +3352,22 @@ function App() {
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>{t('importLabel')}
                       <input type="file" accept=".kendang,.kendang-lib" style={{ display: 'none' }} onChange={handleImport} />
                     </label>
+                    <button
+                      onClick={handleDeleteSelection}
+                      disabled={exportSelection.size === 0}
+                      style={{
+                        background: 'transparent',
+                        color: exportSelection.size > 0 ? '#ef4444' : '#94a3b8',
+                        border: `1px solid ${exportSelection.size > 0 ? 'rgba(239,68,68,0.45)' : '#3a3d45'}`,
+                        borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 600,
+                        cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
+                      }}
+                      title={t('deleteSelectedTooltip')}
+                    ><TrashIcon size={13} style={{ verticalAlign: '-2px', marginRight: '5px' }} />{t('deleteBtn')} ({exportSelection.size})</button>
                     <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <button
-                    onClick={handleDeleteSelection}
-                    disabled={exportSelection.size === 0}
-                    style={{
-                      background: 'transparent',
-                      color: exportSelection.size > 0 ? '#ef4444' : '#475569',
-                      border: `1px solid ${exportSelection.size > 0 ? 'rgba(239,68,68,0.45)' : '#334155'}`,
-                      borderRadius: '6px', padding: '0.5rem 0.85rem', fontSize: '0.78rem', fontWeight: 600,
-                      cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
-                    }}
-                    title={t('deleteSelectedTooltip')}
-                  >{t('deleteBtn')} ({exportSelection.size})</button>
                   <input
                     type="text"
                     value={songSearchQuery}
@@ -3561,34 +3538,6 @@ function App() {
                                 style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
                                 title={t('renameFolderTooltip')}
                               ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
-                              {(() => {
-                                const folderSongs = byFolder[folder];
-                                const selectedInFolder = folderSongs.filter(s => exportSelection.has(s.id));
-                                const allSelected = selectedInFolder.length === folderSongs.length;
-                                const hasSelection = selectedInFolder.length > 0;
-                                return (
-                                  <button
-                                    onClick={async () => {
-                                      if (allSelected) {
-                                        await handleDeleteFolder(folder);
-                                      } else if (hasSelection) {
-                                        await handleDeleteSelection();
-                                      }
-                                    }}
-                                    disabled={!hasSelection}
-                                    style={{
-                                      background: 'transparent',
-                                      border: '1px solid transparent',
-                                      borderRadius: '4px',
-                                      color: hasSelection ? '#ef4444' : '#334155',
-                                      cursor: hasSelection ? 'pointer' : 'default',
-                                      padding: '0.15rem 0.3rem',
-                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    }}
-                                    title={allSelected ? t('deleteEntireFolder') : hasSelection ? t('deleteSelectedSongs')(selectedInFolder.length) : t('selectSongsFirst')}
-                                  ><TrashIcon size={13} /></button>
-                                );
-                              })()}
                             </>
                           )}
                         </div>
