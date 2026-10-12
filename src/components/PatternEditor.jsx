@@ -88,6 +88,7 @@ const PatternEditor = ({
   const [moveSnippetFolderInput, setMoveSnippetFolderInput] = useState('');
   const [collapsedSnippetFolders, setCollapsedSnippetFolders] = useState(() => new Set());
   const [snippetSelection, setSnippetSelection] = useState(() => new Set());
+  const [snippetTemplateSelection, setSnippetTemplateSelection] = useState(() => new Set()); // template ids (admin)
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
   const [metronomeMenuPos, setMetronomeMenuPos] = useState({ top: 0, left: 0 });
   const metronomeBtnRef = useRef(null);
@@ -864,6 +865,22 @@ const PatternEditor = ({
                  return next;
                });
              };
+             const toggleSnippetTemplate = (id) => {
+               setSnippetTemplateSelection(prev => {
+                 const next = new Set(prev);
+                 if (next.has(id)) next.delete(id); else next.add(id);
+                 return next;
+               });
+             };
+             const toggleSnippetTemplateGroup = (templates) => {
+               setSnippetTemplateSelection(prev => {
+                 const next = new Set(prev);
+                 const allOn = templates.every(tpl => next.has(tpl.id));
+                 if (allOn) templates.forEach(tpl => next.delete(tpl.id));
+                 else templates.forEach(tpl => next.add(tpl.id));
+                 return next;
+               });
+             };
              const toggleSnippetFolderSelection = (snipsInFolder) => {
                setSnippetSelection(prev => {
                  const next = new Set(prev);
@@ -881,15 +898,22 @@ const PatternEditor = ({
                });
              };
              const handleBulkDeleteSnippets = async () => {
-               if (snippetSelection.size === 0) return;
                const ids = Array.from(snippetSelection);
-               if (!window.confirm(t('confirmBulkDeleteSnippets')(ids.length))) return;
+               const templateIds = Array.from(snippetTemplateSelection);
+               if (ids.length + templateIds.length === 0) return;
+               if (!window.confirm(t('confirmBulkDeleteSnippets')(ids.length + templateIds.length))) return;
                for (const id of ids) {
-                  
                  try { await handleDeleteSnippetSilently?.(id); } catch (_) { /* ignore */ }
                }
+               for (const id of templateIds) {
+                 try { await onRemoveSnippetTemplate?.(id); }
+                 catch (err) { console.error('Snippet template delete failed:', err); }
+               }
                setSnippetSelection(new Set());
+               setSnippetTemplateSelection(new Set());
              };
+             // Patronen en templates gaan door dezelfde Verwijder-knop.
+             const deleteCount = snippetSelection.size + snippetTemplateSelection.size;
              return (
              <div className="snippet-manager-panel" style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', background: 'var(--panel-bg)', border: '1px solid #2b3650', borderRadius: '14px', padding: '0.9rem 1rem', zIndex: 100, minWidth: '320px', boxShadow: '0 18px 44px rgba(0,0,0,0.55)', cursor: 'default' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.9rem -1rem 0.7rem', padding: '0.5rem 1rem', background: 'var(--header-bg)', borderRadius: '14px 14px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
@@ -915,11 +939,11 @@ const PatternEditor = ({
                      </label>
                      <button
                        onClick={handleBulkDeleteSnippets}
-                       disabled={snippetSelection.size === 0}
-                       style={{ background: 'transparent', color: snippetSelection.size > 0 ? '#ef4444' : '#94a3b8', border: `1px solid ${snippetSelection.size > 0 ? 'rgba(239,68,68,0.4)' : '#3a3d45'}`, borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: snippetSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
+                       disabled={deleteCount === 0}
+                       style={{ background: 'transparent', color: deleteCount > 0 ? '#ef4444' : '#94a3b8', border: `1px solid ${deleteCount > 0 ? 'rgba(239,68,68,0.4)' : '#3a3d45'}`, borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: deleteCount > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
                        title={t('deleteSelectedSnippets')}
-                     ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /></svg>{t('bulkDeleteBtn')(snippetSelection.size)}</button>
-                     <button onClick={() => { setIsManagingSnippets(false); setSnippetSelection(new Set()); }} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+                     ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /></svg>{t('bulkDeleteBtn')(deleteCount)}</button>
+                     <button onClick={() => { setIsManagingSnippets(false); setSnippetSelection(new Set()); setSnippetTemplateSelection(new Set()); }} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
                    </div>
                 </div>
 
@@ -931,6 +955,16 @@ const PatternEditor = ({
                   return factorySnippets.length > 0 || true ? ( // always show, even when empty
                     <div style={{ marginBottom: '0.6rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #d4af37', paddingBottom: '0.2rem' }}>
+                        {isAdmin && factorySnippets.length > 0 && (
+                          <input
+                            type="checkbox"
+                            checked={factorySnippets.every(tpl => snippetTemplateSelection.has(tpl.id))}
+                            ref={(el) => { if (el) el.indeterminate = factorySnippets.some(tpl => snippetTemplateSelection.has(tpl.id)) && !factorySnippets.every(tpl => snippetTemplateSelection.has(tpl.id)); }}
+                            onChange={() => toggleSnippetTemplateGroup(factorySnippets)}
+                            title={t('selectEntireFolder')}
+                            style={{ accentColor: '#d4af37', cursor: 'pointer' }}
+                          />
+                        )}
                         <button
                           onClick={() => toggleSnippetFolderCollapsed(tplFolderName)}
                           style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
@@ -959,6 +993,16 @@ const PatternEditor = ({
                           return (
                             <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #3f2e10', marginBottom: '0.15rem' }}>
+                                {isAdmin && (
+                                  <input
+                                    type="checkbox"
+                                    checked={items.every(tpl => snippetTemplateSelection.has(tpl.id))}
+                                    ref={(el) => { if (el) el.indeterminate = items.some(tpl => snippetTemplateSelection.has(tpl.id)) && !items.every(tpl => snippetTemplateSelection.has(tpl.id)); }}
+                                    onChange={() => toggleSnippetTemplateGroup(items)}
+                                    title={t('selectEntireFolder')}
+                                    style={{ accentColor: '#d4af37', cursor: 'pointer' }}
+                                  />
+                                )}
                                 <button
                                   onClick={() => toggleSnippetFolderCollapsed(subKey)}
                                   style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
@@ -971,25 +1015,19 @@ const PatternEditor = ({
                               </div>
                               {!subCollapsed && items.map(tpl => (
                                 <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem 0.3rem 1rem', background: 'rgba(212,175,55,0.05)', borderRadius: '4px', marginBottom: '2px' }}>
+                                  {isAdmin && (
+                                    <input
+                                      type="checkbox"
+                                      checked={snippetTemplateSelection.has(tpl.id)}
+                                      onChange={() => toggleSnippetTemplate(tpl.id)}
+                                      style={{ accentColor: '#d4af37', cursor: 'pointer' }}
+                                    />
+                                  )}
                                   <span style={{ flex: 1, fontSize: '0.85rem', color: '#fcd34d' }}>{tpl.name}</span>
                                   <button
                                     onClick={() => handleInsertSnippet?.(tpl)}
                                     style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}
                                   >{t('insertBtn')}</button>
-                                  {isAdmin && (
-                                    <button
-                                      onClick={async () => {
-                                        if (!window.confirm(t('confirmDeleteTemplate')(tpl.name))) return;
-                                        try { await onRemoveSnippetTemplate?.(tpl.id); } catch (err) { alert(err?.message ?? t('deleteFailed')); }
-                                      }}
-                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
-                                      title={t('deleteTemplateTooltip')}
-                                    >
-                                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                                      </svg>
-                                    </button>
-                                  )}
                                 </div>
                               ))}
                             </div>
