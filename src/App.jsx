@@ -354,7 +354,7 @@ function App() {
     window.addEventListener('offline', onDown);
     return () => { window.removeEventListener('online', onUp); window.removeEventListener('offline', onDown); };
   }, []);
-  const { songs: cloudSongs, save: cloudSave, remove: cloudRemove } = useSongs();
+  const { songs: cloudSongs, loading: cloudSongsLoading, save: cloudSave, remove: cloudRemove } = useSongs();
   const { snippets: cloudSnippets, save: cloudSnippetSave, remove: cloudSnippetRemove } = useSnippets();
   const { templates: dbTemplates, snippetTemplates: dbSnippetTemplates, publishSong: publishTemplate, removeSong: removeTemplate, publishSnippet: publishSnippetTemplate, removeSnippet: removeSnippetTemplate } = useTemplates();
   const isAdmin = user?.email === 'wernerkanhai@mac.com';
@@ -458,7 +458,14 @@ function App() {
     setToast({ message, kind });
     toastTimerRef.current = setTimeout(() => setToast(null), 2200);
   };
-  const lastSavedSnapshotRef = useRef(null); // serialized snapshot of the last save/load — used to flag unsaved changes
+  // Momentopname van de laatst opgeslagen of geladen staat. Gebruikt voor de
+  // "niet-opgeslagen"-stip én voor de auto-aanmaak verderop.
+  //
+  // Bij het opstarten gevuld met de song zoals die zojuist uit localStorage is
+  // hersteld. Stond dit op null, dan leek elke herstelde song "veranderd" en
+  // maakte de auto-aanmaak er bij iedere nieuwe sessie een genummerde kopie van —
+  // precies hoe "Tepak Dua Notasi Gilvan-2" en "-3" zijn ontstaan.
+  const lastSavedSnapshotRef = useRef(JSON.stringify(song));
   const isModifiedSinceSave = !!currentSongId && lastSavedSnapshotRef.current !== null && JSON.stringify(song) !== lastSavedSnapshotRef.current;
   const toggleFolderCollapsed = (folder) => {
     setCollapsedFolders(prev => {
@@ -798,11 +805,22 @@ function App() {
   useEffect(() => {
     if (currentSongId || !user || !isOnline || isLocked) return;
     if (autoCreatingRef.current || !songHasContent(song)) return;
+    // Alleen aanmaken als er in déze sessie iets veranderd is. Zonder deze test
+    // sloeg een song die enkel uit localStorage was hersteld — of een zojuist
+    // geopende template — zichzelf bij elke sessie opnieuw op als genummerde
+    // kopie. isModifiedSinceSave kan hier niet gebruikt worden: die eist zelf een
+    // currentSongId, en dat is juist wat hier ontbreekt.
+    if (JSON.stringify(song) === lastSavedSnapshotRef.current) return;
+    // Wacht tot de bibliotheek geladen is, anders kijkt makeUniqueSongName in een
+    // lege lijst en krijgt de kopie dezelfde naam als het origineel in plaats van
+    // een nummer.
+    if (cloudSongsLoading) return;
     const id = setTimeout(() => {
       const s = autoSaveStateRef.current;
       // Dubbelcheck op flush-moment: niets aanmaken als er inmiddels al een id is.
       if (autoCreatingRef.current || s.currentSongId || s.isLocked || !s.user) return;
       if (!songHasContent(s.song)) return;
+      if (JSON.stringify(s.song) === lastSavedSnapshotRef.current) return;
       autoCreatingRef.current = true;
       const folder = (s.songFolder || '').trim() || 'Algemeen';
       const name = makeUniqueSongName((s.songName || '').trim() || 'Song 1', folder);
@@ -813,7 +831,7 @@ function App() {
     }, 2000);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [song, currentSongId, user, isOnline, isLocked]);
+  }, [song, currentSongId, user, isOnline, isLocked, cloudSongsLoading]);
 
   // Rename a saved song. Reuses _persist so cloud + localStorage stay aligned.
   const handleRenameSong = async (song, newName) => {
