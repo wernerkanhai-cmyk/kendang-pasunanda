@@ -185,9 +185,7 @@ export const T = {
     renamedToast: (name) => `Renamed to "${name}"`,
     movedToast: (folder) => `Moved to "${folder}"`,
     // ── Confirm dialogs ──
-    confirmDeleteFolder: (folder, n) => `Are you sure you want to delete the folder "${folder}"?\n\nThis will permanently delete ${n} song${n === 1 ? '' : 's'}.\n\nThis action cannot be undone.`,
     confirmDeleteSelection: (n) => `Are you sure you want to delete ${n} song${n === 1 ? '' : 's'}?\n\nThis action cannot be undone.`,
-    folderDeletedToast: (folder, n) => `Folder "${folder}" deleted (${n} song${n === 1 ? '' : 's'})`,
     selectionDeletedToast: (n) => `${n} song${n === 1 ? '' : 's'} deleted`,
     invalidSongsInFile: 'No valid songs in file',
     // ── Snippet flows / toasts ──
@@ -263,8 +261,6 @@ export const T = {
     selectFolderForExport: 'Select entire folder for export',
     renameFolderTooltip: 'Rename folder',
     deleteEntireFolder: 'Delete entire folder',
-    deleteSelectedSongs: (n) => `Delete ${n} selected song${n === 1 ? '' : 's'}`,
-    selectSongsFirst: 'Select songs to delete first',
     selectForExport: 'Select for export',
     renameTooltip: 'Rename',
     moveToOtherFolder: 'Move to another folder',
@@ -485,9 +481,7 @@ export const T = {
     renamedToast: (name) => `Hernoemd naar "${name}"`,
     movedToast: (folder) => `Verplaatst naar "${folder}"`,
     // ── Confirm dialogs ──
-    confirmDeleteFolder: (folder, n) => `Weet je zeker dat je de map "${folder}" wilt verwijderen?\n\nDit verwijdert ${n} song${n === 1 ? '' : 's'} permanent.\n\nDeze actie kan niet ongedaan worden gemaakt.`,
     confirmDeleteSelection: (n) => `Weet je zeker dat je ${n} song${n === 1 ? '' : 's'} wilt verwijderen?\n\nDeze actie kan niet ongedaan worden gemaakt.`,
-    folderDeletedToast: (folder, n) => `Map "${folder}" verwijderd (${n} song${n === 1 ? '' : 's'})`,
     selectionDeletedToast: (n) => `${n} song${n === 1 ? '' : 's'} verwijderd`,
     invalidSongsInFile: 'Geen geldige songs in bestand',
     // ── Snippet flows / toasts ──
@@ -563,8 +557,6 @@ export const T = {
     selectFolderForExport: 'Selecteer hele map voor export',
     renameFolderTooltip: 'Mapnaam wijzigen',
     deleteEntireFolder: 'Hele map verwijderen',
-    deleteSelectedSongs: (n) => `Verwijder ${n} geselecteerde song${n === 1 ? '' : 's'}`,
-    selectSongsFirst: 'Selecteer eerst songs om te verwijderen',
     selectForExport: 'Selecteer voor export',
     renameTooltip: 'Naam wijzigen',
     moveToOtherFolder: 'Verplaats naar andere map',
@@ -785,9 +777,7 @@ export const T = {
     renamedToast: (name) => `Diganti nama menjadi "${name}"`,
     movedToast: (folder) => `Dipindahkan ke "${folder}"`,
     // ── Confirm dialogs ──
-    confirmDeleteFolder: (folder, n) => `Apakah Anda yakin ingin menghapus folder "${folder}"?\n\nIni akan menghapus ${n} lagu secara permanen.\n\nTindakan ini tidak dapat dibatalkan.`,
     confirmDeleteSelection: (n) => `Apakah Anda yakin ingin menghapus ${n} lagu?\n\nTindakan ini tidak dapat dibatalkan.`,
-    folderDeletedToast: (folder, n) => `Folder "${folder}" dihapus (${n} lagu)`,
     selectionDeletedToast: (n) => `${n} lagu dihapus`,
     invalidSongsInFile: 'Tidak ada lagu yang valid dalam file',
     // ── Snippet flows / toasts ──
@@ -863,8 +853,6 @@ export const T = {
     selectFolderForExport: 'Pilih seluruh folder untuk ekspor',
     renameFolderTooltip: 'Ganti nama folder',
     deleteEntireFolder: 'Hapus seluruh folder',
-    deleteSelectedSongs: (n) => `Hapus ${n} lagu yang dipilih`,
-    selectSongsFirst: 'Pilih lagu untuk dihapus terlebih dahulu',
     selectForExport: 'Pilih untuk ekspor',
     renameTooltip: 'Ganti nama',
     moveToOtherFolder: 'Pindahkan ke folder lain',
