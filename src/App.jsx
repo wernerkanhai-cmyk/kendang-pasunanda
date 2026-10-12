@@ -437,6 +437,9 @@ function App() {
   const [renamingSongId, setRenamingSongId] = useState(null);
   const [renameSongInput, setRenameSongInput] = useState('');
   const [exportSelection, setExportSelection] = useState(() => new Set()); // song ids checked for selective export
+  const [templateSelection, setTemplateSelection] = useState(() => new Set()); // template ids checked for deletion (admin)
+  // Alles in de bibliotheek gaat via dezelfde Verwijder-knop: songs en templates samen.
+  const deleteCount = exportSelection.size + templateSelection.size;
   const [collapsedFolders, setCollapsedFolders] = useState(() => new Set()); // folder names that are collapsed in the library
   const [librarySort, setLibrarySort] = useState(() => {
     return localStorage.getItem('kendangLibrarySort') || 'name';
@@ -895,7 +898,7 @@ function App() {
     setSongName(toLoad.name);
     setSongFolder(toLoad.folder || 'Algemeen');
     setShowSongLibrary(false);
-    setExportSelection(new Set());
+    setExportSelection(new Set()); setTemplateSelection(new Set());
   };
 
 
@@ -936,10 +939,11 @@ function App() {
 
   const handleDeleteSelection = async () => {
     const picked = savedSongs.filter(s => exportSelection.has(s.id));
-    if (picked.length === 0) return;
+    const pickedTemplates = dbTemplates.filter(tpl => templateSelection.has(tpl.id));
+    if (picked.length + pickedTemplates.length === 0) return;
     setPendingDelete({ type: 'bulk', key: 'selection' });
     await new Promise(r => setTimeout(r, 50));
-    const ok = window.confirm(t('confirmDeleteSelection')(picked.length));
+    const ok = window.confirm(t('confirmDeleteSelection')(picked.length + pickedTemplates.length));
     setPendingDelete(null);
     if (!ok) return;
     let removed = 0;
@@ -953,8 +957,13 @@ function App() {
       setLocalSavedSongs(prev => prev.filter(s => !ids.has(s.id)));
       removed = picked.length;
     }
+    for (const tpl of pickedTemplates) {
+      try { await removeTemplate(tpl.id); removed++; }
+      catch (err) { console.error('Template delete failed for', tpl.name, err); }
+    }
     if (picked.some(s => s.id === currentSongId)) setCurrentSongId(null);
     setExportSelection(new Set());
+    setTemplateSelection(new Set());
     showToast(t('selectionDeletedToast')(removed));
   };
 
@@ -969,7 +978,7 @@ function App() {
     a.download = `kendang-selectie-${picked.length}-${new Date().toISOString().slice(0, 10)}.kendang-lib`;
     a.click();
     URL.revokeObjectURL(url);
-    setExportSelection(new Set());
+    setExportSelection(new Set()); setTemplateSelection(new Set());
   };
 
   const toggleExportSong = (id) => {
@@ -980,6 +989,25 @@ function App() {
     });
   };
 
+  const toggleTemplate = (id) => {
+    setTemplateSelection(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const toggleTemplateGroup = (templates) => {
+    setTemplateSelection(prev => {
+      const next = new Set(prev);
+      const allChecked = templates.every(tpl => next.has(tpl.id));
+      if (allChecked) {
+        for (const tpl of templates) next.delete(tpl.id);
+      } else {
+        for (const tpl of templates) next.add(tpl.id);
+      }
+      return next;
+    });
+  };
   const toggleExportFolder = (songsInFolder) => {
     setExportSelection(prev => {
       const next = new Set(prev);
@@ -3311,7 +3339,7 @@ function App() {
           {/* Song Library Modal */}
           {showSongLibrary && (
             <div
-              onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }}
+              onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); setTemplateSelection(new Set()); }}
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <div
@@ -3339,17 +3367,17 @@ function App() {
                     </label>
                     <button
                       onClick={handleDeleteSelection}
-                      disabled={exportSelection.size === 0}
+                      disabled={deleteCount === 0}
                       style={{
                         background: 'transparent',
-                        color: exportSelection.size > 0 ? '#ef4444' : '#94a3b8',
-                        border: `1px solid ${exportSelection.size > 0 ? 'rgba(239,68,68,0.45)' : '#3a3d45'}`,
+                        color: deleteCount > 0 ? '#ef4444' : '#94a3b8',
+                        border: `1px solid ${deleteCount > 0 ? 'rgba(239,68,68,0.45)' : '#3a3d45'}`,
                         borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.78rem', fontWeight: 600,
-                        cursor: exportSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
+                        cursor: deleteCount > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap',
                       }}
                       title={t('deleteSelectedTooltip')}
-                    ><TrashIcon size={13} style={{ verticalAlign: '-2px', marginRight: '5px' }} />{t('deleteBtn')} ({exportSelection.size})</button>
-                    <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                    ><TrashIcon size={13} style={{ verticalAlign: '-2px', marginRight: '5px' }} />{t('deleteBtn')} ({deleteCount})</button>
+                    <button onClick={() => { setShowSongLibrary(false); setExportSelection(new Set()); setTemplateSelection(new Set()); }} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -3395,6 +3423,16 @@ function App() {
                     return (
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #2b3650', marginBottom: '0.25rem' }}>
+                          {isAdmin && matches.length > 0 && (
+                            <input
+                              type="checkbox"
+                              checked={matches.every(tpl => templateSelection.has(tpl.id))}
+                              ref={(el) => { if (el) el.indeterminate = matches.some(tpl => templateSelection.has(tpl.id)) && !matches.every(tpl => templateSelection.has(tpl.id)); }}
+                              onChange={() => toggleTemplateGroup(matches)}
+                              title={t('selectEntireFolder')}
+                              style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
+                            />
+                          )}
                           <button
                             onClick={() => toggleFolderCollapsed(rootFolder)}
                             style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
@@ -3416,6 +3454,16 @@ function App() {
                           return (
                             <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: 'none', marginBottom: '0.15rem' }}>
+                                {isAdmin && (
+                                  <input
+                                    type="checkbox"
+                                    checked={items.every(tpl => templateSelection.has(tpl.id))}
+                                    ref={(el) => { if (el) el.indeterminate = items.some(tpl => templateSelection.has(tpl.id)) && !items.every(tpl => templateSelection.has(tpl.id)); }}
+                                    onChange={() => toggleTemplateGroup(items)}
+                                    title={t('selectEntireFolder')}
+                                    style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
+                                  />
+                                )}
                                 <button
                                   onClick={() => toggleFolderCollapsed(subKey)}
                                   style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.1rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
@@ -3428,6 +3476,14 @@ function App() {
                               </div>
                               {!subCollapsed && items.map((tpl, ri) => (
                                 <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.5rem 0.26rem 1rem', background: ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent' }}>
+                                  {isAdmin && (
+                                    <input
+                                      type="checkbox"
+                                      checked={templateSelection.has(tpl.id)}
+                                      onChange={() => toggleTemplate(tpl.id)}
+                                      style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
+                                    />
+                                  )}
                                   <DocIcon color="#fcd34d" size={12} /><span style={{ flex: 1, color: '#fcd34d', fontSize: '0.85rem', fontWeight: 300 }}>{tpl.name}</span>
                                   <button
                                     onClick={async () => {
@@ -3437,17 +3493,6 @@ function App() {
                                     }}
                                     style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}
                                   >{t('useBtn')}</button>
-                                  {isAdmin && (
-                                    <button
-                                      onClick={async () => {
-                                        if (!window.confirm(t('confirmDeleteTemplate')(tpl.name))) return;
-                                        try { await removeTemplate(tpl.id); showToast(t('templateDeletedToast')); }
-                                        catch (err) { alert(err?.message ?? t('deleteFailed')); }
-                                      }}
-                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
-                                      title={t('deleteTemplateTooltip')}
-                                    ><TrashIcon size={12} /></button>
-                                  )}
                                 </div>
                               ))}
                             </div>
