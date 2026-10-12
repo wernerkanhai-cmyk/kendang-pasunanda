@@ -43,7 +43,6 @@ const PatternEditor = ({
   handleRenameSnippet,
   handleMoveSnippetToFolder,
   handleRenameSnippetFolder,
-  handleDeleteSnippetFolder,
   handleDeleteSnippetSilently,
   factorySnippets = [],
   isAdmin = false,
@@ -896,14 +895,7 @@ const PatternEditor = ({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-0.9rem -1rem 0.7rem', padding: '0.5rem 1rem', background: 'var(--header-bg)', borderRadius: '14px 14px 0 0', borderBottom: '1px solid #2b3650', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
                    <h4 style={{ margin: 0, color: '#f1f5f9', fontSize: '1rem', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.9 }}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>{t('snippetManagement')}</h4>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                     {snippetSelection.size > 0 && (
-                       <button
-                         onClick={handleBulkDeleteSnippets}
-                         style={{ background: 'transparent', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-                         title={t('deleteSelectedSnippets')}
-                       >{t('bulkDeleteBtn')(snippetSelection.size)}</button>
-                     )}
-                     <button onClick={handleExportSnippets} style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('exportSnippets')}>{t('exportSnippets')}</button>
+                     <button onClick={handleExportSnippets} style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }} title={t('exportSnippets')}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>{t('exportSnippets')}</button>
                      {isAdmin && snippetSelection.size > 0 && (
                        <button
                          onClick={async () => {
@@ -918,9 +910,15 @@ const PatternEditor = ({
                        >{t('publishSnippetsBtn')(snippetSelection.size)}</button>
                      )}
                      <label style={{ background: 'transparent', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.4)', borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }} title={t('importSnippetsTooltip')}>
-                       {t('importSnippets')}
+                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>{t('importSnippets')}
                        <input type="file" accept=".kendang" style={{ display: 'none' }} onChange={handleImportSnippets} />
                      </label>
+                     <button
+                       onClick={handleBulkDeleteSnippets}
+                       disabled={snippetSelection.size === 0}
+                       style={{ background: 'transparent', color: snippetSelection.size > 0 ? '#ef4444' : '#94a3b8', border: `1px solid ${snippetSelection.size > 0 ? 'rgba(239,68,68,0.4)' : '#3a3d45'}`, borderRadius: '6px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', fontWeight: 600, cursor: snippetSelection.size > 0 ? 'pointer' : 'default', whiteSpace: 'nowrap' }}
+                       title={t('deleteSelectedSnippets')}
+                     ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px', marginRight: '5px' }}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" /></svg>{t('bulkDeleteBtn')(snippetSelection.size)}</button>
                      <button onClick={() => { setIsManagingSnippets(false); setSnippetSelection(new Set()); }} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
                    </div>
                 </div>
@@ -1050,15 +1048,6 @@ const PatternEditor = ({
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.2rem' }}
                                     title={t('renameFolderTooltip')}
                                   ><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
-                                  <button
-                                    onClick={() => handleDeleteSnippetFolder?.(folderName)}
-                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0.2rem', display: 'flex', alignItems: 'center' }}
-                                    title={t('deleteEntireFolder')}
-                                  >
-                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                                    </svg>
-                                  </button>
                                 </>
                               )}
                             </div>

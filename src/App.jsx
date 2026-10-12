@@ -2424,21 +2424,6 @@ function App() {
     showToast(t('folderRenamedToast')(oldName, trimmed));
   };
 
-  const handleDeleteSnippetFolder = async (folderName) => {
-    const inFolder = savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName);
-    if (inFolder.length === 0) return;
-    const msg = t('confirmDeleteSnippetFolder')(folderName, inFolder.length);
-    if (!window.confirm(msg)) return;
-    if (user) {
-      for (const s of inFolder) {
-        try { await cloudSnippetRemove(s.id); }
-        catch (err) { console.error('Snippet folder delete failed for', s.name, err); }
-      }
-    } else {
-      setLocalSavedSnippets(prev => prev.filter(s => (s.folder || 'Algemeen') !== folderName));
-    }
-    showToast(t('snippetFolderDeletedToast')(folderName));
-  };
 
   const handleExportSnippets = () => {
     const encoded = encodeData(savedSnippets);
@@ -3799,7 +3784,6 @@ function App() {
                       handleRenameSnippet={handleRenameSnippet}
                       handleMoveSnippetToFolder={handleMoveSnippetToFolder}
                       handleRenameSnippetFolder={handleRenameSnippetFolder}
-                      handleDeleteSnippetFolder={handleDeleteSnippetFolder}
                       handleDeleteSnippetSilently={handleDeleteSnippetSilently}
                       factorySnippets={dbSnippetTemplates}
                       isAdmin={isAdmin}
