@@ -3484,15 +3484,15 @@ function App() {
                                       style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
                                     />
                                   )}
-                                  <DocIcon color="#fcd34d" size={12} /><span style={{ flex: 1, color: '#fcd34d', fontSize: '0.85rem', fontWeight: 300 }}>{tpl.name}</span>
-                                  <button
-                                    onClick={async () => {
+                                  <DocIcon color="#fcd34d" size={12} /><span
+                                    onDoubleClick={async () => {
                                       setShowSongLibrary(false);
                                       await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
                                       showToast(t('templateLoadedToast')(tpl.name));
                                     }}
-                                    style={{ background: 'transparent', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}
-                                  >{t('useBtn')}</button>
+                                    title={t('doubleClickToLoad')}
+                                    style={{ flex: 1, color: '#fcd34d', fontSize: '0.85rem', fontWeight: 300, cursor: 'pointer' }}
+                                  >{tpl.name}</span>
                                 </div>
                               ))}
                             </div>
@@ -3593,21 +3593,21 @@ function App() {
                                 style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3b82f6', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.875rem' }}
                               />
                             ) : (
-                              <span style={{ flex: 1, color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.85rem', fontWeight: 300, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <span
+                                onDoubleClick={() => handleLoadSong(s.id)}
+                                title={t('doubleClickToLoad')}
+                                style={{ flex: 1, cursor: 'pointer', color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.85rem', fontWeight: 300, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <DocIcon color={s.id === currentSongId ? '#93c5fd' : '#94a3b8'} size={12} />
                                 <span>{s.name}</span>
                                 <button
                                   onClick={() => { setRenamingSongId(s.id); setRenameSongInput(s.name); }}
+                                  onDoubleClick={(e) => e.stopPropagation()}
                                   style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
                                   title={t('renameTooltip')}
                                 ><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px' }}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
                                 <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{s.date}</span>
                               </span>
                             )}
-                            <button
-                              onClick={() => handleLoadSong(s.id)}
-                              style={{ background: 'transparent', color: 'var(--accent)', border: '1px solid rgba(var(--accent-rgb),0.5)', borderRadius: '6px', padding: '0.3rem 0.9rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, boxShadow: '0 0 10px rgba(var(--accent-rgb),0.3)' }}
-                            >{t('loadBtn')}</button>
                             <button
                               onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
