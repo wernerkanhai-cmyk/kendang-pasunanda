@@ -1023,11 +1023,11 @@ const PatternEditor = ({
                                       style={{ accentColor: '#d4af37', cursor: 'pointer' }}
                                     />
                                   )}
-                                  <span style={{ flex: 1, fontSize: '0.85rem', color: '#fcd34d' }}>{tpl.name}</span>
-                                  <button
-                                    onClick={() => handleInsertSnippet?.(tpl)}
-                                    style={{ background: '#d4af37', color: '#1e293b', border: 'none', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}
-                                  >{t('insertBtn')}</button>
+                                  <span
+                                    onDoubleClick={() => handleInsertSnippet?.(tpl)}
+                                    title={t('doubleClickToInsert')}
+                                    style={{ flex: 1, fontSize: '0.85rem', color: '#fcd34d', cursor: 'pointer' }}
+                                  >{tpl.name}</span>
                                 </div>
                               ))}
                             </div>
@@ -1110,7 +1110,11 @@ const PatternEditor = ({
                                       style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #3b82f6', borderRadius: '3px', padding: '0.15rem 0.4rem', fontSize: '0.85rem' }}
                                     />
                                   ) : (
-                                    <span style={{ flex: 1, fontSize: '0.85rem', color: '#e2e8f0' }}>{snip.name}</span>
+                                    <span
+                                      onDoubleClick={() => handleInsertSnippet?.(snip)}
+                                      title={t('doubleClickToInsert')}
+                                      style={{ flex: 1, fontSize: '0.85rem', color: '#e2e8f0', cursor: 'pointer' }}
+                                    >{snip.name}</span>
                                   )}
                                   <button
                                     onClick={() => { setRenamingSnippetId(snip.id); setRenamingSnippetInput(snip.name); }}
