@@ -128,6 +128,7 @@ function App() {
   const [bpmEditing, setBpmEditing] = useState(false);
   const [bpmInput, setBpmInput] = useState('');
   const bpmDragRef = useRef(null); // { startY, moved } voor sleep-tempo in de header
+  const [bpmAdjusting, setBpmAdjusting] = useState(false); // sleep je nu aan het globale tempo?
   const [isPlaying, setIsPlaying] = useState(false);
   const [stepBackCount, setStepBackCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
@@ -1767,6 +1768,20 @@ function App() {
     };
   };
 
+  // De BPM-indicator laat tijdens het spelen het tempo van de tempo-baan zien (goud).
+  // Staat alles stil, dan doet hij hetzelfde voor de plek waar de cursor staat — anders
+  // sprong de indicator bij elke stop terug naar het globale getal terwijl de song wel
+  // degelijk het tempo-verloop volgt. Tijdens slepen of typen tonen we weer het globale
+  // getal, want dát is het getal dat je op dat moment verandert.
+  const cursorPattern = song.find(p => p.id === activeSlot?.patternId);
+  const cursorTempoActive = !!cursorPattern
+    && Array.isArray(cursorPattern.tempoTrack)
+    && cursorPattern.tempoTrack.length > 0
+    && cursorPattern.tempoTrackEnabled !== false;
+  const idleTempoBpm = (cursorTempoActive && !bpmAdjusting && !bpmEditing)
+    ? Math.round(buildTempoAt(song, bpm)(localToGlobal(activeSlot.patternId, activeSlot.startIndex, song)))
+    : null;
+
   /** Precompute cumulative slot start times (ms) from loopStart to totalSlots. */
   const buildSlotTimesMs = (loopStart, totalSlots, getTempoAt) => {
     const n = totalSlots - loopStart;
@@ -2851,6 +2866,7 @@ function App() {
                 onPointerDown={(e) => {
                   e.currentTarget.setPointerCapture(e.pointerId);
                   bpmDragRef.current = { startY: e.clientY, moved: false };
+                  setBpmAdjusting(true);
                 }}
                 onPointerMove={(e) => {
                   if (!bpmDragRef.current) return;
@@ -2867,10 +2883,16 @@ function App() {
                     setBpmEditing(true);
                   }
                   bpmDragRef.current = null;
+                  setBpmAdjusting(false);
                 }}
+                onPointerCancel={() => { bpmDragRef.current = null; setBpmAdjusting(false); }}
                 title={t('bpmDragTooltip')}
               >
-                {realtimeBpm !== null ? <span style={{ color: '#d4af37' }}>{realtimeBpm}</span> : bpm}
+                {realtimeBpm !== null
+                  ? <span style={{ color: '#d4af37' }}>{realtimeBpm}</span>
+                  : idleTempoBpm !== null
+                    ? <span style={{ color: '#d4af37' }}>{idleTempoBpm}</span>
+                    : bpm}
               </span>
             )}
             <span style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.05em', textTransform: 'uppercase', alignSelf: 'flex-end', paddingBottom: '0.5rem' }}>bpm</span>
