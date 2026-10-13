@@ -440,6 +440,10 @@ function App() {
   const [templateSelection, setTemplateSelection] = useState(() => new Set()); // template ids checked for deletion (admin)
   // Alles in de bibliotheek gaat via dezelfde Verwijder-knop: songs en templates samen.
   const deleteCount = exportSelection.size + templateSelection.size;
+  // Tempo-automatisering: staat er überhaupt een tempo-punt in de song, en volgt
+  // de song dat verloop of het globale BPM? De knop in de kop leest beide af.
+  const hasTempoNodes = song.some(p => (p.tempoTrack || []).length > 0);
+  const tempoAutomationOn = song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false);
   const [collapsedFolders, setCollapsedFolders] = useState(() => new Set()); // folder names that are collapsed in the library
   const [librarySort, setLibrarySort] = useState(() => {
     return localStorage.getItem('kendangLibrarySort') || 'name';
@@ -2935,22 +2939,22 @@ function App() {
           </button>
           )}
 
-          {/* ── Tempo toggle — only visible in practice mode ──────────── */}
-          {isLocked && (
-            <button
-              className="hdr-icon-btn"
-              onClick={handleToggleAllTempoEnabled}
-              style={{
-                background: song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? 'rgba(212,175,55,0.15)' : 'transparent',
-                color: song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? '#d4af37' : '#888888',
-                border: `1px solid ${song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? '#d4af37' : '#475569'}`,
-                borderRadius: '6px', padding: '0.4rem 0.6rem', cursor: 'pointer',
-                fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.03em',
-                boxShadow: song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? '0 0 6px rgba(212,175,55,0.3)' : 'none',
-              }}
-              title={song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? t('tempoAutomationOffTooltip') : t('tempoAutomationOnTooltip')}
-            >{song.some(p => (p.tempoTrack || []).length > 0 && p.tempoTrackEnabled !== false) ? '♩ TEMPO' : '♩ GLOBAL'}</button>
-          )}
+          {/* ── Tempo toggle — in beide standen, zodat de stand niet verspringt ── */}
+          <button
+            className="hdr-icon-btn"
+            onClick={handleToggleAllTempoEnabled}
+            disabled={!hasTempoNodes}
+            style={{
+              background: tempoAutomationOn ? 'rgba(212,175,55,0.15)' : 'transparent',
+              color: tempoAutomationOn ? '#d4af37' : (hasTempoNodes ? '#888888' : '#475569'),
+              border: `1px solid ${tempoAutomationOn ? '#d4af37' : (hasTempoNodes ? '#475569' : '#334155')}`,
+              borderRadius: '6px', padding: '0.4rem 0.6rem',
+              cursor: hasTempoNodes ? 'pointer' : 'default',
+              fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.03em',
+              boxShadow: tempoAutomationOn ? '0 0 6px rgba(212,175,55,0.3)' : 'none',
+            }}
+            title={!hasTempoNodes ? t('tempoNoNodesTooltip') : tempoAutomationOn ? t('tempoAutomationOffTooltip') : t('tempoAutomationOnTooltip')}
+          >{tempoAutomationOn ? '♩ TEMPO' : '♩ GLOBAL'}</button>
 
           {/* ── Tools dropdown: Scan / PDF / Handleiding ─────────────────── */}
           <div style={{ position: 'relative' }}>
@@ -3852,7 +3856,6 @@ function App() {
                       onUpdateTempoTrack={handleUpdateTempoTrack}
                       onToggleTempoTrack={handleToggleTempoTrack}
                       onToggleAllTempoOpen={handleToggleAllTempoOpen}
-                      onToggleAllTempoEnabled={handleToggleAllTempoEnabled}
                       globalTempoOpenSignal={globalTempoOpenSignal}
                       onSeek={handleSeek}
                       trackVolumes={trackVolumes}

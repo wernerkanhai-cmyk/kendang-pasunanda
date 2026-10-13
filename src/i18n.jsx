@@ -221,6 +221,7 @@ export const T = {
     enterPracticeMode: 'Enter Practice Mode',
     practiceModeToast: 'Practice mode on — input is disabled',
     tempoAutomationOffTooltip: 'Tempo automation off — practice at global BPM',
+    tempoNoNodesTooltip: 'No tempo points in this song yet',
     tempoAutomationOnTooltip: 'Tempo automation on',
     // ── Import library dialog ──
     importLibraryTitle: (n) => `Import library (${n} songs)`,
@@ -509,6 +510,7 @@ export const T = {
     enterPracticeMode: 'Enter Practice Mode',
     practiceModeToast: 'Practice mode aan — invoer is uitgeschakeld',
     tempoAutomationOffTooltip: 'Tempo-automatisering uit — oefen op globaal BPM',
+    tempoNoNodesTooltip: 'Nog geen tempo-punten in deze song',
     tempoAutomationOnTooltip: 'Tempo-automatisering aan',
     // ── Import library dialog ──
     importLibraryTitle: (n) => `Bibliotheek importeren (${n} songs)`,
@@ -797,6 +799,7 @@ export const T = {
     enterPracticeMode: 'Masuk Mode Latihan',
     practiceModeToast: 'Mode latihan aktif — input dinonaktifkan',
     tempoAutomationOffTooltip: 'Otomatisasi tempo nonaktif — latih pada BPM global',
+    tempoNoNodesTooltip: 'Belum ada titik tempo dalam lagu ini',
     tempoAutomationOnTooltip: 'Otomatisasi tempo aktif',
     // ── Import library dialog ──
     importLibraryTitle: (n) => `Impor pustaka (${n} lagu)`,

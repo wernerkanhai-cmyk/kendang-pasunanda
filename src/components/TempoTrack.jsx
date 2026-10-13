@@ -92,7 +92,7 @@ export const interpolateBpm = (tempoTrack, localSlot) => {
   return sorted[sorted.length - 1].bpm;
 };
 
-const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth, isActive, isPlaying, onToggleAllOpen, onToggleAllEnabled, globalOpenSignal }) => {
+const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth, isActive, isPlaying, onToggleAllOpen, globalOpenSignal }) => {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [manualToggle, setManualToggle] = useState(false);
@@ -336,16 +336,6 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
             }}
             title={enabled ? 'Disable tempo automation' : 'Enable tempo automation'}
           >{enabled ? 'ON' : 'OFF'}</button>
-        )}
-        {onToggleAllEnabled && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onToggleAllEnabled(); }}
-            style={{
-              marginLeft: '2px', padding: '1px 5px', fontSize: '0.55rem', borderRadius: '3px', cursor: 'pointer', flexShrink: 0,
-              background: 'transparent', color: '#64748b', border: '1px solid #334155', fontWeight: 'bold',
-            }}
-            title="Alle tempo-tracks aan of uit"
-          >ALL</button>
         )}
 
         {open && enabled && hasNodes && (

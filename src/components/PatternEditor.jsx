@@ -62,7 +62,6 @@ const PatternEditor = ({
   onUpdateTempoTrack,
   onToggleTempoTrack,
   onToggleAllTempoOpen,
-  onToggleAllTempoEnabled,
   globalTempoOpenSignal,
   onSeek,
   onDuplicate,
@@ -1347,7 +1346,6 @@ const PatternEditor = ({
             isActive={isActive}
             isPlaying={isPlaying}
             onToggleAllOpen={onToggleAllTempoOpen}
-            onToggleAllEnabled={onToggleAllTempoEnabled}
             globalOpenSignal={globalTempoOpenSignal}
           />
         </div>
