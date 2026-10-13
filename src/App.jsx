@@ -1851,20 +1851,20 @@ function App() {
   const handleUpdateTempoTrack = (patternId, newTempoTrack) => {
     setSong(prev => prev.map(p => {
       if (p.id !== patternId) return p;
-      // Regeltempo schakelt automatisch mee: eerste punt → AAN, alle punten weg → UIT.
-      // Zo speelt een getekende curve meteen (i.p.v. globaal tot je apart "ON" drukt).
-      // Een bestaande curve handmatig aan/uit zetten kan nog steeds via de ON/OFF-knop.
+      // Tempo-automatisering is één schakelaar voor de hele song (de knop in de kop).
+      // Een nieuwe baan volgt dus wat de rest van de song doet; is dit de éérste baan,
+      // dan gaat hij aan, zodat een getekende curve meteen speelt. Haal je alle punten
+      // weg, dan heeft de vlag van die regel geen betekenis meer.
       const hadNodes = (p.tempoTrack || []).length > 0;
       const hasNodes = newTempoTrack.length > 0;
       let tempoTrackEnabled = p.tempoTrackEnabled;
-      if (!hadNodes && hasNodes) tempoTrackEnabled = true;
-      else if (hadNodes && !hasNodes) tempoTrackEnabled = false;
+      if (!hadNodes && hasNodes) {
+        const othersWithNodes = prev.filter(q => q.id !== p.id && (q.tempoTrack || []).length > 0);
+        tempoTrackEnabled = othersWithNodes.length === 0
+          || othersWithNodes.some(q => q.tempoTrackEnabled !== false);
+      } else if (hadNodes && !hasNodes) tempoTrackEnabled = false;
       return { ...p, tempoTrack: newTempoTrack, tempoTrackEnabled };
     }));
-  };
-
-  const handleToggleTempoTrack = (patternId) => {
-    setSong(prev => prev.map(p => p.id === patternId ? { ...p, tempoTrackEnabled: p.tempoTrackEnabled === false } : p));
   };
 
   // Global tempo panel open/close — incremented to signal all TempoTracks
@@ -1873,14 +1873,13 @@ function App() {
 
   const handleToggleAllTempoEnabled = () => {
     setSong(prev => {
-      // Alleen regels mét tempo-punten meenemen — een lege regel "enabled" zetten doet
-      // niets (speelt toch globaal) en zorgt juist voor de global/regel-verwarring.
+      // Eén schakelaar voor de hele song: élke regel gaat in dezelfde stand, zodat er
+      // geen regel stiekem kan afwijken. De stand lezen we af aan de regels die
+      // daadwerkelijk een tempo-baan hebben — een lege regel speelt toch globaal.
       const withNodes = prev.filter(p => (p.tempoTrack || []).length > 0);
       if (withNodes.length === 0) return prev;
-      const anyEnabled = withNodes.some(p => p.tempoTrackEnabled !== false);
-      return prev.map(p =>
-        (p.tempoTrack || []).length > 0 ? { ...p, tempoTrackEnabled: !anyEnabled } : p
-      );
+      const next = !withNodes.some(p => p.tempoTrackEnabled !== false);
+      return prev.map(p => ({ ...p, tempoTrackEnabled: next }));
     });
   };
 
@@ -3876,7 +3875,6 @@ function App() {
                       metronomeVolume={metronomeVolume}
                       setMetronomeVolume={setMetronomeVolume}
                       onUpdateTempoTrack={handleUpdateTempoTrack}
-                      onToggleTempoTrack={handleToggleTempoTrack}
                       onToggleAllTempoOpen={handleToggleAllTempoOpen}
                       globalTempoOpenSignal={globalTempoOpenSignal}
                       onSeek={handleSeek}
