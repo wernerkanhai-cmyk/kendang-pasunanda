@@ -60,7 +60,6 @@ const PatternEditor = ({
   metronomeVolume = 0.7,
   setMetronomeVolume,
   onUpdateTempoTrack,
-  onToggleTempoTrack,
   onToggleAllTempoOpen,
   globalTempoOpenSignal,
   onSeek,
@@ -1341,7 +1340,6 @@ const PatternEditor = ({
             pattern={pattern}
             defaultBpm={inheritedBpm ?? bpm}
             onUpdate={onUpdateTempoTrack}
-            onToggleEnabled={onToggleTempoTrack}
             slotWidth={slotWidth}
             isActive={isActive}
             isPlaying={isPlaying}

@@ -92,7 +92,7 @@ export const interpolateBpm = (tempoTrack, localSlot) => {
   return sorted[sorted.length - 1].bpm;
 };
 
-const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth, isActive, isPlaying, onToggleAllOpen, globalOpenSignal }) => {
+const TempoTrack = ({ pattern, defaultBpm, onUpdate, slotWidth, isActive, isPlaying, onToggleAllOpen, globalOpenSignal }) => {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [manualToggle, setManualToggle] = useState(false);
@@ -323,20 +323,6 @@ const TempoTrack = ({ pattern, defaultBpm, onUpdate, onToggleEnabled, slotWidth,
         <span style={{ fontSize: '0.68rem', fontWeight: 'bold', color: hasNodes && enabled ? '#d4af37' : '#94a3b8', letterSpacing: '0.05em', flexShrink: 0 }}>{t('tempoLabel')}</span>
         <span style={{ fontSize: '0.65rem', color: hasNodes && enabled ? '#d4af37' : '#64748b', marginLeft: '2px', flexShrink: 0 }}>{enabled ? summaryLabel : `${defaultBpm} BPM (globaal)`}</span>
 
-        {/* Enable/disable toggle */}
-        {onToggleEnabled && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onToggleEnabled(pattern.id); }}
-            style={{
-              marginLeft: '4px', padding: '1px 7px', fontSize: '0.62rem', borderRadius: '3px', cursor: 'pointer', flexShrink: 0,
-              background: enabled ? '#d4af37' : '#1e293b',
-              color: enabled ? '#0f172a' : '#64748b',
-              border: `1px solid ${enabled ? '#d4af37' : '#334155'}`,
-              fontWeight: 'bold',
-            }}
-            title={enabled ? 'Disable tempo automation' : 'Enable tempo automation'}
-          >{enabled ? 'ON' : 'OFF'}</button>
-        )}
 
         {open && enabled && hasNodes && (
           <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }} onClick={e => e.stopPropagation()}>
