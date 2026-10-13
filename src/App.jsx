@@ -2916,18 +2916,20 @@ function App() {
             }}
             onAnimationEnd={() => setIsPulsing(false)}
             style={{
-              background: isLocked ? 'rgba(212,175,55,0.15)' : 'transparent',
-              color: isLocked ? '#d4af37' : '#888888',
-              border: `1px solid ${isLocked ? '#d4af37' : '#475569'}`,
+              // Goud = oefenmodus, rood = edit-modus. De gong is het enige
+              // plekje in de kop waar je die stand in één oogopslag ziet.
+              background: isLocked ? 'rgba(212,175,55,0.15)' : 'rgba(239,68,68,0.15)',
+              color: isLocked ? '#d4af37' : '#ef4444',
+              border: `1px solid ${isLocked ? '#d4af37' : '#ef4444'}`,
               borderRadius: '6px', padding: '0.55rem 0.7rem', cursor: 'pointer',
-              boxShadow: isLocked ? '0 0 8px rgba(212,175,55,0.4)' : 'none',
+              boxShadow: isLocked ? '0 0 8px rgba(212,175,55,0.4)' : '0 0 8px rgba(239,68,68,0.35)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0,
             }}
             title={isLocked ? t('practiceModeOnTooltip') : t('enterPracticeMode')}
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"
-              style={{ filter: isLocked ? 'drop-shadow(0 0 5px rgba(255,215,0,0.6))' : 'none', transition: 'filter 0.25s' }}>
-              <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth={isLocked ? 2.5 : 1.5} />
+              style={{ filter: isLocked ? 'drop-shadow(0 0 5px rgba(255,215,0,0.6))' : 'drop-shadow(0 0 5px rgba(239,68,68,0.5))', transition: 'filter 0.25s' }}>
+              <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth={2.5} />
               <circle cx="9" cy="9" r="2.5" fill="currentColor" />
             </svg>
           </button>
