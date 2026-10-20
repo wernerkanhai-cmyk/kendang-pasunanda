@@ -3537,9 +3537,7 @@ function App() {
                     );
                   })()}
 
-                  {savedSongs.length === 0 ? (
-                    <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>{t('noSongsStored')}</p>
-                  ) : (() => {
+                  {(() => {
                     const q = songSearchQuery.toLowerCase();
                     const filtered = savedSongs.filter(s =>
                       s.name.toLowerCase().includes(q) || (s.folder || 'Algemeen').toLowerCase().includes(q)
@@ -3564,12 +3562,35 @@ function App() {
                     } else {
                       folders = Object.keys(byFolder).sort();
                     }
-                    if (folders.length === 0) return (
-                      <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>{t('noResults')}</p>
-                    );
                     // Volgorde zoals ze op het scherm staan — nodig om met shift een reeks te pakken.
                     const visibleSongIds = folders.flatMap(f => byFolder[f].map(s => s.id));
-                    return folders.map(folder => (
+                    // Eigen songs hangen onder één hoofdmap, net als de templates erboven.
+                    const mySongsCollapsed = collapsedFolders.has('__MYSONGS__');
+                    return (
+                      <div>
+                        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #2b3650', marginBottom: '0.25rem' }}>
+                          <button
+                            onClick={() => toggleFolderCollapsed('__MYSONGS__')}
+                            style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                            title={mySongsCollapsed ? t('expandFolder') : t('collapseFolder')}
+                          ><ChevronIcon collapsed={mySongsCollapsed} color="#ffffff" /></button>
+                          <span
+                            onClick={() => pickFolder(filtered)}
+                            title={t('clickToSelectFolder')}
+                            style={{ flex: 1, color: '#ffffff', fontSize: '0.75rem', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+                          >{t('mySongsFolder')} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({filtered.length})</span></span>
+                        </div>
+                        {!mySongsCollapsed && (savedSongs.length === 0 ? (
+                          <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
+                            {t('noSongsStored')}
+                          </div>
+                        ) : folders.length === 0 ? (
+                          <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.4rem 0.5rem' }}>
+                            {t('noResults')}
+                          </div>
+                        ) : (
+                          <div style={{ marginLeft: '0.5rem' }}>
+                            {folders.map(folder => (
                       <div key={folder}>
                         <div
                           onClick={(e) => e.stopPropagation()}
@@ -3665,7 +3686,11 @@ function App() {
                           </div>
                         ))}
                       </div>
-                    ));
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    );
                   })()}
                 </div>
               </div>
