@@ -85,6 +85,18 @@ const PatternEditor = ({
   const [moveSnippetTarget, setMoveSnippetTarget] = useState(null); // snippet object
   const [moveSnippetFolderInput, setMoveSnippetFolderInput] = useState('');
   const [collapsedSnippetFolders, setCollapsedSnippetFolders] = useState(() => new Set());
+  // Eerste keer dat het snippetbeheer opengaat: mappen dicht, net als in de
+  // songbibliotheek. Daarna onthoudt het paneel wat je openzet. Is er nog niets
+  // geladen, dan proberen we het de volgende keer gewoon opnieuw.
+  const snippetCollapseInitRef = useRef(false);
+  const collapseSnippetFoldersOnce = () => {
+    if (snippetCollapseInitRef.current) return;
+    const dicht = new Set(savedSnippets.map(s => s.folder || 'Algemeen'));
+    for (const tpl of factorySnippets) dicht.add(`__SNIPPET_TEMPLATES__/${tpl.category || 'Algemeen'}`);
+    if (dicht.size === 0) return;
+    snippetCollapseInitRef.current = true;
+    setCollapsedSnippetFolders(prev => new Set([...prev, ...dicht]));
+  };
   const [snippetSelection, setSnippetSelection] = useState(() => new Set());
   const [snippetTemplateSelection, setSnippetTemplateSelection] = useState(() => new Set()); // template ids (admin)
   const lastPickedSnippetRef = useRef(null); // ankerpunt voor shift+klik in de lijst
@@ -821,7 +833,7 @@ const PatternEditor = ({
 
            <button
              className="snippet-manager-toggle"
-             onClick={(e) => { e.stopPropagation(); setIsManagingSnippets(!isManagingSnippets); }}
+             onClick={(e) => { e.stopPropagation(); if (!isManagingSnippets) collapseSnippetFoldersOnce(); setIsManagingSnippets(!isManagingSnippets); }}
              style={{ background: isManagingSnippets ? 'rgba(var(--accent-rgb),0.22)' : 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: '4px', padding: '0.2rem 0.4rem', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 0 6px rgba(34,211,238,0.55)' }}
              title={t('manageSnippetsTooltip')}
            >
