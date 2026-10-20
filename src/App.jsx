@@ -967,8 +967,14 @@ function App() {
     const blob = new Blob([encoded], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `kendang-selectie-${picked.length}-${new Date().toISOString().slice(0, 10)}.kendang-lib`;
+    // Komt alles uit dezelfde map, dan noemen we het bestand naar die map. Degene
+    // die het krijgt ziet zo meteen wat erin zit, en de importdialoog kan de
+    // mapnaam eruit overnemen.
+    const folders = new Set(picked.map(s => (s.folder || 'Algemeen')));
+    const naam = folders.size === 1
+      ? [...folders][0].replace(/[^\p{L}\p{N} _-]/gu, '').trim().replace(/\s+/g, '-') || 'map'
+      : `selectie-${picked.length}`;
+    a.download = `kendang-${naam}-${new Date().toISOString().slice(0, 10)}.kendang-lib`;
     a.click();
     URL.revokeObjectURL(url);
     setExportSelection(new Set()); setTemplateSelection(new Set());
@@ -1067,8 +1073,12 @@ function App() {
             .filter(isValidSong)
             .map(s => ({ ...s, patterns: s.patterns.map(sanitizePattern) }));
           if (valid.length === 0) throw new Error(t('invalidSongsInFile'));
-          const suggested = file.name.replace(/\.(kendang-lib|kendang)$/i, '').replace(/[_-]/g, ' ');
-          setImportFolderName(suggested);
+          // Het veld laten we leeg, zodat de mappen uit het bestand bewaard blijven —
+          // dat is wat het label belooft. Zat alles in één map, dan vullen we die naam
+          // alvast in; dat verandert niets aan de uitkomst maar laat wel zien waar het
+          // heen gaat, en je kunt hem dan makkelijk overschrijven.
+          const folders = new Set(valid.map(s => s.folder || 'Algemeen'));
+          setImportFolderName(folders.size === 1 ? [...folders][0] : '');
           setPendingImport({ songs: valid });
         } else if (isValidSong(imported)) {
           // Reuse the song-import path by faking the file event shape
