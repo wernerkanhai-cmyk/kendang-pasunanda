@@ -27,16 +27,9 @@ const FolderIcon = ({ color = 'currentColor', size = 14 }) => (
     <path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z" />
   </svg>
 );
-const DocIcon = ({ color = 'currentColor', size = 13 }) => (
-  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M4 1.8h5l3 3v9.4H4z" />
-    <path d="M9 1.8V5h3" />
-  </svg>
-);
 const ChevronIcon = ({ collapsed, color = 'currentColor', size = 9 }) => (
   <svg width={size} height={size} viewBox="0 0 10 10" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: collapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" /></svg>
 );
-
 
 // Inline trash icon — uses currentColor so the parent button's `color` actually applies.
 const TrashIcon = ({ size = 14, style }) => (
@@ -3531,7 +3524,7 @@ function App() {
                                     cursor: isAdmin ? 'pointer' : 'default', userSelect: 'none',
                                   }}
                                 >
-                                  <DocIcon color="#fcd34d" size={12} /><span
+                                  <span
                                     onDoubleClick={async () => {
                                       setShowSongLibrary(false);
                                       await handleUseTemplate(tpl, tpl.name, tpl.category || 'Templates');
@@ -3654,7 +3647,6 @@ function App() {
                                 onDoubleClick={() => handleLoadSong(s.id)}
                                 title={t('doubleClickToLoad')}
                                 style={{ flex: 1, cursor: 'pointer', color: s.id === currentSongId ? '#93c5fd' : '#e2e8f0', fontSize: '0.85rem', fontWeight: 300, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                <DocIcon color={s.id === currentSongId ? '#93c5fd' : '#94a3b8'} size={12} />
                                 <span>{s.name}</span>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setRenamingSongId(s.id); setRenameSongInput(s.name); }}
