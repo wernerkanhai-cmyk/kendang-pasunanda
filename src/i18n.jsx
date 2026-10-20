@@ -147,7 +147,7 @@ export const T = {
     // Empty states
     noSongsStored: 'No songs saved.',
     noPatternsStored: 'No patterns saved.',
-    slotsSuffix: (n) => `${n} slots`,
+    slotsSuffix: (n) => { const b = Number((n / 48).toFixed(2)); return `${n} slots / ${b} ${b === 1 ? 'bar' : 'bars'}`; },
     defaultSectionName: 'Section 1',
     // Manual content
     manualTitle: '📖 Manual',
@@ -438,7 +438,7 @@ export const T = {
     clearTempo: 'Wis',
     noSongsStored: 'Geen songs opgeslagen.',
     noPatternsStored: 'Geen patronen opgeslagen.',
-    slotsSuffix: (n) => `${n} slots`,
+    slotsSuffix: (n) => { const b = Number((n / 48).toFixed(2)); return `${n} slots / ${String(b).replace('.', ',')} ${b < 2 ? 'maat' : 'maten'}`; },
     defaultSectionName: 'Regel 1',
     manualTitle: '📖 Handleiding',
     manualSections: [
@@ -728,7 +728,7 @@ export const T = {
     clearTempo: 'Hapus',
     noSongsStored: 'Tidak ada lagu tersimpan.',
     noPatternsStored: 'Tidak ada pola tersimpan.',
-    slotsSuffix: (n) => `${n} slot`,
+    slotsSuffix: (n) => { const b = Number((n / 48).toFixed(2)); return `${n} slot / ${String(b).replace('.', ',')} birama`; },
     defaultSectionName: 'Bagian 1',
     manualTitle: '📖 Panduan',
     manualSections: [
