@@ -77,7 +77,6 @@ const PatternEditor = ({
   const [snippetName, setSnippetName] = useState('');
   const [snippetFolder, setSnippetFolder] = useState('Algemeen');
   const [isManagingSnippets, setIsManagingSnippets] = useState(false);
-  const [snippetSelectKey, setSnippetSelectKey] = useState(0);
   const [renamingSnippetId, setRenamingSnippetId] = useState(null);
   const [renamingSnippetInput, setRenamingSnippetInput] = useState('');
   const [renamingSnippetFolder, setRenamingSnippetFolder] = useState(null);
@@ -126,13 +125,12 @@ const PatternEditor = ({
   const [slotWidth, setSlotWidth] = useState(12);
   const [containerWidth, setContainerWidth] = useState(0);
 
-  // Sluit de snippet-dropdowns zodra deze regel niet meer de actieve is (of bij
-  // het wisselen van regel), zodat het beheerpaneel/de laad-dropdown niet open
-  // blijft hangen op een regel waar je niet meer werkt.
+  // Sluit het snippetbeheer zodra deze regel niet meer de actieve is (of bij het
+  // wisselen van regel), zodat het paneel niet open blijft hangen op een regel
+  // waar je niet meer werkt.
   useEffect(() => {
     setIsManagingSnippets(false);
     setSnippetSelection(new Set());
-    setSnippetSelectKey(k => k + 1); // remount de laad-<select> zodat ook die dichtgaat
   }, [isActive, pattern.id]);
 
   // Sluit het snippet-beheerpaneel zodra je buiten het paneel (of de beheer-knop)
@@ -807,29 +805,6 @@ const PatternEditor = ({
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 2.5h8l3 3v8a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5z"/><path d="M5 2.5v3.2h5V2.5"/><rect x="4.5" y="8.5" width="7" height="5.5" rx="0.5"/></svg>
               </button>
            )}
-           <select
-              key={snippetSelectKey}
-              defaultValue=""
-              onChange={(e) => {
-                 if (e.target.value === '') return;
-                 const selectedSnippet = savedSnippets.find(s => s.id === e.target.value);
-                 if (selectedSnippet) {
-                    handleInsertSnippet(selectedSnippet);
-                 }
-                 // Force remount so the same snippet can be picked again immediately
-                 setSnippetSelectKey(k => k + 1);
-              }}
-              style={{ background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: '4px', padding: '0.3rem', fontSize: '0.8rem', cursor: 'pointer', minWidth: '150px', boxShadow: '0 0 6px rgba(var(--accent-rgb),0.45)' }}
-           >
-              <option value="">{t('placedAtCursor')}</option>
-              {Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort().map(folderName => (
-                 <optgroup key={folderName} label={folderName}>
-                    {savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName).map(snip => (
-                       <option key={snip.id} value={snip.id}>{snip.name} ({(snip.data.anak ?? snip.data).length} slots)</option>
-                    ))}
-                 </optgroup>
-              ))}
-           </select>
 
            <button
              className="snippet-manager-toggle"
@@ -1027,7 +1002,7 @@ const PatternEditor = ({
                                     onDoubleClick={() => handleInsertSnippet?.(tpl)}
                                     title={t('doubleClickToInsert')}
                                     style={{ flex: 1, fontSize: '0.85rem', color: '#fcd34d', cursor: 'pointer' }}
-                                  >{tpl.name}</span>
+                                  >{tpl.name} <span style={{ color: '#a37f1e', fontSize: '0.7rem' }}>{t('slotsSuffix')((tpl.data?.anak ?? tpl.data ?? []).length)}</span></span>
                                 </div>
                               ))}
                             </div>
@@ -1109,7 +1084,7 @@ const PatternEditor = ({
                                       onDoubleClick={() => handleInsertSnippet?.(snip)}
                                       title={t('doubleClickToInsert')}
                                       style={{ flex: 1, fontSize: '0.85rem', color: snippetSelection.has(snip.id) ? '#ede9fe' : '#a78bfa', cursor: 'pointer' }}
-                                    >{snip.name}</span>
+                                    >{snip.name} <span style={{ color: '#64748b', fontSize: '0.7rem' }}>{t('slotsSuffix')((snip.data?.anak ?? snip.data ?? []).length)}</span></span>
                                   )}
                                   <button
                                     onClick={() => { setRenamingSnippetId(snip.id); setRenamingSnippetInput(snip.name); }}
