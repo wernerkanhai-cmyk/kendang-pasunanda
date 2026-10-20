@@ -986,21 +986,66 @@ function App() {
     setExportSelection(new Set()); setTemplateSelection(new Set());
   };
 
-  const toggleExportSong = (id) => {
+  // Escape in de bibliotheek: eerst de selectie leeg, pas daarna het venster dicht.
+  useEffect(() => {
+    if (!showSongLibrary) return;
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (deleteCount > 0) { setExportSelection(new Set()); setTemplateSelection(new Set()); }
+      else setShowSongLibrary(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showSongLibrary, deleteCount]);
+
+
+  // Klik-selectie in de bibliotheek. De eerste klik kiest één regel; zolang er iets
+  // gekozen is voegt elke volgende klik toe of haalt weg. Shift+klik pakt een reeks.
+  // Zo blijft de lijst in rust leeg — geen vaste hokjes meer achter elke naam.
+  const lastPickedSongRef = useRef(null);
+  const pickSong = (id, e, visibleIds) => {
+    const extend = deleteCount > 0;
+    const anchor = lastPickedSongRef.current;
     setExportSelection(prev => {
+      if (e?.shiftKey && anchor && visibleIds) {
+        const a = visibleIds.indexOf(anchor);
+        const b = visibleIds.indexOf(id);
+        if (a !== -1 && b !== -1) {
+          const next = new Set(prev);
+          for (let i = Math.min(a, b); i <= Math.max(a, b); i++) next.add(visibleIds[i]);
+          return next;
+        }
+      }
+      if (!extend) return new Set([id]);
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+    lastPickedSongRef.current = id;
+  };
+  const pickFolder = (songsInFolder) => {
+    const ids = songsInFolder.map(s => s.id);
+    if (ids.length === 0) return;
+    const extend = deleteCount > 0;
+    const allPicked = ids.every(id => exportSelection.has(id));
+    setExportSelection(prev => {
+      if (!extend) return new Set(ids);
+      const next = new Set(prev);
+      if (allPicked) ids.forEach(id => next.delete(id)); else ids.forEach(id => next.add(id));
+      return next;
+    });
+    lastPickedSongRef.current = ids[ids.length - 1];
+  };
+  const pickTemplate = (id) => {
+    const extend = deleteCount > 0;
+    setTemplateSelection(prev => {
+      if (!extend) return new Set([id]);
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
 
-  const toggleTemplate = (id) => {
-    setTemplateSelection(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
   const toggleTemplateGroup = (templates) => {
     setTemplateSelection(prev => {
       const next = new Set(prev);
@@ -1009,18 +1054,6 @@ function App() {
         for (const tpl of templates) next.delete(tpl.id);
       } else {
         for (const tpl of templates) next.add(tpl.id);
-      }
-      return next;
-    });
-  };
-  const toggleExportFolder = (songsInFolder) => {
-    setExportSelection(prev => {
-      const next = new Set(prev);
-      const allChecked = songsInFolder.every(s => next.has(s.id));
-      if (allChecked) {
-        for (const s of songsInFolder) next.delete(s.id);
-      } else {
-        for (const s of songsInFolder) next.add(s.id);
       }
       return next;
     });
@@ -3425,7 +3458,10 @@ function App() {
                     <option value="recent">{t('sortRecent')}</option>
                   </select>
                 </div>
-                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                <div
+                  onClick={() => { setExportSelection(new Set()); setTemplateSelection(new Set()); }}
+                  style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1px' }}
+                >
                   {/* Templates folder — from database, readable by all, writable by admin */}
                   {(() => {
                     const q = songSearchQuery.toLowerCase();
@@ -3449,24 +3485,15 @@ function App() {
 
                     return (
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #2b3650', marginBottom: '0.25rem' }}>
-                          {isAdmin && matches.length > 0 && (
-                            <input
-                              type="checkbox"
-                              checked={matches.every(tpl => templateSelection.has(tpl.id))}
-                              ref={(el) => { if (el) el.indeterminate = matches.some(tpl => templateSelection.has(tpl.id)) && !matches.every(tpl => templateSelection.has(tpl.id)); }}
-                              onChange={() => toggleTemplateGroup(matches)}
-                              title={t('selectEntireFolder')}
-                              style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
-                            />
-                          )}
+                        <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #2b3650', marginBottom: '0.25rem' }}>
                           <button
                             onClick={() => toggleFolderCollapsed(rootFolder)}
                             style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.15rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                             title={rootCollapsed ? t('expandFolder') : t('collapseFolder')}
                           ><ChevronIcon collapsed={rootCollapsed} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                           <span
-                            onClick={() => toggleFolderCollapsed(rootFolder)}
+                            onClick={() => { if (isAdmin) toggleTemplateGroup(matches); else toggleFolderCollapsed(rootFolder); }}
+                            title={isAdmin ? t('clickToSelectFolder') : undefined}
                             style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                           >{t('templatesFolder')} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({matches.length})</span></span>
                         </div>
@@ -3480,37 +3507,30 @@ function App() {
                           const items = byCategory[cat];
                           return (
                             <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: 'none', marginBottom: '0.15rem' }}>
-                                {isAdmin && (
-                                  <input
-                                    type="checkbox"
-                                    checked={items.every(tpl => templateSelection.has(tpl.id))}
-                                    ref={(el) => { if (el) el.indeterminate = items.some(tpl => templateSelection.has(tpl.id)) && !items.every(tpl => templateSelection.has(tpl.id)); }}
-                                    onChange={() => toggleTemplateGroup(items)}
-                                    title={t('selectEntireFolder')}
-                                    style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
-                                  />
-                                )}
+                              <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: 'none', marginBottom: '0.15rem' }}>
                                 <button
                                   onClick={() => toggleFolderCollapsed(subKey)}
                                   style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: '0 0.1rem', lineHeight: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                                   title={subCollapsed ? t('expandFolder') : t('collapseFolder')}
                                 ><ChevronIcon collapsed={subCollapsed} color="#cbd5e1" size={8} /><FolderIcon color="#cbd5e1" size={12} /></button>
                                 <span
-                                  onClick={() => toggleFolderCollapsed(subKey)}
+                                  onClick={() => { if (isAdmin) toggleTemplateGroup(items); else toggleFolderCollapsed(subKey); }}
+                                  title={isAdmin ? t('clickToSelectFolder') : undefined}
                                   style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                                 >{cat} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
                               {!subCollapsed && items.map((tpl, ri) => (
-                                <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.5rem 0.26rem 1rem', background: ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent' }}>
-                                  {isAdmin && (
-                                    <input
-                                      type="checkbox"
-                                      checked={templateSelection.has(tpl.id)}
-                                      onChange={() => toggleTemplate(tpl.id)}
-                                      style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
-                                    />
-                                  )}
+                                <div
+                                  key={tpl.id}
+                                  className={isAdmin ? 'lib-row' : undefined}
+                                  onClick={isAdmin ? ((e) => { e.stopPropagation(); pickTemplate(tpl.id); }) : undefined}
+                                  style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.5rem 0.26rem 1rem',
+                                    background: templateSelection.has(tpl.id) ? 'rgba(251,191,36,0.18)' : (ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent'),
+                                    borderLeft: `3px solid ${templateSelection.has(tpl.id) ? '#fbbf24' : 'transparent'}`,
+                                    cursor: isAdmin ? 'pointer' : 'default', userSelect: 'none',
+                                  }}
+                                >
                                   <DocIcon color="#fcd34d" size={12} /><span
                                     onDoubleClick={async () => {
                                       setShowSongLibrary(false);
@@ -3559,17 +3579,21 @@ function App() {
                     if (folders.length === 0) return (
                       <p style={{ color: '#64748b', textAlign: 'center', marginTop: '2rem' }}>{t('noResults')}</p>
                     );
+                    // Volgorde zoals ze op het scherm staan — nodig om met shift een reeks te pakken.
+                    const visibleSongIds = folders.flatMap(f => byFolder[f].map(s => s.id));
                     return folders.map(folder => (
                       <div key={folder}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0', borderBottom: '1px solid #334155', marginBottom: '0.25rem' }}>
-                          <input
-                            type="checkbox"
-                            checked={byFolder[folder].length > 0 && byFolder[folder].every(s => exportSelection.has(s.id))}
-                            ref={(el) => { if (el) el.indeterminate = byFolder[folder].some(s => exportSelection.has(s.id)) && !byFolder[folder].every(s => exportSelection.has(s.id)); }}
-                            onChange={() => toggleExportFolder(byFolder[folder])}
-                            title={t('selectFolderForExport')}
-                            style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
-                          />
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0',
+                            borderBottom: '1px solid #334155', marginBottom: '0.25rem',
+                            background: byFolder[folder].every(s => exportSelection.has(s.id))
+                              ? 'rgba(251,191,36,0.14)'
+                              : (byFolder[folder].some(s => exportSelection.has(s.id)) ? 'rgba(251,191,36,0.06)' : 'transparent'),
+                            userSelect: 'none',
+                          }}
+                        >
                           {renamingFolder === folder ? (
                             <input
                               autoFocus
@@ -3587,7 +3611,8 @@ function App() {
                                 title={collapsedFolders.has(folder) ? t('expandFolder') : t('collapseFolder')}
                               ><ChevronIcon collapsed={collapsedFolders.has(folder)} color="#cbd5e1" /><FolderIcon color="#cbd5e1" /></button>
                               <span
-                                onClick={() => toggleFolderCollapsed(folder)}
+                                onClick={() => pickFolder(byFolder[folder])}
+                                title={t('clickToSelectFolder')}
                                 style={{ flex: 1, color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 300, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
                               >{folder} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({byFolder[folder].length})</span></span>
                               <button
@@ -3599,14 +3624,19 @@ function App() {
                           )}
                         </div>
                         {!collapsedFolders.has(folder) && byFolder[folder].map((s, ri) => (
-                          <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.4rem', background: s.id === currentSongId ? 'rgba(59,130,246,0.15)' : (ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent') }}>
-                            <input
-                              type="checkbox"
-                              checked={exportSelection.has(s.id)}
-                              onChange={() => toggleExportSong(s.id)}
-                              title={t('selectForExport')}
-                              style={{ accentColor: '#fbbf24', cursor: 'pointer' }}
-                            />
+                          <div
+                            key={s.id}
+                            className="lib-row"
+                            onClick={(e) => { e.stopPropagation(); pickSong(s.id, e, visibleSongIds); }}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.26rem 0.4rem',
+                              background: exportSelection.has(s.id)
+                                ? 'rgba(251,191,36,0.18)'
+                                : (s.id === currentSongId ? 'rgba(59,130,246,0.15)' : (ri % 2 ? 'rgba(255,255,255,0.035)' : 'transparent')),
+                              borderLeft: `3px solid ${exportSelection.has(s.id) ? '#fbbf24' : 'transparent'}`,
+                              cursor: 'pointer', userSelect: 'none',
+                            }}
+                          >
                             {renamingSongId === s.id ? (
                               <input
                                 autoFocus
@@ -3627,7 +3657,7 @@ function App() {
                                 <DocIcon color={s.id === currentSongId ? '#93c5fd' : '#94a3b8'} size={12} />
                                 <span>{s.name}</span>
                                 <button
-                                  onClick={() => { setRenamingSongId(s.id); setRenameSongInput(s.name); }}
+                                  onClick={(e) => { e.stopPropagation(); setRenamingSongId(s.id); setRenameSongInput(s.name); }}
                                   onDoubleClick={(e) => e.stopPropagation()}
                                   style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.75rem', padding: '0 0.2rem', lineHeight: 1 }}
                                   title={t('renameTooltip')}
@@ -3636,12 +3666,12 @@ function App() {
                               </span>
                             )}
                             <button
-                              onClick={() => { setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
+                              onClick={(e) => { e.stopPropagation(); setMoveSongTarget({ id: s.id, name: s.name, folder: s.folder || 'Algemeen', patterns: s.patterns, bpm: s.bpm }); setMoveSongFolderInput(''); }}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
                               title={t('moveToOtherFolder')}
                             ><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg></button>
                             <button
-                              onClick={() => handleExportSong(s)}
+                              onClick={(e) => { e.stopPropagation(); handleExportSong(s); }}
                               style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer' }}
                               title={t('exportSongTitle')}
                             ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-2px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
