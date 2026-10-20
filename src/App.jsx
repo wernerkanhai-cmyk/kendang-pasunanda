@@ -980,6 +980,21 @@ function App() {
     setExportSelection(new Set()); setTemplateSelection(new Set());
   };
 
+  // De eerste keer dat de bibliotheek opengaat, klappen we alle mappen dicht —
+  // anders kijk je meteen tegen elke song aan. De twee hoofdmappen (Templates en
+  // Mijn songs) blijven open, zodat je in één blik ziet welke mappen er zijn.
+  // Wacht met instellen tot er iets geladen is; uit de cloud komen songs later
+  // binnen dan het venster opengaat.
+  const libraryCollapseInitRef = useRef(false);
+  useEffect(() => {
+    if (!showSongLibrary || libraryCollapseInitRef.current) return;
+    if (savedSongs.length === 0 && dbTemplates.length === 0) return;
+    libraryCollapseInitRef.current = true;
+    const dicht = new Set(savedSongs.map(s => s.folder || 'Algemeen'));
+    for (const tpl of dbTemplates) dicht.add(`__TEMPLATES__/${tpl.category || 'Algemeen'}`);
+    setCollapsedFolders(prev => new Set([...prev, ...dicht]));
+  }, [showSongLibrary, savedSongs, dbTemplates]);
+
   // Escape in de bibliotheek: eerst de selectie leeg, pas daarna het venster dicht.
   useEffect(() => {
     if (!showSongLibrary) return;
