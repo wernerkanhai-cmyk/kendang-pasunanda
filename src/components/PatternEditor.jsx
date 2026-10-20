@@ -87,6 +87,7 @@ const PatternEditor = ({
   const [collapsedSnippetFolders, setCollapsedSnippetFolders] = useState(() => new Set());
   const [snippetSelection, setSnippetSelection] = useState(() => new Set());
   const [snippetTemplateSelection, setSnippetTemplateSelection] = useState(() => new Set()); // template ids (admin)
+  const lastPickedSnippetRef = useRef(null); // ankerpunt voor shift+klik in de lijst
   const [showMetronomeMenu, setShowMetronomeMenu] = useState(false);
   const [metronomeMenuPos, setMetronomeMenuPos] = useState({ top: 0, left: 0 });
   const metronomeBtnRef = useRef(null);
@@ -856,38 +857,50 @@ const PatternEditor = ({
 
            {/* Snippet Manager Overlay */}
            {isManagingSnippets && (() => {
-             const toggleSnippetSelection = (id) => {
+             // Klik-selectie, net als in de songbibliotheek: de eerste klik kiest één
+             // regel, daarna voegt elke klik toe of haalt weg. Geen vaste hokjes.
+             const picked = snippetSelection.size + snippetTemplateSelection.size;
+             const pickSnippet = (id, e) => {
+               const anchor = lastPickedSnippetRef.current;
                setSnippetSelection(prev => {
+                 if (e?.shiftKey && anchor) {
+                   const order = savedSnippets.map(x => x.id);
+                   const a = order.indexOf(anchor);
+                   const b = order.indexOf(id);
+                   if (a !== -1 && b !== -1) {
+                     const next = new Set(prev);
+                     for (let i = Math.min(a, b); i <= Math.max(a, b); i++) next.add(order[i]);
+                     return next;
+                   }
+                 }
+                 if (picked === 0) return new Set([id]);
+                 const next = new Set(prev);
+                 if (next.has(id)) next.delete(id); else next.add(id);
+                 return next;
+               });
+               lastPickedSnippetRef.current = id;
+             };
+             const pickSnippetFolder = (snipsInFolder) => {
+               const ids = snipsInFolder.map(x => x.id);
+               if (ids.length === 0) return;
+               const allPicked = ids.every(id => snippetSelection.has(id));
+               setSnippetSelection(prev => {
+                 if (picked === 0) return new Set(ids);
+                 const next = new Set(prev);
+                 if (allPicked) ids.forEach(id => next.delete(id)); else ids.forEach(id => next.add(id));
+                 return next;
+               });
+             };
+             const pickSnippetTemplate = (id) => {
+               setSnippetTemplateSelection(prev => {
+                 if (picked === 0) return new Set([id]);
                  const next = new Set(prev);
                  if (next.has(id)) next.delete(id); else next.add(id);
                  return next;
                });
              };
-             const toggleSnippetTemplate = (id) => {
-               setSnippetTemplateSelection(prev => {
-                 const next = new Set(prev);
-                 if (next.has(id)) next.delete(id); else next.add(id);
-                 return next;
-               });
-             };
-             const toggleSnippetTemplateGroup = (templates) => {
-               setSnippetTemplateSelection(prev => {
-                 const next = new Set(prev);
-                 const allOn = templates.every(tpl => next.has(tpl.id));
-                 if (allOn) templates.forEach(tpl => next.delete(tpl.id));
-                 else templates.forEach(tpl => next.add(tpl.id));
-                 return next;
-               });
-             };
-             const toggleSnippetFolderSelection = (snipsInFolder) => {
-               setSnippetSelection(prev => {
-                 const next = new Set(prev);
-                 const allOn = snipsInFolder.every(s => next.has(s.id));
-                 if (allOn) snipsInFolder.forEach(s => next.delete(s.id));
-                 else snipsInFolder.forEach(s => next.add(s.id));
-                 return next;
-               });
-             };
+             const clearSnippetPicks = () => { setSnippetSelection(new Set()); setSnippetTemplateSelection(new Set()); };
+
              const toggleSnippetFolderCollapsed = (folder) => {
                setCollapsedSnippetFolders(prev => {
                  const next = new Set(prev);
@@ -952,17 +965,7 @@ const PatternEditor = ({
                   // eslint-disable-next-line no-constant-condition -- factory-templates altijd tonen, ook als de lijst leeg is
                   return factorySnippets.length > 0 || true ? ( // always show, even when empty
                     <div style={{ marginBottom: '0.6rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #d4af37', paddingBottom: '0.2rem' }}>
-                        {isAdmin && factorySnippets.length > 0 && (
-                          <input
-                            type="checkbox"
-                            checked={factorySnippets.every(tpl => snippetTemplateSelection.has(tpl.id))}
-                            ref={(el) => { if (el) el.indeterminate = factorySnippets.some(tpl => snippetTemplateSelection.has(tpl.id)) && !factorySnippets.every(tpl => snippetTemplateSelection.has(tpl.id)); }}
-                            onChange={() => toggleSnippetTemplateGroup(factorySnippets)}
-                            title={t('selectEntireFolder')}
-                            style={{ accentColor: '#d4af37', cursor: 'pointer' }}
-                          />
-                        )}
+                      <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #d4af37', paddingBottom: '0.2rem' }}>
                         <button
                           onClick={() => toggleSnippetFolderCollapsed(tplFolderName)}
                           style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
@@ -990,17 +993,7 @@ const PatternEditor = ({
                           const items = byCategory[cat];
                           return (
                             <div key={cat} style={{ marginLeft: '0.5rem', marginBottom: '0.25rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #3f2e10', marginBottom: '0.15rem' }}>
-                                {isAdmin && (
-                                  <input
-                                    type="checkbox"
-                                    checked={items.every(tpl => snippetTemplateSelection.has(tpl.id))}
-                                    ref={(el) => { if (el) el.indeterminate = items.some(tpl => snippetTemplateSelection.has(tpl.id)) && !items.every(tpl => snippetTemplateSelection.has(tpl.id)); }}
-                                    onChange={() => toggleSnippetTemplateGroup(items)}
-                                    title={t('selectEntireFolder')}
-                                    style={{ accentColor: '#d4af37', cursor: 'pointer' }}
-                                  />
-                                )}
+                              <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #3f2e10', marginBottom: '0.15rem' }}>
                                 <button
                                   onClick={() => toggleSnippetFolderCollapsed(subKey)}
                                   style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
@@ -1012,15 +1005,12 @@ const PatternEditor = ({
                                 >{cat} <span style={{ color: '#7a5e16', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
                               {!subCollapsed && items.map(tpl => (
-                                <div key={tpl.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem 0.3rem 1rem', background: 'rgba(212,175,55,0.05)', borderRadius: '4px', marginBottom: '2px' }}>
-                                  {isAdmin && (
-                                    <input
-                                      type="checkbox"
-                                      checked={snippetTemplateSelection.has(tpl.id)}
-                                      onChange={() => toggleSnippetTemplate(tpl.id)}
-                                      style={{ accentColor: '#d4af37', cursor: 'pointer' }}
-                                    />
-                                  )}
+                                <div
+                                  key={tpl.id}
+                                  className={isAdmin ? 'lib-row' : undefined}
+                                  onClick={isAdmin ? ((e) => { e.stopPropagation(); pickSnippetTemplate(tpl.id); }) : undefined}
+                                  data-picked={snippetTemplateSelection.has(tpl.id) ? '1' : undefined}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem 0.3rem 1rem', background: 'rgba(212,175,55,0.05)', borderRadius: '4px', marginBottom: '2px' }}>
                                   <span
                                     onDoubleClick={() => handleInsertSnippet?.(tpl)}
                                     title={t('doubleClickToInsert')}
@@ -1039,23 +1029,13 @@ const PatternEditor = ({
                 {savedSnippets.length === 0 ? (
                    <div style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>{t('noPatternsStored')}</div>
                 ) : (
-                   <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                   <div onClick={clearSnippetPicks} style={{ maxHeight: '300px', overflowY: 'auto' }}>
                       {Array.from(new Set(savedSnippets.map(s => s.folder || 'Algemeen'))).sort().map(folderName => {
                          const snipsInFolder = savedSnippets.filter(s => (s.folder || 'Algemeen') === folderName);
                          const isCollapsed = collapsedSnippetFolders.has(folderName);
-                         const allChecked = snipsInFolder.length > 0 && snipsInFolder.every(s => snippetSelection.has(s.id));
-                         const someChecked = !allChecked && snipsInFolder.some(s => snippetSelection.has(s.id));
                          return (
                          <div key={folderName} style={{ marginBottom: '0.6rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #1e293b', paddingBottom: '0.2rem' }}>
-                              <input
-                                type="checkbox"
-                                checked={allChecked}
-                                ref={(el) => { if (el) el.indeterminate = someChecked; }}
-                                onChange={() => toggleSnippetFolderSelection(snipsInFolder)}
-                                style={{ accentColor: '#a78bfa', cursor: 'pointer' }}
-                                title={t('selectEntireFolder')}
-                              />
+                            <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #1e293b', paddingBottom: '0.2rem' }}>
                               {renamingSnippetFolder === folderName ? (
                                 <input
                                   autoFocus
@@ -1076,7 +1056,8 @@ const PatternEditor = ({
                                     title={isCollapsed ? t('expandFolder') : t('collapseFolder')}
                                   >{isCollapsed ? '▶' : '▼'}</button>
                                   <span
-                                    onClick={() => toggleSnippetFolderCollapsed(folderName)}
+                                    onClick={() => pickSnippetFolder(snipsInFolder)}
+                                    title={t('clickToSelectFolder')}
                                     style={{ flex: 1, fontSize: '0.75rem', color: '#38bdf8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px', cursor: 'pointer' }}
                                   ><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px', marginRight: '5px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg>{folderName} <span style={{ color: '#475569', fontWeight: 'normal' }}>({snipsInFolder.length})</span></span>
                                   <button
@@ -1088,13 +1069,17 @@ const PatternEditor = ({
                               )}
                             </div>
                             {!isCollapsed && snipsInFolder.map(snip => (
-                               <div key={snip.id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '4px', marginBottom: '2px' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={snippetSelection.has(snip.id)}
-                                    onChange={() => toggleSnippetSelection(snip.id)}
-                                    style={{ accentColor: '#a78bfa', cursor: 'pointer' }}
-                                  />
+                               <div
+                                 key={snip.id}
+                                 className="lib-row"
+                                 onClick={(e) => { e.stopPropagation(); pickSnippet(snip.id, e); }}
+                                 style={{
+                                   display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.5rem',
+                                   background: snippetSelection.has(snip.id) ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.03)',
+                                   borderLeft: `3px solid ${snippetSelection.has(snip.id) ? '#a78bfa' : 'transparent'}`,
+                                   borderRadius: '4px', marginBottom: '2px', cursor: 'pointer', userSelect: 'none',
+                                 }}
+                               >
                                   {renamingSnippetId === snip.id ? (
                                     <input
                                       autoFocus
