@@ -968,12 +968,12 @@ const PatternEditor = ({
                       <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', borderBottom: '1px solid #d4af37', paddingBottom: '0.2rem' }}>
                         <button
                           onClick={() => toggleSnippetFolderCollapsed(tplFolderName)}
-                          style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                          style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
                         >{isCollapsed ? '▶' : '▼'}</button>
                         <span
                           onClick={() => toggleSnippetFolderCollapsed(tplFolderName)}
-                          style={{ flex: 1, color: '#d4af37', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer' }}
-                        >📦 Templates <span style={{ color: '#a37f1e', fontWeight: 'normal' }}>({factorySnippets.length})</span></span>
+                          style={{ flex: 1, color: '#ffffff', fontSize: '0.75rem', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.5px', cursor: 'pointer' }}
+                        >Templates <span style={{ color: '#64748b', fontWeight: 'normal' }}>({factorySnippets.length})</span></span>
                       </div>
                       {!isCollapsed && (factorySnippets.length === 0 ? (
                         <div style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic', padding: '0.3rem 0.5rem' }}>
@@ -996,13 +996,13 @@ const PatternEditor = ({
                               <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px dashed #3f2e10', marginBottom: '0.15rem' }}>
                                 <button
                                   onClick={() => toggleSnippetFolderCollapsed(subKey)}
-                                  style={{ background: 'none', border: 'none', color: '#a37f1e', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
+                                  style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '0.65rem', padding: '0 0.1rem', lineHeight: 1 }}
                                   title={subCollapsed ? t('expandFolder') : t('collapseFolder')}
                                 >{subCollapsed ? '▶' : '▼'}</button>
                                 <span
                                   onClick={() => toggleSnippetFolderCollapsed(subKey)}
-                                  style={{ flex: 1, color: '#a37f1e', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer' }}
-                                >{cat} <span style={{ color: '#7a5e16', fontWeight: 'normal' }}>({items.length})</span></span>
+                                  style={{ flex: 1, color: '#ffffff', fontSize: '0.7rem', fontWeight: 400, cursor: 'pointer' }}
+                                >{cat} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({items.length})</span></span>
                               </div>
                               {!subCollapsed && items.map(tpl => (
                                 <div
@@ -1052,14 +1052,14 @@ const PatternEditor = ({
                                 <>
                                   <button
                                     onClick={() => toggleSnippetFolderCollapsed(folderName)}
-                                    style={{ background: 'none', border: 'none', color: '#38bdf8', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
+                                    style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.15rem', lineHeight: 1 }}
                                     title={isCollapsed ? t('expandFolder') : t('collapseFolder')}
                                   >{isCollapsed ? '▶' : '▼'}</button>
                                   <span
                                     onClick={() => pickSnippetFolder(snipsInFolder)}
                                     title={t('clickToSelectFolder')}
-                                    style={{ flex: 1, fontSize: '0.75rem', color: '#38bdf8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px', cursor: 'pointer' }}
-                                  ><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: '-1px', marginRight: '5px' }}><path d="M2 4.2h3.4l1.2 1.4H14v6.6a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6z"/></svg>{folderName} <span style={{ color: '#475569', fontWeight: 'normal' }}>({snipsInFolder.length})</span></span>
+                                    style={{ flex: 1, fontSize: '0.75rem', color: '#ffffff', textTransform: 'uppercase', fontWeight: 400, letterSpacing: '0.5px', cursor: 'pointer' }}
+                                  >{folderName} <span style={{ color: '#475569', fontWeight: 'normal' }}>({snipsInFolder.length})</span></span>
                                   <button
                                     onClick={() => { setRenamingSnippetFolder(folderName); setRenamingSnippetFolderInput(folderName); }}
                                     style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.7rem', padding: '0 0.2rem' }}
@@ -1096,7 +1096,7 @@ const PatternEditor = ({
                                     <span
                                       onDoubleClick={() => handleInsertSnippet?.(snip)}
                                       title={t('doubleClickToInsert')}
-                                      style={{ flex: 1, fontSize: '0.85rem', color: '#e2e8f0', cursor: 'pointer' }}
+                                      style={{ flex: 1, fontSize: '0.85rem', color: snippetSelection.has(snip.id) ? '#ede9fe' : '#a78bfa', cursor: 'pointer' }}
                                     >{snip.name}</span>
                                   )}
                                   <button
