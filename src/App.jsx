@@ -2230,6 +2230,7 @@ function App() {
     let targetPatternId = activeSlot ? activeSlot.patternId : song[0]?.id;
     let advanceCursor = false;
     let nextCursorIndex = activeSlot ? activeSlot.startIndex : 0;
+    let nextCursorPatternId = activeSlot ? activeSlot.patternId : song[0]?.id;
 
     if (isRecording) {
        // Live recording: scheduler loopt ~1 slot voor door lookahead — corrigeer
@@ -2246,6 +2247,24 @@ function App() {
        // 'write' mode logic: 
        // User can write to the top line AND bottom line of the ACTIVE ROW simultaneously.
        
+       // Lengte van déze regel — niet hardgecodeerd 192, want een regel kan korter
+       // of langer zijn als je maten toevoegt of weghaalt.
+       const activePatt = song.find(p => p.id === activeSlot?.patternId) || song[0];
+       const currentMaxSlots = activePatt.anak.length;
+       const volgendePatt = song[song.findIndex(p => p.id === activePatt.id) + 1];
+
+       // Een positie voorbij het eind van de regel schuift door naar de volgende
+       // regel, net als met de pijltjes. Is er geen volgende regel, dan blijft hij
+       // op de laatste positie staan. Vroeger sprong hij terug naar het begin van
+       // dezelfde regel en overschreef je ongemerkt wat je net had ingevoerd.
+       const doorschuiven = (slot, patternId) => {
+          if (slot < currentMaxSlots) return { patternId, slot };
+          if (volgendePatt) {
+             return { patternId: volgendePatt.id, slot: Math.min(slot - currentMaxSlots, volgendePatt.anak.length - 1) };
+          }
+          return { patternId, slot: currentMaxSlots - 1 };
+       };
+
        if (timeDiff < 80 && drumTapRef.current.symbolHand !== getHandForSound(symbol)) { 
           // Simultaneous hit on DIFFERENT HANDS (top & bottom keys) - place them on the exact same slot
           targetSlotIndex = drumTapRef.current.slotIndex; 
@@ -2259,26 +2278,22 @@ function App() {
           if (magneticInput) {
              targetSlotIndex = Math.round(targetSlotIndex / gridResolution) * gridResolution;
           }
-          if (targetSlotIndex >= 192) targetSlotIndex = targetSlotIndex % 192;
        } else {
           // EITHER enough time passed to start a new grouping. Write exactly at the cursor!
           targetSlotIndex = activeSlot ? activeSlot.startIndex : 0; 
           if (magneticInput) {
              targetSlotIndex = Math.round(targetSlotIndex / gridResolution) * gridResolution;
           }
-          if (targetSlotIndex >= 192) targetSlotIndex = 0;
        }
-       
+       const schrijfPlek = doorschuiven(targetSlotIndex, targetPatternId);
+       targetPatternId = schrijfPlek.patternId;
+       targetSlotIndex = schrijfPlek.slot;
+
        advanceCursor = true;
        // Advance cursor by the active grid resolution (Q setting).
-       nextCursorIndex = activeSlot.startIndex + gridResolution;
-       
-       // Calculate current dynamic bounds mapping
-       const activePatt = song.find(p => p.id === activeSlot?.patternId) || song[0];
-       const currentMaxSlots = activePatt.anak.length;
-       
-       if (targetSlotIndex >= currentMaxSlots) targetSlotIndex = currentMaxSlots - 12;
-       if (nextCursorIndex >= currentMaxSlots) nextCursorIndex = 0;
+       const cursorPlek = doorschuiven(activeSlot.startIndex + gridResolution, nextCursorPatternId);
+       nextCursorPatternId = cursorPlek.patternId;
+       nextCursorIndex = cursorPlek.slot;
     }
 
     // Register this tap immediately for the next calculation
@@ -2338,8 +2353,14 @@ function App() {
       setActiveSlot(prevSlot => {
         if (!prevSlot) return prevSlot;
         // The cursor itself always visually highlights what inputMode says is active
-        return { patternId: prevSlot.patternId, trackId: inputMode, startIndex: nextCursorIndex, endIndex: nextCursorIndex };
+        return { patternId: nextCursorPatternId, trackId: inputMode, startIndex: nextCursorIndex, endIndex: nextCursorIndex };
       });
+      // Stapte de cursor naar een andere regel, maak die dan actief en breng hem
+      // in beeld — anders typ je verder in een regel die je niet ziet.
+      if (nextCursorPatternId !== activeSlot?.patternId) {
+        setActivePatternId(nextCursorPatternId);
+        setCursorNudge(c => c + 1);
+      }
     }
   };
 
