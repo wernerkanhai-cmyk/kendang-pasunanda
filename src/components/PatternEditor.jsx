@@ -447,6 +447,13 @@ const PatternEditor = ({
       const sound = keyToSound[e.key];
       if (sound && s.onDrumTrigger) {
         e.preventDefault();
+        // Zelfde verhaal als bij de pijltjes: elke regel luistert op window, dus
+        // één aanslag komt overal binnen. Nu een getypte noot de cursor naar de
+        // volgende regel kan brengen, zou die andere regel dezelfde aanslag nog
+        // eens afhandelen en de cursor een stap te ver zetten.
+        if (e.__kendangNoteTyped) return;
+        if (s.activeSlot?.patternId !== s.patternId) return;
+        e.__kendangNoteTyped = true;
         s.onDrumTrigger(sound, s.activeSlot?.trackId || 'anak');
       }
     };
