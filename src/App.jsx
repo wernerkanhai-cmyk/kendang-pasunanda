@@ -2190,6 +2190,14 @@ function App() {
     setCursorNudge(c => c + 1);
   };
 
+  // Cursor naar een ander spoor (anak/indung) zonder de muis. inputMode moet mee,
+  // want daar leest het opschuiven van de cursor na een getypte noot uit.
+  const setCursorTrack = (trackId) => {
+    if (!trackId || !activeSlot || activeSlot.trackId === trackId) return;
+    setActiveSlot(prev => (prev ? { ...prev, trackId } : prev));
+    setInputMode(trackId);
+  };
+
   // Preview-only trigger — speelt het geluid in de gevraagde track zonder
   // ook in de actieve pattern te schrijven. Gebruikt door SettingsPanel
   // om de gain/pitch-aanpassingen per track te kunnen beluisteren.
@@ -3904,6 +3912,7 @@ function App() {
                       togglePlay={togglePlay}
                       cursorNudge={cursorNudge}
                       moveCursor={moveCursor}
+                      setCursorTrack={setCursorTrack}
                       gridResolution={gridResolution}
                       magneticInput={magneticInput}
                       setGridResolution={setGridResolution}

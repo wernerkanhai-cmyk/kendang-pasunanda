@@ -29,6 +29,7 @@ const PatternEditor = ({
   togglePlay,
   cursorNudge,
   moveCursor,
+  setCursorTrack,
   gridResolution,
   magneticInput,
   setGridResolution,
@@ -364,6 +365,7 @@ const PatternEditor = ({
       togglePlay, handleUndo, handleRedo, onDrumTrigger,
       getActiveRange, handleClear, handleToggleAccent,
       moveCursor, gridResolution, patternId: pattern.id,
+      setCursorTrack, tracks: instrumentPack?.tracks || [],
     };
   });
 
@@ -381,6 +383,24 @@ const PatternEditor = ({
       // Cursor een rasterstap opschuiven; met shift precies één slot. De stap
       // volgt de rasterkeuze in de werkbalk (1/8 = 6 slots, 1/16 = 3, enz.) en
       // loopt aan het eind van een regel door naar de volgende.
+      // Omhoog en omlaag wisselen van spoor: boven is anak, eronder indung. Zo
+      // kun je met alleen het toetsenbord in beide regels slagen zetten. De lijst
+      // komt uit de instrument-pack, dus een pack met andere trommels werkt net zo.
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (e.__kendangTrackSwitched) return;
+        if (s.activeSlot?.patternId !== s.patternId) return;
+        e.__kendangTrackSwitched = true;
+        const sporen = (s.tracks || []).map(tr => tr.id);
+        if (sporen.length === 0) return;
+        const nu = sporen.indexOf(s.activeSlot?.trackId);
+        if (nu === -1) { s.setCursorTrack?.(sporen[0]); return; }
+        const doel = e.key === 'ArrowUp' ? nu - 1 : nu + 1;
+        if (doel < 0 || doel >= sporen.length) return; // al boven- of onderaan
+        s.setCursorTrack?.(sporen[doel]);
+        return;
+      }
+
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         e.preventDefault();
         // Elke regel luistert zelf op window, dus één aanslag komt bij allemaal
