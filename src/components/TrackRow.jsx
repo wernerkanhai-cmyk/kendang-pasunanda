@@ -595,7 +595,11 @@ const TrackRow = ({ trackId, slots, notationPack, theme, activeRange, loopRange 
           else if (isGridLine) borderClasses += ' grid-line';
           else if (isSubStepStart) borderClasses += ' substep-start';
 
-          const isActive = activeRange && index >= activeRange.start && index < activeRange.end;
+          // Eén positie (start === end) is ook een cursor: dan lichten we die ene cel
+          // op. Zonder dit zie je na een klik, na een getypte noot of na de pijltjes
+          // niet waar je staat — alleen een gesleepte selectie was zichtbaar.
+          const isActive = activeRange && index >= activeRange.start
+            && index < Math.max(activeRange.end, activeRange.start + 1);
           const isLoopRange = loopRange && index >= loopRange.start && index < loopRange.end;
 
           const isRestTop = slot.top === SYMBOL_REST;
