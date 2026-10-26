@@ -118,7 +118,7 @@ function App() {
   const bpmDragRef = useRef(null); // { startY, moved } voor sleep-tempo in de header
   const [bpmAdjusting, setBpmAdjusting] = useState(false); // sleep je nu aan het globale tempo?
   const [isPlaying, setIsPlaying] = useState(false);
-  const [stepBackCount, setStepBackCount] = useState(0);
+  const [cursorNudge, setCursorNudge] = useState(0); // telt elke cursorsprong, zodat de regel meescrollt
   const [isRecording, setIsRecording] = useState(false);
   const loopingPatternIdRef = useRef(null);
   const [loopRange, setLoopRange] = useState(null); // { patternId, startSlot, endSlot } local slots
@@ -312,11 +312,11 @@ function App() {
     if (activePatternId) localStorage.setItem('kendangCurrentPatternId', activePatternId);
   }, [activePatternId]);
 
-  // Scroll active pattern timeline into view on rewind
+  // Loopt de cursor door naar een andere regel, breng die regel dan in beeld.
   useEffect(() => {
-    if (!stepBackCount) return;
+    if (!cursorNudge) return;
     document.getElementById(`timeline-${activePatternId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [stepBackCount]);
+  }, [cursorNudge]);
 
   // When switching between edit and practice mode, scroll the playhead into view.
   // NIET bij de eerste mount: bij opstart (bv. in performance-modus) zou
@@ -593,7 +593,6 @@ function App() {
 
   // Ref to track tapping speed without stale closures for smart resolution
   const drumTapRef = useRef({ time: 0, slotIndex: 0, trackId: '' });
-  const lastRewindTimeRef = useRef(0);
   const currentAudioSlotRef = useRef(0); // Werkelijke afspeelslot (gesynchroniseerd met onTick)
   // Output-latency (speaker pipeline) gesampled bij start van afspelen, NIET live per
   // frame — anders verspringt de cursor t.o.v. reeds ingeplande audio zodra het OS de
@@ -2157,30 +2156,6 @@ function App() {
     sched.scheduler();
   };
 
-  const rewind = () => {
-    if (!schedulerRef.current) return;
-    const now = Date.now();
-    const isDoubleClick = now - lastRewindTimeRef.current < 500;
-    lastRewindTimeRef.current = now;
-
-    const globalCurrent = schedulerRef.current.currentSlot;
-    let targetGlobal;
-    if (isDoubleClick) {
-      // 2× klikken → begin van de huidige loop (of slot 0 als geen loop actief)
-      targetGlobal = schedulerRef.current.loopStart;
-    } else {
-      // 1× klikken → 1 maat terug
-      targetGlobal = Math.max(0, globalCurrent - 48);
-    }
-
-    if (isPlaying) {
-      seekToSlot(targetGlobal);
-    } else {
-      schedulerRef.current.setCurrentSlot(targetGlobal);
-    }
-    const { patternId, localSlot } = globalToLocal(targetGlobal, song);
-    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
-  };
 
   const handleSeek = (patternId, localSlot) => {
     if (!isPlaying || !schedulerRef.current) return;
@@ -2189,28 +2164,20 @@ function App() {
     setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
   };
 
-  const stepBack = () => {
-    if (!schedulerRef.current) return;
-    let globalCurrent;
-    if (isPlaying) {
-      globalCurrent = schedulerRef.current.currentSlot;
-    } else if (activeSlot) {
-      globalCurrent = localToGlobal(activeSlot.patternId, activeSlot.startIndex, song);
-    } else {
-      globalCurrent = schedulerRef.current.currentSlot;
-    }
-    const measureStart = Math.floor(globalCurrent / 48) * 48;
-    const targetGlobal = Math.max(0, globalCurrent === measureStart ? measureStart - 48 : measureStart);
 
-    if (isPlaying) {
-      seekToSlot(targetGlobal);
-    } else {
-      schedulerRef.current.setCurrentSlot(targetGlobal);
-    }
-    const { patternId, localSlot } = globalToLocal(targetGlobal, song);
-    setActiveSlot(prev => prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev);
+  // Cursor een aantal slots vooruit (positief) of achteruit (negatief). Loopt
+  // door naar de volgende of vorige regel en stopt aan het begin en eind van de
+  // song. De teller zorgt dat de regel meescrollt als de cursor uit beeld loopt.
+  const moveCursor = (deltaSlots) => {
+    if (!activeSlot || song.length === 0) return;
+    const totaal = song.reduce((n, p) => n + p.anak.length, 0);
+    const huidig = localToGlobal(activeSlot.patternId, activeSlot.startIndex, song);
+    const doel = Math.max(0, Math.min(totaal - 1, huidig + deltaSlots));
+    if (doel === huidig) return;
+    const { patternId, localSlot } = globalToLocal(doel, song);
+    setActiveSlot(prev => (prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev));
     setActivePatternId(patternId);
-    setStepBackCount(c => c + 1);
+    setCursorNudge(c => c + 1);
   };
 
   // Preview-only trigger — speelt het geluid in de gevraagde track zonder
@@ -3904,9 +3871,8 @@ function App() {
                       isRecording={isRecording}
                       isPlaying={isPlaying}
                       togglePlay={togglePlay}
-                      rewind={rewind}
-                      stepBack={stepBack}
-                      stepBackCount={stepBackCount}
+                      cursorNudge={cursorNudge}
+                      moveCursor={moveCursor}
                       gridResolution={gridResolution}
                       magneticInput={magneticInput}
                       setGridResolution={setGridResolution}

@@ -27,7 +27,8 @@ const PatternEditor = ({
   isRecording,
   isPlaying,
   togglePlay,
-  stepBackCount,
+  cursorNudge,
+  moveCursor,
   gridResolution,
   magneticInput,
   setGridResolution,
@@ -202,13 +203,13 @@ const PatternEditor = ({
     }
   }, [activeSlot, isPlaying, isActive, slotWidth]);
 
-  // Scroll playhead into view after stepBack
+  // Houd de cursor in beeld als hij met de pijltjes uit het zicht loopt.
   useEffect(() => {
-    if (!stepBackCount || !isActive || !activeSlot || !timelineRef.current) return;
+    if (!cursorNudge || !isActive || !activeSlot || !timelineRef.current) return;
     const currentSlot = activeSlot.startIndex;
     const targetScrollLeft = Math.floor(currentSlot / 48) * 48 * slotWidth;
     timelineRef.current.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-  }, [stepBackCount]);
+  }, [cursorNudge]);
   
   const handleNameChange = (e) => {
     updatePattern({ ...pattern, name: e.target.value });
@@ -362,6 +363,7 @@ const PatternEditor = ({
       isActive, activeSlot, notationPack,
       togglePlay, handleUndo, handleRedo, onDrumTrigger,
       getActiveRange, handleClear, handleToggleAccent,
+      moveCursor, gridResolution, patternId: pattern.id,
     };
   });
 
@@ -371,7 +373,28 @@ const PatternEditor = ({
       if (!s) return;
       // Only handle if this specific pattern editor is the currently active one
       if (!s.isActive) return;
-      if (document.activeElement.tagName === 'INPUT') return; // Don't steal backspace from naming input
+      // Niet ingrijpen terwijl je in een invoerveld of keuzelijst zit — daar
+      // hebben de pijltjes en de spatie hun eigen betekenis.
+      const focus = document.activeElement?.tagName;
+      if (focus === 'INPUT' || focus === 'SELECT' || focus === 'TEXTAREA') return;
+
+      // Cursor een rasterstap opschuiven; met shift precies één slot. De stap
+      // volgt de rasterkeuze in de werkbalk (1/8 = 6 slots, 1/16 = 3, enz.) en
+      // loopt aan het eind van een regel door naar de volgende.
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        // Elke regel luistert zelf op window, dus één aanslag komt bij allemaal
+        // binnen. Alleen de regel waar de cursor staat verplaatst hem — en zodra
+        // dat gebeurd is markeren we het event, want op de grens tussen twee
+        // regels heeft React al opnieuw gerenderd voordat de volgende luisteraar
+        // aan de beurt is en zou die zich óók aangesproken voelen.
+        if (e.__kendangCursorMoved) return;
+        if (s.activeSlot?.patternId !== s.patternId) return;
+        e.__kendangCursorMoved = true;
+        const stap = e.shiftKey ? 1 : (s.gridResolution || 1);
+        s.moveCursor?.(e.key === 'ArrowRight' ? stap : -stap);
+        return;
+      }
 
       if (e.key === ' ') {
         e.preventDefault();
