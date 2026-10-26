@@ -2170,9 +2170,19 @@ function App() {
   // song. De teller zorgt dat de regel meescrollt als de cursor uit beeld loopt.
   const moveCursor = (deltaSlots) => {
     if (!activeSlot || song.length === 0) return;
+    const stap = Math.abs(deltaSlots) || 1;
     const totaal = song.reduce((n, p) => n + p.anak.length, 0);
     const huidig = localToGlobal(activeSlot.patternId, activeSlot.startIndex, song);
-    const doel = Math.max(0, Math.min(totaal - 1, huidig + deltaSlots));
+    // Landen op hele stappen van het raster, gerekend vanaf het begin van de maat.
+    // Elke rasterwaarde (2, 3, 4, 6, 12, 16) past een geheel aantal keer in een maat
+    // van 48 slots, en elke regel begint op een maatgrens — een veelvoud vanaf het
+    // begin van de song valt dus samen met een veelvoud vanaf het begin van de maat.
+    // Stond de cursor ertussenin, bijvoorbeeld na shift+pijl of na het wisselen van
+    // rasterkeuze, dan schuift hij mee naar de eerstvolgende hele positie.
+    const laatste = Math.floor((totaal - 1) / stap) * stap;
+    const doel = Math.max(0, Math.min(laatste, deltaSlots > 0
+      ? Math.floor(huidig / stap) * stap + stap
+      : Math.ceil(huidig / stap) * stap - stap));
     if (doel === huidig) return;
     const { patternId, localSlot } = globalToLocal(doel, song);
     setActiveSlot(prev => (prev ? { ...prev, patternId, startIndex: localSlot, endIndex: localSlot } : prev));
